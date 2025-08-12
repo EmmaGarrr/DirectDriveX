@@ -200,6 +200,10 @@ jspm_packages/
 .nuxt
 dist
 
+# Angular cache
+.angular/
+.angular/cache/
+
 # Gatsby files
 .cache/
 public
