@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: directdrive-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017/directdrive
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=False
+      - GOOGLE_DRIVE_CLIENT_ID=${GOOGLE_DRIVE_CLIENT_ID}
+      - GOOGLE_DRIVE_CLIENT_SECRET=${GOOGLE_DRIVE_CLIENT_SECRET}
+      - HETZNER_API_TOKEN=${HETZNER_API_TOKEN}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    depends_on:
+      - mongo
+      - redis
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    networks:
+      - directdrive-network
+
+  frontend:
+    build: ../frontend
+    container_name: directdrive-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - directdrive-network
+
+  mongo:
+    image: mongo:6.0
+    container_name: directdrive-mongo
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_DATABASE=directdrive
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    ports:
+      - "27017:27017"
+    networks:
+      - directdrive-network
+    command: mongod --wiredTigerCacheSizeGB 1 --auth
+
+  redis:
+    image: redis:7-alpine
+    container_name: directdrive-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - directdrive-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: directdrive-nginx
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - directdrive-network
+
+  celery-worker:
+    build: .
+    container_name: directdrive-celery
+    restart: unless-stopped
+    command: celery -A app.celery_worker worker --loglevel=info
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017/directdrive
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=False
+    depends_on:
+      - mongo
+      - redis
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    networks:
+      - directdrive-network
+
+  celery-beat:
+    build: .
+    container_name: directdrive-celery-beat
+    restart: unless-stopped
+    command: celery -A app.celery_worker beat --loglevel=info
+    environment:
+      - DATABASE_URL=mongodb://mongo:27017/directdrive
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=False
+    depends_on:
+      - mongo
+      - redis
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - directdrive-network
+
+volumes:
+  mongo_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  directdrive-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
