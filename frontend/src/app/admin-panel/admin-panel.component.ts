@@ -109,6 +109,16 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
   public notificationCount: number = 0;
   public notifications: Notification[] = [];
   
+  // Loading states
+  public loadingSystemStats = false;
+  public loadingGdriveStats = false;
+  public loadingChartData = false;
+  
+  // Error states
+  public systemStatsError = '';
+  public gdriveStatsError = '';
+  public chartDataError = '';
+  
   public systemStats: SystemStats = {
     totalUsers: 0,
     userGrowth: 0,
@@ -136,11 +146,11 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
   };
 
   public storageDistribution: StorageDistribution = {
-    googleDrive: 70,
-    hetzner: 30
+    googleDrive: 0,
+    hetzner: 0
   };
   
-  private readonly adminToken = 'some_very_secret_and_long_random_string_12345';
+  // Remove hardcoded admin token - use service instead
   private statsInterval?: any;
 
   constructor(
@@ -158,7 +168,7 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
     this.loadSystemStats();
     this.loadGoogleDriveStats();
     this.initializeNotifications();
-    this.generateMockChartData();
+    // Remove mock chart data generation - will be populated from real data
     
     // Listen for stats updates from other components
     this.adminStatsService.statsUpdate$.subscribe(() => {
@@ -233,8 +243,8 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
           },
           (error) => {
             console.warn('WebSocket message error:', error);
-            // Fall back to mock events on error
-            this.addInitialEvents();
+            // Show connection error instead of mock events
+            this.showConnectionError();
           }
         );
 
@@ -243,40 +253,40 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
           (status: boolean) => {
             this.isConnected = status;
             if (!status) {
-              // If connection fails, add some initial events for demo
-              this.addInitialEvents();
+              // Show connection status instead of mock events
+              this.showConnectionError();
             }
           }
         );
       } catch (error) {
-        console.warn('WebSocket connection failed, using mock events:', error);
-        this.isConnected = true; // Set to true for mock mode
-        this.addInitialEvents();
+        console.warn('WebSocket connection failed:', error);
+        this.isConnected = false;
+        this.showConnectionError();
       }
     } else {
-      // No admin token, use mock events
-      this.isConnected = true;
-      this.addInitialEvents();
+      // No admin token, show appropriate message
+      this.isConnected = false;
+      this.showConnectionError();
     }
   }
   
+  private showConnectionError(): void {
+    // Clear any existing events and show connection status
+    this.events = [];
+    this.addConnectionStatusEvent();
+  }
+  
+  private addConnectionStatusEvent(): void {
+    const statusEvent = this.isConnected 
+      ? 'WebSocket connection established successfully'
+      : 'WebSocket connection unavailable - using polling mode';
+    this.events.unshift(statusEvent);
+  }
+
+  // Remove mock event generation - replace with connection status
   private addInitialEvents(): void {
-    const initialEvents = [
-      'System startup completed successfully',
-      'Admin panel loaded - admin@directdrive.com logged in',
-      'Database connection established',
-      'Backup service initialized',
-      'File monitoring service started'
-    ];
-    
-    initialEvents.forEach((event, index) => {
-      setTimeout(() => {
-        this.events.unshift(event);
-        if (this.events.length > 100) {
-          this.events = this.events.slice(0, 100);
-        }
-      }, index * 1000); // Add events with 1-second delay
-    });
+    // This method is deprecated - use showConnectionError instead
+    this.showConnectionError();
   }
 
 
@@ -416,7 +426,10 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
   }
 
   // Stats Management
-  private async loadSystemStats(): Promise<void> {
+  public async loadSystemStats(): Promise<void> {
+    this.loadingSystemStats = true;
+    this.systemStatsError = '';
+    
     try {
       const headers = this.getAdminHeaders();
       const response = await this.http.get<SystemHealthResponse>(
@@ -436,9 +449,12 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
         };
         
         this.isConnected = true;
+        // Update storage distribution with real data
+        this.updateStorageDistribution();
       }
     } catch (error) {
       console.error('Failed to load system stats:', error);
+      this.systemStatsError = 'Failed to load system statistics';
       // Fallback to basic stats on error
       this.systemStats = {
         totalUsers: 0,
@@ -449,11 +465,18 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
         systemHealth: 'critical'
       };
       this.isConnected = false;
+      // Update storage distribution with fallback data
+      this.updateStorageDistribution();
+    } finally {
+      this.loadingSystemStats = false;
     }
   }
 
   // Google Drive Storage Stats Management
-  private async loadGoogleDriveStats(): Promise<void> {
+  public async loadGoogleDriveStats(): Promise<void> {
+    this.loadingGdriveStats = true;
+    this.gdriveStatsError = '';
+    
     try {
       const headers = this.getAdminHeaders();
       const response = await this.http.get<GoogleDriveStorageStats>(
@@ -463,9 +486,12 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
 
       if (response) {
         this.gdriveStorageStats = response;
+        // Update storage distribution with real data
+        this.updateStorageDistribution();
       }
     } catch (error) {
       console.error('Failed to load Google Drive storage stats:', error);
+      this.gdriveStatsError = 'Failed to load Google Drive statistics';
       // Fallback to empty stats on error
       this.gdriveStorageStats = {
         total_accounts: 0,
@@ -477,9 +503,29 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
         available_storage: 0,
         available_storage_formatted: '0 B',
         usage_percentage: 0,
-        health_status: 'good'
+        health_status: 'unknown'
       };
+      // Update storage distribution with fallback data
+      this.updateStorageDistribution();
+    } finally {
+      this.loadingGdriveStats = false;
     }
+  }
+
+  // Clear all error states
+  public clearErrorStates(): void {
+    this.systemStatsError = '';
+    this.gdriveStatsError = '';
+    this.chartDataError = '';
+  }
+
+  // Retry all failed API calls
+  public async retryAllFailedCalls(): Promise<void> {
+    this.clearErrorStates();
+    await Promise.all([
+      this.loadSystemStats(),
+      this.loadGoogleDriveStats()
+    ]);
   }
 
   private getAdminHeaders(): HttpHeaders {
@@ -536,12 +582,14 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
 
   public async refreshStats(): Promise<void> {
     await this.loadSystemStats();
+    await this.loadGoogleDriveStats();
     this.addNotification('info', 'Stats Refreshed', 'System statistics have been updated');
   }
 
   // Method to refresh stats from child components
   public async refreshSystemStats(): Promise<void> {
     await this.loadSystemStats();
+    await this.loadGoogleDriveStats();
   }
 
   public formatNumber(num: number): string {
@@ -569,19 +617,35 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Chart Data Generation
+  // Chart Data Generation - Remove mock data, use real data or show "no data"
   private generateMockChartData(): void {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    // Use consistent data for development
-    const uploadValues = [85, 65, 92, 78, 45, 88, 95];
-    this.chartData.uploads = days.map((day, index) => {
-      const value = uploadValues[index];
-      return {
-        label: day,
-        value,
-        percentage: (value / 100) * 100 // Normalize to 0-100%
-      };
-    });
+    // Remove mock data generation - chart will show "no data available" until real data is loaded
+    this.chartData.uploads = [];
+  }
+
+  // New method to load real chart data
+  private loadChartData(): void {
+    // This will be populated from real API data when available
+    // For now, show empty state
+    this.chartData.uploads = [];
+  }
+
+  // New method to update storage distribution from real data
+  private updateStorageDistribution(): void {
+    // Calculate real storage distribution from loaded stats
+    if (this.gdriveStorageStats.total_storage_quota > 0 || this.systemStats.totalStorage > 0) {
+      const totalStorage = this.gdriveStorageStats.total_storage_quota + this.systemStats.totalStorage;
+      if (totalStorage > 0) {
+        this.storageDistribution.googleDrive = Math.round((this.gdriveStorageStats.total_storage_quota / totalStorage) * 100);
+        this.storageDistribution.hetzner = Math.round((this.systemStats.totalStorage / totalStorage) * 100);
+      } else {
+        this.storageDistribution.googleDrive = 0;
+        this.storageDistribution.hetzner = 0;
+      }
+    } else {
+      this.storageDistribution.googleDrive = 0;
+      this.storageDistribution.hetzner = 0;
+    }
   }
 
   // Route Management

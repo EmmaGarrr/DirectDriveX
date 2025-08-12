@@ -16,6 +16,9 @@ export class CreateAdminComponent implements OnInit {
   success = '';
   userRoles = UserRole;
   isSuperAdmin = false;
+  showPassword = false;
+  showConfirmPassword = false;
+  passwordStrength = '';
 
   constructor(
     private formBuilder: FormBuilder,
@@ -29,6 +32,11 @@ export class CreateAdminComponent implements OnInit {
       role: [UserRole.ADMIN, [Validators.required]]
     }, {
       validators: this.passwordMatchValidator
+    });
+
+    // Add password strength monitoring
+    this.createAdminForm.get('password')?.valueChanges.subscribe(password => {
+      this.passwordStrength = this.calculatePasswordStrength(password);
     });
   }
 
@@ -49,6 +57,47 @@ export class CreateAdminComponent implements OnInit {
 
   get f() {
     return this.createAdminForm.controls;
+  }
+
+  togglePasswordVisibility(field: 'password' | 'confirmPassword'): void {
+    if (field === 'password') {
+      this.showPassword = !this.showPassword;
+    } else {
+      this.showConfirmPassword = !this.showConfirmPassword;
+    }
+  }
+
+  calculatePasswordStrength(password: string): string {
+    if (!password) return '';
+    
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    
+    if (strength <= 2) return 'weak';
+    if (strength <= 3) return 'medium';
+    return 'strong';
+  }
+
+  getPasswordStrengthColor(): string {
+    switch (this.passwordStrength) {
+      case 'weak': return '#ef4444';
+      case 'medium': return '#f59e0b';
+      case 'strong': return '#10b981';
+      default: return '#6b7280';
+    }
+  }
+
+  getPasswordStrengthText(): string {
+    switch (this.passwordStrength) {
+      case 'weak': return 'Weak password';
+      case 'medium': return 'Medium strength';
+      case 'strong': return 'Strong password';
+      default: return '';
+    }
   }
 
   passwordMatchValidator(form: FormGroup) {
@@ -82,6 +131,7 @@ export class CreateAdminComponent implements OnInit {
         this.success = `Admin user ${response.data.email} created successfully with role ${response.data.role}`;
         this.createAdminForm.reset();
         this.createAdminForm.patchValue({ role: UserRole.ADMIN });
+        this.passwordStrength = '';
       },
       error: (error) => {
         this.loading = false;

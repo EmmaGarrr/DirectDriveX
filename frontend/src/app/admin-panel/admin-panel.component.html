@@ -186,10 +186,28 @@
       <div class="nav-section">
         <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
         <div class="nav-links">
-          <button class="nav-link btn-action" (click)="refreshStats()">
-            <i class="fas fa-sync-alt"></i>
-            <span class="nav-text">Refresh Stats</span>
-          </button>
+          <div class="stats-controls">
+            <button 
+              class="btn-refresh-stats" 
+              (click)="refreshStats()"
+              [disabled]="loadingSystemStats || loadingGdriveStats"
+            >
+              <i *ngIf="!(loadingSystemStats || loadingGdriveStats)" class="fas fa-sync-alt"></i>
+              <div *ngIf="loadingSystemStats || loadingGdriveStats" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <span *ngIf="!(loadingSystemStats || loadingGdriveStats)">Refresh Stats</span>
+              <span *ngIf="loadingSystemStats || loadingGdriveStats">Refreshing...</span>
+            </button>
+            
+            <button 
+              *ngIf="systemStatsError || gdriveStatsError || chartDataError"
+              class="btn-retry-all" 
+              (click)="retryAllFailedCalls()"
+              [disabled]="loadingSystemStats || loadingGdriveStats"
+            >
+              <i class="fas fa-redo"></i>
+              <span>Retry All</span>
+            </button>
+          </div>
           <button class="nav-link btn-action" (click)="clearEvents()">
             <i class="fas fa-trash"></i>
             <span class="nav-text">Clear Events</span>
@@ -210,31 +228,84 @@
       <div class="stats-overview">
         <h2>System Overview</h2>
         <div class="stats-grid">
-          <!-- Users Stats -->
+          <!-- System Stats -->
           <div class="stat-card">
-            <div class="stat-icon users">
+            <div class="stat-icon users" [class]="'status-' + systemStats.systemHealth">
               <i class="fas fa-users"></i>
             </div>
             <div class="stat-content">
-              <h3>{{ systemStats.totalUsers || 0 }}</h3>
-              <p>Total Users</p>
-              <span class="stat-change positive" *ngIf="systemStats.userGrowth > 0">
-                +{{ systemStats.userGrowth }}% this month
-              </span>
+              <div *ngIf="loadingSystemStats" class="loading-state">
+                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                <span class="ml-2 text-sm text-gray-500">Loading...</span>
+              </div>
+              <div *ngIf="!loadingSystemStats && !systemStatsError">
+                <h3>{{ formatNumber(systemStats.totalUsers) }}</h3>
+                <p>Total Users</p>
+              </div>
+              <div *ngIf="!loadingSystemStats && systemStatsError" class="error-state">
+                <i class="fas fa-exclamation-triangle text-red-500"></i>
+                <span class="text-sm text-red-600">{{ systemStatsError }}</span>
+                <button 
+                  (click)="loadSystemStats()" 
+                  class="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors"
+                >
+                  <i class="fas fa-redo mr-1"></i>Retry
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- Files Stats -->
+          <!-- File Stats -->
           <div class="stat-card">
-            <div class="stat-icon files">
-              <i class="fas fa-file"></i>
+            <div class="stat-icon files" [class]="'status-' + systemStats.systemHealth">
+              <i class="fas fa-file-alt"></i>
             </div>
             <div class="stat-content">
-              <h3>{{ formatNumber(systemStats.totalFiles) || 0 }}</h3>
-              <p>Total Files</p>
-              <span class="stat-change">
-                {{ formatSize(systemStats.totalStorage) }}
-              </span>
+              <div *ngIf="loadingSystemStats" class="loading-state">
+                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                <span class="ml-2 text-sm text-gray-500">Loading...</span>
+              </div>
+              <div *ngIf="!loadingSystemStats && !systemStatsError">
+                <h3>{{ formatNumber(systemStats.totalFiles) }}</h3>
+                <p>Total Files</p>
+              </div>
+              <div *ngIf="!loadingSystemStats && systemStatsError" class="error-state">
+                <i class="fas fa-exclamation-triangle text-red-500"></i>
+                <span class="text-sm text-red-600">{{ systemStatsError }}</span>
+                <button 
+                  (click)="loadSystemStats()" 
+                  class="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors"
+                >
+                  <i class="fas fa-redo mr-1"></i>Retry
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Storage Stats -->
+          <div class="stat-card">
+            <div class="stat-icon storage" [class]="'status-' + systemStats.systemHealth">
+              <i class="fas fa-hdd"></i>
+            </div>
+            <div class="stat-content">
+              <div *ngIf="loadingSystemStats" class="loading-state">
+                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                <span class="ml-2 text-sm text-gray-500">Loading...</span>
+              </div>
+              <div *ngIf="!loadingSystemStats && !systemStatsError">
+                <h3>{{ formatSize(systemStats.totalStorage) }}</h3>
+                <p>Total Storage</p>
+              </div>
+              <div *ngIf="!loadingSystemStats && systemStatsError" class="error-state">
+                <i class="fas fa-exclamation-triangle text-red-500"></i>
+                <span class="text-sm text-red-600">{{ systemStatsError }}</span>
+                <button 
+                  (click)="loadSystemStats()" 
+                  class="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors"
+                >
+                  <i class="fas fa-redo mr-1"></i>Retry
+                </button>
+              </div>
             </div>
           </div>
 
@@ -244,11 +315,27 @@
               <i class="fas fa-heartbeat"></i>
             </div>
             <div class="stat-content">
-              <h3>{{ getHealthStatus(systemStats.systemHealth) }}</h3>
-              <p>System Health</p>
-              <div class="connection-status" [class]="'status-' + (isConnected ? 'connected' : 'disconnected')">
-                <i class="fas fa-circle"></i>
-                {{ isConnected ? 'Connected' : 'Checking...' }}
+              <div *ngIf="loadingSystemStats" class="loading-state">
+                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                <span class="ml-2 text-sm text-gray-500">Loading...</span>
+              </div>
+              <div *ngIf="!loadingSystemStats && !systemStatsError">
+                <h3>{{ getHealthStatus(systemStats.systemHealth) }}</h3>
+                <p>System Health</p>
+                <div class="connection-status" [class]="'status-' + (isConnected ? 'connected' : 'disconnected')">
+                  <i class="fas fa-circle"></i>
+                  {{ isConnected ? 'Connected' : 'Checking...' }}
+                </div>
+              </div>
+              <div *ngIf="!loadingSystemStats && systemStatsError" class="error-state">
+                <i class="fas fa-exclamation-triangle text-red-500"></i>
+                <span class="text-sm text-red-600">{{ systemStatsError }}</span>
+                <button 
+                  (click)="loadSystemStats()" 
+                  class="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors"
+                >
+                  <i class="fas fa-redo mr-1"></i>Retry
+                </button>
               </div>
             </div>
           </div>
@@ -259,24 +346,40 @@
               <i class="fab fa-google-drive"></i>
             </div>
             <div class="stat-content">
-              <h3>{{ gdriveStorageStats.total_storage_quota_formatted }}</h3>
-              <p>Google Drive Storage</p>
-              <div class="gdrive-breakdown">
-                <div class="breakdown-item">
-                  <span class="breakdown-label">Used:</span>
-                  <span class="breakdown-value">{{ gdriveStorageStats.total_storage_used_formatted }}</span>
+              <div *ngIf="loadingGdriveStats" class="loading-state">
+                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                <span class="ml-2 text-sm text-gray-500">Loading...</span>
+              </div>
+              <div *ngIf="!loadingGdriveStats && !gdriveStatsError">
+                <h3>{{ gdriveStorageStats.total_storage_quota_formatted }}</h3>
+                <p>Google Drive Storage</p>
+                <div class="gdrive-breakdown">
+                  <div class="breakdown-item">
+                    <span class="breakdown-label">Used:</span>
+                    <span class="breakdown-value">{{ gdriveStorageStats.total_storage_used_formatted }}</span>
+                  </div>
+                  <div class="breakdown-item">
+                    <span class="breakdown-label">Available:</span>
+                    <span class="breakdown-value">{{ gdriveStorageStats.available_storage_formatted }}</span>
+                  </div>
+                  <div class="breakdown-item">
+                    <span class="breakdown-label">Usage:</span>
+                    <span class="breakdown-value" [class]="'usage-' + gdriveStorageStats.health_status">{{ gdriveStorageStats.usage_percentage }}%</span>
+                  </div>
+                  <div class="breakdown-accounts">
+                    <span class="accounts-info">{{ gdriveStorageStats.active_accounts }}/{{ gdriveStorageStats.total_accounts }} accounts active</span>
+                  </div>
                 </div>
-                <div class="breakdown-item">
-                  <span class="breakdown-label">Available:</span>
-                  <span class="breakdown-value">{{ gdriveStorageStats.available_storage_formatted }}</span>
-                </div>
-                <div class="breakdown-item">
-                  <span class="breakdown-label">Usage:</span>
-                  <span class="breakdown-value" [class]="'usage-' + gdriveStorageStats.health_status">{{ gdriveStorageStats.usage_percentage }}%</span>
-                </div>
-                <div class="breakdown-accounts">
-                  <span class="accounts-info">{{ gdriveStorageStats.active_accounts }}/{{ gdriveStorageStats.total_accounts }} accounts active</span>
-                </div>
+              </div>
+              <div *ngIf="!loadingGdriveStats && gdriveStatsError" class="error-state">
+                <i class="fas fa-exclamation-triangle text-red-500"></i>
+                <span class="text-sm text-red-600">{{ gdriveStatsError }}</span>
+                <button 
+                  (click)="loadGdriveStats()" 
+                  class="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200 transition-colors"
+                >
+                  <i class="fas fa-redo mr-1"></i>Retry
+                </button>
               </div>
             </div>
           </div>
@@ -288,7 +391,12 @@
         <div class="chart-container">
           <h3>Upload Activity (Last 7 days)</h3>
           <div class="chart-placeholder">
-            <div class="chart-bars">
+            <div *ngIf="chartData.uploads.length === 0" class="no-data-state">
+              <i class="fas fa-chart-bar text-gray-400 text-4xl mb-3"></i>
+              <p class="text-gray-500">No upload data available</p>
+              <p class="text-sm text-gray-400">Upload statistics will appear here when available</p>
+            </div>
+            <div *ngIf="chartData.uploads.length > 0" class="chart-bars">
               <div *ngFor="let day of chartData.uploads; let i = index" class="chart-bar">
                 <div class="bar-fill" [style.height.%]="day.percentage"></div>
                 <span class="bar-label">{{ day.label }}</span>
@@ -298,9 +406,14 @@
         </div>
 
         <div class="chart-container">
-          <h3>Storage Growth</h3>
+          <h3>Storage Distribution</h3>
           <div class="chart-placeholder">
-            <div class="storage-chart">
+            <div *ngIf="storageDistribution.googleDrive === 0 && storageDistribution.hetzner === 0" class="no-data-state">
+              <i class="fas fa-hdd text-gray-400 text-4xl mb-3"></i>
+              <p class="text-gray-500">No storage data available</p>
+              <p class="text-sm text-gray-400">Storage distribution will appear here when data is loaded</p>
+            </div>
+            <div *ngIf="storageDistribution.googleDrive > 0 || storageDistribution.hetzner > 0" class="storage-chart">
               <div class="storage-segment google-drive" [style.width.%]="storageDistribution.googleDrive">
                 <span>Google Drive ({{ storageDistribution.googleDrive }}%)</span>
               </div>
@@ -318,8 +431,13 @@
           <h3><i class="fas fa-stream"></i> Live Event Stream</h3>
           <div class="events-controls">
             <span class="event-count">{{ events.length }} events</span>
-            <button class="btn-refresh" (click)="refreshEvents()">
-              <i class="fas fa-sync-alt"></i>
+            <button 
+              class="btn-refresh" 
+              (click)="refreshEvents()"
+              [disabled]="loadingSystemStats || loadingGdriveStats"
+            >
+              <i *ngIf="!(loadingSystemStats || loadingGdriveStats)" class="fas fa-sync-alt"></i>
+              <div *ngIf="loadingSystemStats || loadingGdriveStats" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
             </button>
           </div>
         </div>

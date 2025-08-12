@@ -13,6 +13,8 @@ export class AdminLoginComponent implements OnInit {
   loginForm: FormGroup;
   loading = false;
   error = '';
+  showPassword = false;
+  passwordStrength = '';
 
   constructor(
     private formBuilder: FormBuilder,
@@ -22,6 +24,11 @@ export class AdminLoginComponent implements OnInit {
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+
+    // Add password strength monitoring
+    this.loginForm.get('password')?.valueChanges.subscribe(password => {
+      this.passwordStrength = this.calculatePasswordStrength(password);
     });
   }
 
@@ -38,6 +45,43 @@ export class AdminLoginComponent implements OnInit {
 
   get f() {
     return this.loginForm.controls;
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  calculatePasswordStrength(password: string): string {
+    if (!password) return '';
+    
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    
+    if (strength <= 2) return 'weak';
+    if (strength <= 3) return 'medium';
+    return 'strong';
+  }
+
+  getPasswordStrengthColor(): string {
+    switch (this.passwordStrength) {
+      case 'weak': return '#ef4444';
+      case 'medium': return '#f59e0b';
+      case 'strong': return '#10b981';
+      default: return '#6b7280';
+    }
+  }
+
+  getPasswordStrengthText(): string {
+    switch (this.passwordStrength) {
+      case 'weak': return 'Weak password';
+      case 'medium': return 'Medium strength';
+      case 'strong': return 'Strong password';
+      default: return '';
+    }
   }
 
   onSubmit(): void {
