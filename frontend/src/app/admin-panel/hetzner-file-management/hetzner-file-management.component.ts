@@ -461,4 +461,127 @@ export class HetznerFileManagementComponent implements OnInit {
   getHetznerPath(file: HetznerFileItem): string {
     return file.hetzner_remote_path || 'Unknown path';
   }
+
+  getChartColor(index: number): string {
+    const colors = [
+      'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+      'linear-gradient(135deg, #10b981, #059669)',
+      'linear-gradient(135deg, #f59e0b, #d97706)',
+      'linear-gradient(135deg, #ef4444, #dc2626)',
+      'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+      'linear-gradient(135deg, #06b6d4, #0891b2)',
+      'linear-gradient(135deg, #84cc16, #65a30d)',
+      'linear-gradient(135deg, #f97316, #ea580c)'
+    ];
+    return colors[index % colors.length];
+  }
+
+  // Enhanced file type detection
+  getEnhancedFileType(file: HetznerFileItem): string {
+    if (file.file_type && file.file_type !== 'unknown') {
+      return file.file_type;
+    }
+    
+    // Fallback to content type detection
+    if (file.content_type) {
+      if (file.content_type.startsWith('image/')) return 'image';
+      if (file.content_type.startsWith('video/')) return 'video';
+      if (file.content_type.startsWith('audio/')) return 'audio';
+      if (file.content_type.includes('pdf') || file.content_type.includes('document')) return 'document';
+      if (file.content_type.includes('zip') || file.content_type.includes('rar') || file.content_type.includes('tar')) return 'archive';
+    }
+    
+    // Fallback to filename extension
+    const extension = file.filename.split('.').pop()?.toLowerCase();
+    if (extension) {
+      const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+      const videoExts = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv'];
+      const audioExts = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma'];
+      const documentExts = ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt'];
+      const archiveExts = ['zip', 'rar', 'tar', 'gz', '7z', 'bz2'];
+      
+      if (imageExts.includes(extension)) return 'image';
+      if (videoExts.includes(extension)) return 'video';
+      if (audioExts.includes(extension)) return 'audio';
+      if (documentExts.includes(extension)) return 'document';
+      if (archiveExts.includes(extension)) return 'archive';
+    }
+    
+    return 'other';
+  }
+
+  // Quick actions for common tasks
+  quickDownloadSelected(): void {
+    if (this.selectedFiles.length === 0) {
+      alert('Please select files to download');
+      return;
+    }
+    
+    if (this.selectedFiles.length === 1) {
+      const file = this.files.find(f => f._id === this.selectedFiles[0]);
+      if (file) this.downloadFile(file);
+    } else {
+      alert(`Downloading ${this.selectedFiles.length} files...`);
+      // In a real implementation, you might want to zip multiple files
+      this.selectedFiles.forEach(fileId => {
+        const file = this.files.find(f => f._id === fileId);
+        if (file) this.downloadFile(file);
+      });
+    }
+  }
+
+  // Enhanced file size formatting
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  // Get file status indicator
+  getFileStatus(file: HetznerFileItem): { status: string; class: string; icon: string } {
+    if (file.backup_status === 'completed') {
+      return { status: 'Backed Up', class: 'status-success', icon: 'fas fa-check-circle' };
+    } else if (file.backup_status === 'failed') {
+      return { status: 'Failed', class: 'status-error', icon: 'fas fa-exclamation-circle' };
+    } else if (file.backup_status === 'in_progress') {
+      return { status: 'In Progress', class: 'status-warning', icon: 'fas fa-clock' };
+    } else {
+      return { status: 'Not Backed Up', class: 'status-neutral', icon: 'fas fa-minus-circle' };
+    }
+  }
+
+  // Enhanced search with debouncing
+  private searchTimeout: any;
+  onSearchInput(): void {
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.onSearch();
+    }, 500);
+  }
+
+  // Get storage usage percentage
+  getStorageUsagePercentage(): number {
+    if (!this.hetznerStats || !this.hetznerStats.total_storage) return 0;
+    
+    // Assuming a reasonable max storage limit (you can adjust this)
+    const maxStorage = 100 * 1024 * 1024 * 1024; // 100 GB in bytes
+    return Math.min((this.hetznerStats.total_storage / maxStorage) * 100, 100);
+  }
+
+  // Get storage health status
+  getStorageHealthStatus(): { status: string; class: string; icon: string } {
+    const usage = this.getStorageUsagePercentage();
+    
+    if (usage < 50) {
+      return { status: 'Healthy', class: 'status-success', icon: 'fas fa-check-circle' };
+    } else if (usage < 80) {
+      return { status: 'Warning', class: 'status-warning', icon: 'fas fa-exclamation-triangle' };
+    } else {
+      return { status: 'Critical', class: 'status-error', icon: 'fas fa-exclamation-circle' };
+    }
+  }
 } 
