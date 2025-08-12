@@ -25,53 +25,12 @@
           Refresh Files
         </button>
         
-        <button 
-          class="btn btn-primary"
-          (click)="refreshStorageInfo()" 
-          [disabled]="isScanning">
-          <i class="fas fa-radar"></i>
-          {{ isScanning ? 'Scanning...' : 'Live Scan' }}
-        </button>
+
       </div>
     </div>
   </div>
 
-  <!-- Progress Bar for Parallel Scanning -->
-  <div *ngIf="isScanning || (scanningProgress < 100 && realStorageInfo?.parallel_mode)" 
-       class="p">
-    <div class="ph">
-      <div class="pt">
-        <i class="fas fa-rocket"></i>
-        <h3>Fast Parallel Scanning in Progress</h3>
-      </div>
-      <div class="pp">
-        {{ scanningProgress.toFixed(0) }}%
-      </div>
-    </div>
-    
-    <div class="pb">
-      <div class="pf" [style.width.%]="scanningProgress"></div>
-    </div>
-    
-    <div class="ps">
-      <div class="si">
-        <span class="sv">{{ scannedFiles }}</span>
-        <span class="sl">Files Found</span>
-      </div>
-      <div class="si">
-        <span class="sv">5</span>
-        <span class="sl">Workers Active</span>
-      </div>
-      <div class="si">
-        <span class="sv">⚡</span>
-        <span class="sl">5x Faster</span>
-      </div>
-    </div>
-    
-    <div *ngIf="realStorageInfo?.message" class="pm">
-      {{ realStorageInfo.message }}
-    </div>
-  </div>
+
 
   <!-- Main Dashboard Grid -->
   <div class="dg">
@@ -125,46 +84,7 @@
       </div>
     </div>
 
-    <!-- Live Hetzner Storage Section -->
-    <div class="stg" *ngIf="realStorageInfo">
-      <div class="sh">
-        <h3><i class="fas fa-satellite-dish"></i> Live Hetzner Storage</h3>
-        <span class="ss">Real-time information from Hetzner servers</span>
-      </div>
-      
-      <div class="stg">
-        <div class="stc">
-          <div class="sti">
-            <i class="fas fa-database"></i>
-          </div>
-          <div class="stct">
-            <span class="stv">{{ realStorageInfo.total_files | number }}</span>
-            <span class="stl">Actual Files on Hetzner</span>
-          </div>
-        </div>
-        
-        <div class="stc">
-          <div class="sti">
-            <i class="fas fa-hdd"></i>
-          </div>
-          <div class="stct">
-            <span class="stv">{{ realStorageInfo.used_formatted || realStorageInfo.total_size_formatted || '0 B' }}</span>
-            <span class="stl">Real Storage Used</span>
-          </div>
-        </div>
-        
-        <div class="stc w" *ngIf="orphanedFilesCount > 0">
-          <div class="sti">
-            <i class="fas fa-exclamation-triangle"></i>
-          </div>
-          <div class="stct">
-            <span class="stv">{{ orphanedFilesCount | number }}</span>
-            <span class="stl">Orphaned Files</span>
-            <span class="stn">Not in database</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    
   </div>
 
   <!-- Action Section -->
@@ -175,26 +95,7 @@
     </div>
     
     <div class="ag">
-      <button 
-        class="ab p"
-        (click)="fastParallelCleanup()" 
-        [disabled]="loading || scanningProgress < 100"
-        title="Fast parallel cleanup using 5 workers - deletes from both Hetzner storage and database">
-        <div class="ai">
-          <i class="fas fa-rocket"></i>
-        </div>
-        <div class="ac">
-          <span class="at">Fast Parallel Cleanup</span>
-          <span class="as">5x Faster with 5 Workers</span>
-        </div>
-        <div class="seh" *ngIf="loading">
-          <i class="fas fa-spinner fa-spin"></i>
-        </div>
-      </button>
-      
-      <div class="sb">
-        <p><i class="fas fa-info-circle"></i> This operation will delete files from both Hetzner storage and your database using parallel processing for maximum speed.</p>
-      </div>
+
     </div>
   </div>
 
