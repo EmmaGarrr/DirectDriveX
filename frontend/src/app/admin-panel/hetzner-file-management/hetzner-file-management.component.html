@@ -1,5 +1,5 @@
 <div class="hfm">
-  <!-- Page Header -->
+  <!-- Enhanced Page Header with Auto-refresh Controls -->
   <div class="h">
     <div class="hc">
       <div class="ht">
@@ -9,36 +9,45 @@
       </div>
       
       <div class="ha">
+        <!-- Auto-refresh Controls -->
+        <div class="auto-refresh-controls">
+          <button 
+            class="btn btn-outline"
+            (click)="toggleAutoRefresh()"
+            [class.active]="autoRefreshEnabled"
+            [title]="autoRefreshEnabled ? 'Auto-refresh enabled (30s)' : 'Auto-refresh disabled'">
+            <i class="fas" [class.fa-pause]="autoRefreshEnabled" [class.fa-play]="!autoRefreshEnabled"></i>
+            {{ autoRefreshEnabled ? 'Auto-refresh ON' : 'Auto-refresh OFF' }}
+          </button>
+          
+          <button 
+            class="btn btn-secondary"
+            (click)="refreshData()"
+            [disabled]="loading || refreshing"
+            [title]="refreshing ? 'Refreshing...' : 'Manual refresh'">
+            <i class="fas" [class.fa-sync-alt]="!refreshing" [class.fa-spinner]="refreshing"></i>
+            {{ refreshing ? 'Refreshing...' : 'Refresh' }}
+          </button>
+        </div>
+        
         <button 
           class="btn btn-outline"
           (click)="showFilters = !showFilters"
           [class.active]="showFilters">
           <i class="fas fa-filter"></i>
-          Filters
+          {{ showFilters ? 'Hide' : 'Show' }} Filters
         </button>
-        
-        <button 
-          class="btn btn-secondary"
-          (click)="loadFiles()"
-          [disabled]="loading">
-          <i class="fas fa-sync-alt"></i>
-          Refresh Files
-        </button>
-        
-
       </div>
     </div>
   </div>
 
-
-
-  <!-- Main Dashboard Grid -->
+  <!-- Enhanced Main Dashboard Grid with Better Visual Hierarchy -->
   <div class="dg">
-    <!-- Database Stats Section -->
+    <!-- Database Stats Section with Improved Typography -->
     <div class="s">
       <div class="sh">
-        <h3><i class="fas fa-database"></i> Database Statistics</h3>
-        <span class="ss">Files tracked in your system</span>
+        <h3><i class="fas fa-database"></i> Storage Overview</h3>
+        <span class="ss">Real-time backup storage statistics</span>
       </div>
       
       <div class="sg" *ngIf="hetznerStats">
@@ -48,7 +57,8 @@
           </div>
           <div class="sc">
             <span class="sv">{{ hetznerStats.total_files | number }}</span>
-            <span class="sl">Backed Up Files</span>
+            <span class="sl">Total Files</span>
+            <span class="ss">Backed up to Hetzner</span>
           </div>
         </div>
         
@@ -58,7 +68,8 @@
           </div>
           <div class="sc">
             <span class="sv">{{ hetznerStats.total_storage_formatted }}</span>
-            <span class="sl">Total Backup Storage</span>
+            <span class="sl">Storage Used</span>
+            <span class="ss">Total backup storage</span>
           </div>
         </div>
         
@@ -68,7 +79,8 @@
           </div>
           <div class="sc">
             <span class="sv">{{ hetznerStats.recent_backups | number }}</span>
-            <span class="sl">Recent Backups (7 days)</span>
+            <span class="sl">Recent Backups</span>
+            <span class="ss">Last 7 days</span>
           </div>
         </div>
         
@@ -79,54 +91,103 @@
           <div class="sc">
             <span class="sv">{{ hetznerStats.failed_backups | number }}</span>
             <span class="sl">Failed Backups</span>
+            <span class="ss">Requires attention</span>
           </div>
         </div>
       </div>
     </div>
 
-    
+    <!-- Enhanced File Health Status Section -->
+    <div class="s">
+      <div class="sh">
+        <h3><i class="fas fa-heartbeat"></i> File Health Status</h3>
+        <span class="ss">Monitor file integrity and sync status</span>
+      </div>
+      
+      <div class="sg" *ngIf="files.length > 0">
+        <div class="sc">
+          <div class="si healthy">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="sc">
+            <span class="sv">{{ files.filter(f => f.health_status === 'healthy').length }}</span>
+            <span class="sl">Healthy Files</span>
+            <span class="ss">Integrity verified</span>
+          </div>
+        </div>
+        
+        <div class="sc">
+          <div class="si warning">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="sc">
+            <span class="sv">{{ files.filter(f => f.health_status === 'corrupted').length }}</span>
+            <span class="sl">Corrupted Files</span>
+            <span class="ss">Needs recovery</span>
+          </div>
+        </div>
+        
+        <div class="sc">
+          <div class="si error">
+            <i class="fas fa-times-circle"></i>
+          </div>
+          <div class="sc">
+            <span class="sv">{{ files.filter(f => f.health_status === 'inaccessible').length }}</span>
+            <span class="sl">Inaccessible</span>
+            <span class="ss">Access issues</span>
+          </div>
+        </div>
+        
+        <div class="sc">
+          <div class="si syncing">
+            <i class="fas fa-sync-alt"></i>
+          </div>
+          <div class="sc">
+            <span class="sv">{{ files.filter(f => f.sync_status === 'syncing').length }}</span>
+            <span class="sl">Syncing</span>
+            <span class="ss">In progress</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Action Section -->
-  <div class="ah">
-    <div class="ah">
-      <h3><i class="fas fa-tools"></i> Storage Management</h3>
-      <span class="as">Perform operations on your Hetzner storage</span>
-    </div>
-    
-    <div class="ag">
-
-    </div>
-  </div>
-
-  <!-- Search and Filters Section -->
-  <div class="fp">
+  <!-- Enhanced Search and Filters Section -->
+  <div class="fp" [ngClass]="{'expanded': showFilters}">
     <div class="e">
-      <h3><i class="fas fa-search"></i> Search & Filters</h3>
+      <h3><i class="fas fa-search"></i> Advanced Search & Filters</h3>
+      <span class="ss">Refine your file search with multiple criteria</span>
     </div>
     
-    <div class="fg">
+    <!-- Primary Search Bar -->
+    <div class="fg primary-search">
       <div class="fgr">
-        <i class="fas fa-search"></i>
-        <input 
-          type="text" 
-          placeholder="Search Hetzner backup files..." 
-          [(ngModel)]="searchTerm"
-          (keyup.enter)="onSearch()"
-          class="fs">
-        <button class="fi" (click)="onSearch()">
+        <div class="search-input-wrapper">
           <i class="fas fa-search"></i>
-          Search
-        </button>
+          <input 
+            type="text" 
+            placeholder="Search files by name, type, or content..." 
+            [(ngModel)]="searchTerm"
+            (keyup.enter)="onSearch()"
+            class="fs enhanced-search">
+          <button class="fi enhanced-search-btn" (click)="onSearch()">
+            <i class="fas fa-search"></i>
+            Search
+          </button>
+        </div>
       </div>
     </div>
     
+    <!-- Advanced Filters -->
     <div class="fa" [ngClass]="{'expanded': showFilters}">
       <div class="fg">
         <div class="vc">
           <label>File Type</label>
           <select [(ngModel)]="fileTypeFilter" (change)="onFilterChange()" class="vt">
             <option value="">All Types</option>
+            <option *ngFor="let type of detectedFileTypes" [value]="type">
+              {{ type | titlecase }}
+            </option>
             <option value="image">Images</option>
             <option value="video">Videos</option>
             <option value="audio">Audio</option>
@@ -152,6 +213,29 @@
             <option value="">All Status</option>
             <option value="completed">Backed Up to Hetzner</option>
             <option value="failed">Backup Failed</option>
+            <option value="in_progress">In Progress</option>
+          </select>
+        </div>
+        
+        <div class="vc">
+          <label>Health Status</label>
+          <select [(ngModel)]="healthStatusFilter" (change)="onFilterChange()" class="vt">
+            <option value="">All Health</option>
+            <option value="healthy">Healthy</option>
+            <option value="corrupted">Corrupted</option>
+            <option value="inaccessible">Inaccessible</option>
+            <option value="unknown">Unknown</option>
+          </select>
+        </div>
+        
+        <div class="vc">
+          <label>Sync Status</label>
+          <select [(ngModel)]="syncStatusFilter" (change)="onFilterChange()" class="vt">
+            <option value="">All Sync</option>
+            <option value="synced">Synced</option>
+            <option value="syncing">Syncing</option>
+            <option value="failed">Failed</option>
+            <option value="pending">Pending</option>
           </select>
         </div>
         
@@ -179,13 +263,13 @@
       <div class="a">
         <button class="btn o" (click)="clearFilters()">
           <i class="fas fa-times"></i>
-          Clear Filters
+          Clear All Filters
         </button>
       </div>
     </div>
   </div>
 
-  <!-- View Mode Toggle -->
+  <!-- Enhanced View Mode Toggle with File Count -->
   <div class="vc">
     <div class="vt">
       <button 
@@ -205,17 +289,18 @@
     </div>
     
     <div class="vi">
-      <span class="fc">{{ totalFiles | number }} files</span>
+      <span class="fc">Showing {{ ((currentPage - 1) * pageSize) + 1 }} - {{ Math.min(currentPage * pageSize, totalFiles) }} of {{ totalFiles | number }} files</span>
       <span class="vm">{{ viewMode === 'list' ? 'List' : 'Grid' }} View</span>
     </div>
   </div>
 
-  <!-- Analytics Section -->
+  <!-- Enhanced Analytics Section with Better Visualization -->
   <div class="a" *ngIf="fileTypeAnalytics && fileTypeAnalytics.file_types.length > 0">
     <div class="ah">
       <h3><i class="fas fa-chart-pie"></i> File Type Distribution</h3>
       <div class="as">
         <span class="tf">Total: {{ fileTypeAnalytics.total_files | number }} files</span>
+        <span class="storage-info">Storage: {{ fileTypeAnalytics.file_types | totalStorage }}</span>
       </div>
     </div>
     
@@ -235,40 +320,44 @@
     </div>
   </div>
 
-  <!-- Bulk Actions Bar -->
+  <!-- Enhanced Bulk Actions Bar with Loading States -->
   <div class="bab" *ngIf="showBulkActions">
     <div class="bi">
       <i class="fas fa-check-square"></i>
       <span>{{ selectedFiles.length }} file(s) selected</span>
     </div>
     <div class="bc">
-      <select [(ngModel)]="bulkActionType" class="bs">
+      <select [(ngModel)]="bulkActionType" class="bs" [disabled]="bulkActionLoading">
         <option value="">Choose action...</option>
         <option value="delete">Delete from Backup</option>
         <option value="recover">Recover from Backup</option>
+        <option value="integrity_check">Check Integrity</option>
+        <option value="sync">Force Sync</option>
       </select>
       <input 
         type="text" 
         placeholder="Reason (optional)" 
         [(ngModel)]="bulkActionReason"
-        class="br">
+        class="br"
+        [disabled]="bulkActionLoading">
       <button 
         class="btn w" 
         (click)="executeBulkAction()"
-        [disabled]="!bulkActionType">
-        <i class="fas fa-play"></i>
-        Execute
+        [disabled]="!bulkActionType || bulkActionLoading">
+        <i class="fas" [class.fa-play]="!bulkActionLoading" [class.fa-spinner]="bulkActionLoading"></i>
+        {{ bulkActionLoading ? 'Executing...' : 'Execute' }}
       </button>
       <button 
         class="btn o" 
-        (click)="selectedFiles = []; showBulkActions = false">
+        (click)="selectedFiles = []; showBulkActions = false"
+        [disabled]="bulkActionLoading">
         <i class="fas fa-times"></i>
         Cancel
       </button>
     </div>
   </div>
 
-  <!-- Loading State -->
+  <!-- Enhanced Loading State with Progress -->
   <div class="lc" *ngIf="loading">
     <div class="ec">
       <div class="ls">
@@ -276,10 +365,13 @@
       </div>
       <h3>Loading Hetzner backup files...</h3>
       <p>Please wait while we fetch your storage information</p>
+      <div class="loading-progress">
+        <div class="progress-bar"></div>
+      </div>
     </div>
   </div>
 
-  <!-- Error State -->
+  <!-- Enhanced Error State with Retry Options -->
   <div class="ei" *ngIf="error">
     <div class="ec">
       <div class="ei">
@@ -287,18 +379,24 @@
       </div>
       <h3>Error Loading Files</h3>
       <p>{{ error }}</p>
-      <button class="btn p" (click)="loadFiles()">
-        <i class="fas fa-redo"></i>
-        Retry
-      </button>
+      <div class="error-actions">
+        <button class="btn p" (click)="loadFiles()">
+          <i class="fas fa-redo"></i>
+          Retry
+        </button>
+        <button class="btn o" (click)="refreshData()">
+          <i class="fas fa-sync-alt"></i>
+          Refresh All
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Files Container -->
+  <!-- Enhanced Files Container with Better Table Layout -->
   <div class="ft" *ngIf="!loading && !error">
-    <!-- List View -->
+    <!-- Enhanced List View with Better Column Sizing -->
     <div class="ftb" *ngIf="viewMode === 'list'">
-      <table class="t">
+      <table class="t enhanced-table">
         <thead>
           <tr>
             <th class="ch">
@@ -307,86 +405,110 @@
                 [checked]="selectedFiles.length === files.length && files.length > 0"
                 (change)="selectAllFiles()">
             </th>
-            <th (click)="onSortChange('filename')" class="s">
+            <th (click)="onSortChange('filename')" class="s filename-col">
               <span>Filename</span>
               <i class="fas fa-sort" *ngIf="sortBy !== 'filename'"></i>
               <i class="fas fa-sort-up" *ngIf="sortBy === 'filename' && sortOrder === 'asc'"></i>
               <i class="fas fa-sort-down" *ngIf="sortBy === 'filename' && sortOrder === 'desc'"></i>
             </th>
-            <th (click)="onSortChange('size_bytes')" class="s">
+            <th (click)="onSortChange('size_bytes')" class="s size-col">
               <span>Size</span>
               <i class="fas fa-sort" *ngIf="sortBy !== 'size_bytes'"></i>
               <i class="fas fa-sort-up" *ngIf="sortBy === 'size_bytes' && sortOrder === 'asc'"></i>
               <i class="fas fa-sort-down" *ngIf="sortBy === 'size_bytes' && sortOrder === 'desc'"></i>
             </th>
-            <th>Type</th>
-            <th>Owner</th>
-            <th (click)="onSortChange('upload_date')" class="s">
+            <th class="type-col">Type</th>
+            <th class="owner-col">Owner</th>
+            <th (click)="onSortChange('upload_date')" class="s date-col">
               <span>Upload Date</span>
               <i class="fas fa-sort" *ngIf="sortBy !== 'upload_date'"></i>
               <i class="fas fa-sort-up" *ngIf="sortBy === 'upload_date' && sortOrder === 'asc'"></i>
               <i class="fas fa-sort-down" *ngIf="sortBy === 'upload_date' && sortOrder === 'desc'"></i>
             </th>
-            <th>Source Account</th>
-            <th>Backup Path</th>
-            <th>Actions</th>
+            <th class="account-col">Source Account</th>
+            <th class="path-col">Backup Path</th>
+            <th class="status-col">Status</th>
+            <th class="actions-col">Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let file of files" [class.selected]="selectedFiles.includes(file._id)">
+          <tr *ngFor="let file of files" [class.selected]="selectedFiles.includes(file._id)" class="file-row">
             <td class="cc">
               <input 
                 type="checkbox" 
                 [checked]="selectedFiles.includes(file._id)"
                 (change)="toggleFileSelection(file._id)">
             </td>
-            <td class="fn">
+            <td class="fn filename-cell">
               <i [class]="getFileIcon(file.file_type)"></i>
-              <span class="fn" [title]="file.filename">{{ file.filename }}</span>
+              <span class="fn-text" [title]="file.filename">{{ file.filename }}</span>
             </td>
-            <td class="s">{{ file.size_formatted }}</td>
-            <td class="t">
+            <td class="s size-cell">{{ file.size_formatted }}</td>
+            <td class="t type-cell">
               <span class="ftb" [class]="'type-' + file.file_type">
                 {{ file.file_type | titlecase }}
               </span>
             </td>
-            <td class="o">{{ file.owner_email }}</td>
-            <td class="d">{{ formatDate(file.upload_date) }}</td>
-            <td class="a">
-              <span class="ab">
+            <td class="o owner-cell">{{ file.owner_email }}</td>
+            <td class="d date-cell">
+              <div class="date-info">
+                <div class="date-absolute">{{ formatDate(file.upload_date) }}</div>
+                <div class="date-relative">{{ formatDateRelative(file.upload_date) }}</div>
+              </div>
+            </td>
+            <td class="a account-cell">
+              <span class="ab" [title]="file.gdrive_account_id">
                 {{ file.gdrive_account_id || 'Unknown' }}
               </span>
             </td>
-            <td class="p">
+            <td class="p path-cell">
               <span class="pc" [title]="getHetznerPath(file)">
                 {{ getHetznerPath(file) }}
               </span>
             </td>
-            <td class="a">
+            <td class="status-cell">
+              <div class="status-indicators">
+                <span class="health-status" [class]="getHealthStatusClass(file.health_status || 'unknown')" 
+                      [title]="'Health: ' + getHealthStatusDisplay(file.health_status || 'unknown')">
+                  <i class="fas" [class.fa-check-circle]="file.health_status === 'healthy'"
+                     [class.fa-exclamation-triangle]="file.health_status === 'corrupted'"
+                     [class.fa-times-circle]="file.health_status === 'inaccessible'"
+                     [class.fa-question-circle]="file.health_status === 'unknown'"></i>
+                </span>
+                <span class="sync-status" [class]="getSyncStatusClass(file.sync_status || 'unknown')"
+                      [title]="'Sync: ' + getSyncStatusDisplay(file.sync_status || 'unknown')">
+                  <i class="fas" [class.fa-check]="file.sync_status === 'synced'"
+                     [class.fa-sync-alt]="file.sync_status === 'syncing'"
+                     [class.fa-times]="file.sync_status === 'failed'"
+                     [class.fa-clock]="file.sync_status === 'pending'"></i>
+                </span>
+              </div>
+            </td>
+            <td class="a actions-cell">
               <div class="ab">
                 <button 
                   class="ab p"
                   (click)="downloadFile(file)"
-                  title="Download">
+                  title="Download file">
                   <i class="fas fa-download"></i>
                 </button>
                 <button 
                   class="ab i"
                   (click)="previewFile(file)"
                   *ngIf="file.preview_available"
-                  title="Preview">
+                  title="Preview file">
                   <i class="fas fa-eye"></i>
                 </button>
                 <button 
                   class="ab s"
                   (click)="recoverFile(file)"
-                  title="Recover from Backup">
+                  title="Recover from backup">
                   <i class="fas fa-undo"></i>
                 </button>
                 <button 
                   class="ab d"
                   (click)="deleteFile(file)"
-                  title="Delete from Backup">
+                  title="Delete from backup">
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
@@ -396,7 +518,7 @@
       </table>
     </div>
 
-    <!-- Grid View -->
+    <!-- Enhanced Grid View with Better Cards -->
     <div class="fg" *ngIf="viewMode === 'grid'">
       <div 
         class="fc" 
@@ -408,16 +530,17 @@
             [checked]="selectedFiles.includes(file._id)"
             (change)="toggleFileSelection(file._id)">
           <div class="fa">
-            <button class="ab p" (click)="downloadFile(file)">
+            <button class="ab p" (click)="downloadFile(file)" title="Download">
               <i class="fas fa-download"></i>
             </button>
             <button 
               class="ab i" 
               (click)="previewFile(file)"
-              *ngIf="file.preview_available">
+              *ngIf="file.preview_available"
+              title="Preview">
               <i class="fas fa-eye"></i>
             </button>
-            <button class="ab d" (click)="deleteFile(file)">
+            <button class="ab d" (click)="deleteFile(file)" title="Delete">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -435,7 +558,7 @@
           </div>
           <div class="fd">
             <span class="o">{{ file.owner_email }}</span>
-            <span class="d">{{ formatDate(file.upload_date) }}</span>
+            <span class="d">{{ formatDateRelative(file.upload_date) }}</span>
           </div>
           <div class="fb">
             <span class="ab">{{ file.gdrive_account_id || 'Unknown' }}</span>
@@ -443,30 +566,58 @@
               {{ getHetznerPath(file) }}
             </span>
           </div>
+          
+          <!-- Status indicators in grid view -->
+          <div class="status-indicators-grid">
+            <span class="health-status" [class]="getHealthStatusClass(file.health_status || 'unknown')">
+              <i class="fas" [class.fa-check-circle]="file.health_status === 'healthy'"
+                 [class.fa-exclamation-triangle]="file.health_status === 'corrupted'"
+                 [class.fa-times-circle]="file.health_status === 'inaccessible'"
+                 [class.fa-question-circle]="file.health_status === 'unknown'"></i>
+            </span>
+            <span class="sync-status" [class]="getSyncStatusClass(file.sync_status || 'unknown')">
+              <i class="fas" [class.fa-check]="file.sync_status === 'synced'"
+                 [class.fa-sync-alt]="file.sync_status === 'syncing'"
+                 [class.fa-times]="file.sync_status === 'failed'"
+                 [class.fa-clock]="file.sync_status === 'pending'"></i>
+            </span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Empty State -->
+    <!-- Enhanced Empty State with Better Messaging -->
     <div class="es" *ngIf="files.length === 0">
       <div class="ec">
         <i class="fas fa-server"></i>
         <h3>No Hetzner backup files found</h3>
         <p>Try adjusting your search or filter criteria, or check if your storage is empty.</p>
+        <div class="empty-state-actions">
+          <button class="btn p" (click)="clearFilters()">
+            <i class="fas fa-filter"></i>
+            Clear Filters
+          </button>
+          <button class="btn o" (click)="loadFiles()">
+            <i class="fas fa-redo"></i>
+            Refresh
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Pagination -->
+  <!-- Enhanced Pagination with Better Navigation -->
   <div class="pc" *ngIf="totalPages > 1">
     <div class="pi">
-      <span>Showing {{ ((currentPage - 1) * pageSize) + 1 }} - {{ Math.min(currentPage * pageSize, totalFiles) }} of {{ totalFiles }} files</span>
+      <span>Showing {{ ((currentPage - 1) * pageSize) + 1 }} - {{ Math.min(currentPage * pageSize, totalFiles) }} of {{ totalFiles | number }} files</span>
+      <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
     </div>
     <div class="pc">
       <button 
         class="pb" 
         (click)="onPageChange(currentPage - 1)"
-        [disabled]="currentPage === 1">
+        [disabled]="currentPage === 1"
+        title="Previous page">
         <i class="fas fa-chevron-left"></i>
       </button>
       
@@ -483,7 +634,8 @@
       <button 
         class="pb" 
         (click)="onPageChange(currentPage + 1)"
-        [disabled]="currentPage === totalPages">
+        [disabled]="currentPage === totalPages"
+        title="Next page">
         <i class="fas fa-chevron-right"></i>
       </button>
     </div>

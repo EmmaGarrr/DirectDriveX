@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { AdminAuthService } from '../../services/admin-auth.service';
 import { AdminStatsService } from '../../services/admin-stats.service';
+import { interval, Subscription } from 'rxjs';
 
 interface HetznerFileItem {
   _id: string;
@@ -21,6 +22,9 @@ interface HetznerFileItem {
   gdrive_account_id: string;
   download_url: string;
   preview_available?: boolean;
+  health_status?: 'healthy' | 'corrupted' | 'inaccessible' | 'unknown';
+  last_integrity_check?: string;
+  sync_status?: 'synced' | 'syncing' | 'failed' | 'pending';
 }
 
 interface HetznerFileListResponse {
@@ -66,7 +70,7 @@ interface HetznerFileTypeAnalytics {
   templateUrl: './hetzner-file-management.component.html',
   styleUrls: ['./hetzner-file-management.component.css']
 })
-export class HetznerFileManagementComponent implements OnInit {
+export class HetznerFileManagementComponent implements OnInit, OnDestroy {
   Math = Math; // Make Math available to template
   files: HetznerFileItem[] = [];
   selectedFiles: string[] = [];
@@ -84,6 +88,8 @@ export class HetznerFileManagementComponent implements OnInit {
   backupStatusFilter = '';
   sizeMinFilter: number | null = null;
   sizeMaxFilter: number | null = null;
+  healthStatusFilter = '';
+  syncStatusFilter = '';
   
   // Sorting
   sortBy = 'upload_date';
@@ -104,7 +110,17 @@ export class HetznerFileManagementComponent implements OnInit {
   bulkActionType = '';
   bulkActionReason = '';
   
-
+  // Auto-refresh
+  private autoRefreshSubscription?: Subscription;
+  autoRefreshEnabled = true;
+  autoRefreshInterval = 30000; // 30 seconds
+  
+  // Enhanced file type detection
+  detectedFileTypes: string[] = [];
+  
+  // Loading states
+  refreshing = false;
+  bulkActionLoading = false;
 
   constructor(
     private http: HttpClient,
@@ -113,14 +129,50 @@ export class HetznerFileManagementComponent implements OnInit {
   ) {}
   
   ngOnInit(): void {
-    // Load files first to get hetznerStats
     this.loadFiles();
     this.loadFileTypeAnalytics();
-    
+    this.startAutoRefresh();
     this.adminStatsService.triggerStatsUpdate();
   }
 
+  ngOnDestroy(): void {
+    this.stopAutoRefresh();
+  }
 
+  startAutoRefresh(): void {
+    if (this.autoRefreshEnabled) {
+      this.autoRefreshSubscription = interval(this.autoRefreshInterval).subscribe(() => {
+        if (!this.loading && !this.refreshing) {
+          this.refreshData();
+        }
+      });
+    }
+  }
+
+  stopAutoRefresh(): void {
+    if (this.autoRefreshSubscription) {
+      this.autoRefreshSubscription.unsubscribe();
+    }
+  }
+
+  toggleAutoRefresh(): void {
+    this.autoRefreshEnabled = !this.autoRefreshEnabled;
+    if (this.autoRefreshEnabled) {
+      this.startAutoRefresh();
+    } else {
+      this.stopAutoRefresh();
+    }
+  }
+
+  refreshData(): void {
+    this.refreshing = true;
+    Promise.all([
+      this.loadFiles(),
+      this.loadFileTypeAnalytics()
+    ]).finally(() => {
+      this.refreshing = false;
+    });
+  }
 
   private getAuthHeaders(): HttpHeaders {
     const token = this.adminAuthService.getAdminToken();
@@ -152,13 +204,17 @@ export class HetznerFileManagementComponent implements OnInit {
     if (this.backupStatusFilter) {
       params = params.set('backup_status', this.backupStatusFilter);
     }
+    if (this.healthStatusFilter) {
+      params = params.set('health_status', this.healthStatusFilter);
+    }
+    if (this.syncStatusFilter) {
+      params = params.set('sync_status', this.syncStatusFilter);
+    }
     if (this.sizeMinFilter !== null) {
-      // Convert MB to bytes (1 MB = 1024 * 1024 bytes)
       const sizeMinBytes = this.sizeMinFilter * 1024 * 1024;
       params = params.set('size_min', sizeMinBytes.toString());
     }
     if (this.sizeMaxFilter !== null) {
-      // Convert MB to bytes (1 MB = 1024 * 1024 bytes)
       const sizeMaxBytes = this.sizeMaxFilter * 1024 * 1024;
       params = params.set('size_max', sizeMaxBytes.toString());
     }
@@ -174,8 +230,7 @@ export class HetznerFileManagementComponent implements OnInit {
           this.totalPages = response.total_pages;
           this.hetznerStats = response.hetzner_stats;
           this.loading = false;
-          
-
+          this.updateDetectedFileTypes();
         },
         error: (error) => {
           this.error = 'Failed to load Hetzner files. Please try again.';
@@ -199,12 +254,16 @@ export class HetznerFileManagementComponent implements OnInit {
       });
   }
 
+  updateDetectedFileTypes(): void {
+    const types = new Set<string>();
+    this.files.forEach(file => {
+      if (file.file_type && file.file_type !== 'unknown') {
+        types.add(file.file_type);
+      }
+    });
+    this.detectedFileTypes = Array.from(types).sort();
+  }
 
-
-
-
-
-  
   onSearch(): void {
     this.currentPage = 1;
     this.loadFiles();
@@ -371,17 +430,12 @@ export class HetznerFileManagementComponent implements OnInit {
     }
   }
 
-
-
-
-
-
-  
   executeBulkAction(): void {
     if (!this.bulkActionType || this.selectedFiles.length === 0) {
       return;
     }
     
+    this.bulkActionLoading = true;
     const actionData = {
       file_ids: this.selectedFiles,
       action: this.bulkActionType,
@@ -391,22 +445,22 @@ export class HetznerFileManagementComponent implements OnInit {
     this.http.post(`${environment.apiUrl}/api/v1/admin/files/bulk-action`, actionData, {
       headers: this.getAuthHeaders()
     })
-              .subscribe({
-          next: (response: any) => {
-            alert(response.message);
-            this.selectedFiles = [];
-            this.showBulkActions = false;
-            this.bulkActionType = '';
-            this.bulkActionReason = '';
-            // Refresh both files and analytics to update storage stats
-            this.loadFiles();
-            this.loadFileTypeAnalytics();
-            // Trigger admin panel stats update
-            this.adminStatsService.triggerStatsUpdate();
-          },
+      .subscribe({
+        next: (response: any) => {
+          alert(response.message);
+          this.selectedFiles = [];
+          this.showBulkActions = false;
+          this.bulkActionType = '';
+          this.bulkActionReason = '';
+          this.loadFiles();
+          this.loadFileTypeAnalytics();
+          this.adminStatsService.triggerStatsUpdate();
+          this.bulkActionLoading = false;
+        },
         error: (error) => {
           alert('Bulk action failed');
           console.error('Error executing bulk action:', error);
+          this.bulkActionLoading = false;
         }
       });
   }
@@ -416,6 +470,8 @@ export class HetznerFileManagementComponent implements OnInit {
     this.fileTypeFilter = '';
     this.ownerFilter = '';
     this.backupStatusFilter = '';
+    this.healthStatusFilter = '';
+    this.syncStatusFilter = '';
     this.sizeMinFilter = null;
     this.sizeMaxFilter = null;
     this.currentPage = 1;
@@ -436,6 +492,19 @@ export class HetznerFileManagementComponent implements OnInit {
   
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleString();
+  }
+  
+  formatDateRelative(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+    
+    return date.toLocaleDateString();
   }
   
   getBackupStatusDisplay(status: string): string {
@@ -460,5 +529,95 @@ export class HetznerFileManagementComponent implements OnInit {
   
   getHetznerPath(file: HetznerFileItem): string {
     return file.hetzner_remote_path || 'Unknown path';
+  }
+
+  // Enhanced file type detection
+  detectFileType(filename: string, contentType: string): string {
+    const extension = filename.toLowerCase().split('.').pop() || '';
+    const mimeType = contentType.toLowerCase();
+    
+    // Image files
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(extension) || 
+        mimeType.startsWith('image/')) {
+      return 'image';
+    }
+    
+    // Video files
+    if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv'].includes(extension) || 
+        mimeType.startsWith('video/')) {
+      return 'video';
+    }
+    
+    // Audio files
+    if (['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma'].includes(extension) || 
+        mimeType.startsWith('audio/')) {
+      return 'audio';
+    }
+    
+    // Document files
+    if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf'].includes(extension) || 
+        mimeType.includes('document') || mimeType.includes('text/')) {
+      return 'document';
+    }
+    
+    // Archive files
+    if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2'].includes(extension) || 
+        mimeType.includes('archive') || mimeType.includes('compressed')) {
+      return 'archive';
+    }
+    
+    return 'other';
+  }
+
+  // Enhanced status indicators
+  getHealthStatusClass(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'healthy': 'status-healthy',
+      'corrupted': 'status-corrupted',
+      'inaccessible': 'status-inaccessible',
+      'unknown': 'status-unknown'
+    };
+    return statusMap[status] || 'status-unknown';
+  }
+
+  getSyncStatusClass(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'synced': 'status-synced',
+      'syncing': 'status-syncing',
+      'failed': 'status-failed',
+      'pending': 'status-pending'
+    };
+    return statusMap[status] || 'status-unknown';
+  }
+
+  getHealthStatusDisplay(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'healthy': 'Healthy',
+      'corrupted': 'Corrupted',
+      'inaccessible': 'Inaccessible',
+      'unknown': 'Unknown'
+    };
+    return statusMap[status] || 'Unknown';
+  }
+
+  getSyncStatusDisplay(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'synced': 'Synced',
+      'syncing': 'Syncing...',
+      'failed': 'Failed',
+      'pending': 'Pending'
+    };
+    return statusMap[status] || 'Unknown';
+  }
+
+  // Enhanced file size formatting
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 } 
