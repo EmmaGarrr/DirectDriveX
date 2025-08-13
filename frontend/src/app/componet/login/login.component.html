@@ -91,13 +91,22 @@
                   placeholder="Enter your email"
                   class="input h-11"
                   [class.border-destructive]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+                  [attr.aria-describedby]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched ? 'email-error' : null"
+                  [attr.aria-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+                  autocomplete="email"
                   required
                 />
-                <svg class="input-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="input-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
                 </svg>
               </div>
-              <div *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-sm text-destructive">
+              <div 
+                *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" 
+                id="email-error"
+                class="text-sm text-destructive"
+                role="alert"
+                aria-live="polite"
+              >
                 {{ getEmailErrorMessage() }}
               </div>
             </div>
@@ -113,6 +122,9 @@
                   placeholder="Enter your password"
                   class="input h-11 pr-10"
                   [class.border-destructive]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+                  [attr.aria-describedby]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched ? 'password-error' : null"
+                  [attr.aria-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+                  autocomplete="current-password"
                   required
                 />
                 <svg class="input-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,6 +134,8 @@
                   type="button"
                   (click)="hidePassword = !hidePassword"
                   class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  [attr.aria-label]="hidePassword ? 'Show password' : 'Hide password'"
+                  [attr.aria-pressed]="!hidePassword"
                 >
                   <svg *ngIf="hidePassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -132,7 +146,13 @@
                   </svg>
                 </button>
               </div>
-              <div *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-sm text-destructive">
+              <div 
+                *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" 
+                id="password-error"
+                class="text-sm text-destructive"
+                role="alert"
+                aria-live="polite"
+              >
                 {{ getPasswordErrorMessage() }}
               </div>
             </div>
@@ -163,11 +183,18 @@
               type="submit"
               class="btn-primary w-full h-11 transition-all duration-200"
               [disabled]="!loginForm.valid || loading"
+              [attr.aria-label]="loading ? 'Signing in, please wait' : 'Sign in to your account'"
+              [attr.aria-busy]="loading"
             >
-              <div *ngIf="loading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <div 
+                *ngIf="loading" 
+                class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                role="status"
+                aria-label="Loading"
+              ></div>
               <span *ngIf="!loading" class="flex items-center justify-center">
                 Sign in
-                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                 </svg>
               </span>
@@ -189,6 +216,7 @@
             <button
               type="button"
               class="btn-outline w-full h-11 border-slate-200 hover:bg-slate-50"
+              aria-label="Sign in with Google"
             >
               <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
