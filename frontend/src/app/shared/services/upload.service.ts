@@ -169,7 +169,11 @@ export class UploadService {
     const reader = new FileReader();
     reader.onload = (e) => {
       if (ws.readyState === WebSocket.OPEN) {
-        ws.send(e.target?.result as ArrayBuffer);
+        // Send chunk as JSON object with bytes key (backend expects this format)
+        const chunkMessage = {
+          bytes: e.target?.result
+        };
+        ws.send(JSON.stringify(chunkMessage));
         this.sliceAndSend(file, ws, end);
       }
     };

@@ -7,6 +7,7 @@ import httpx
 from app.services.chunk_buffer_pool import chunk_buffer_pool
 from app.services.memory_monitor import memory_monitor
 from app.core.config import settings
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +96,25 @@ class ParallelChunkProcessor:
                 while bytes_received < total_size:
                     # Receive chunk from WebSocket
                     message = await websocket.receive()
-                    chunk_data = message.get("bytes")
+                    
+                    # Handle different message types
+                    if message.get("type") == "websocket.disconnect":
+                        raise Exception("WebSocket disconnected")
+                    
+                    # Parse JSON message from frontend
+                    try:
+                        if isinstance(message, dict):
+                            chunk_data = message.get("bytes")
+                        elif isinstance(message, str):
+                            # Parse JSON string
+                            parsed_message = json.loads(message)
+                            chunk_data = parsed_message.get("bytes")
+                        else:
+                            # Try to get bytes directly
+                            chunk_data = message.get("bytes") if hasattr(message, 'get') else None
+                    except (json.JSONDecodeError, AttributeError) as e:
+                        logger.warning(f"Failed to parse message: {e}, message type: {type(message)}")
+                        continue
                     
                     if not chunk_data:
                         continue

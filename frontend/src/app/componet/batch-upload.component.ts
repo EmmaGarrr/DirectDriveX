@@ -338,16 +338,16 @@ export class BatchUploadComponent implements OnDestroy {
     
     const reader = new FileReader();
     reader.onload = (e) => {
-      if (ws.readyState === WebSocket.OPEN) {
-        try {
-          ws.send(e.target?.result as ArrayBuffer);
-          // Continue with next chunk
+      if (ws.readyState === WebSocket.OPEN && e.target?.result) {
+        // Send chunk as JSON object with bytes key (backend expects this format)
+        const chunkMessage = {
+          bytes: e.target.result
+        };
+        ws.send(JSON.stringify(chunkMessage));
+        
+        if (end < file.size) {
           this.sliceAndSend(file, ws, end);
-        } catch (sendError) {
-          console.error(`[FRONTEND_UPLOAD] File: ${file.name} | Error sending chunk ${chunkNumber}:`, sendError);
         }
-      } else {
-        console.warn(`[FRONTEND_UPLOAD] File: ${file.name} | WebSocket closed during chunk ${chunkNumber} send | State: ${ws.readyState}`);
       }
     };
     

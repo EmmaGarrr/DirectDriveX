@@ -430,8 +430,13 @@ async def websocket_upload_proxy_parallel(websocket: WebSocket, file_id: str, gd
         await memory_monitor.release_memory(file_id)
         await upload_concurrency_manager.release_upload_slot(user_id, file_id)
         
-        if websocket.client_state != "DISCONNECTED":
-            await websocket.close()
+        # Only close WebSocket if it's not already closed
+        try:
+            if websocket.client_state != "DISCONNECTED" and websocket.client_state != "CLOSED":
+                await websocket.close()
+        except Exception as e:
+            print(f"[PARALLEL_UPLOAD] WebSocket close error (ignored): {e}")
+            pass
 
 # --- END: PARALLEL UPLOAD HANDLER ---
 

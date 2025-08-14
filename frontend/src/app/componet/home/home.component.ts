@@ -337,7 +337,12 @@ export class HomeComponent implements OnDestroy {
     const reader = new FileReader();
     reader.onload = (e) => {
       if (ws.readyState === WebSocket.OPEN && e.target?.result) {
-        ws.send(e.target.result);
+        // Send chunk as JSON object with bytes key (backend expects this format)
+        const chunkMessage = {
+          bytes: e.target.result
+        };
+        ws.send(JSON.stringify(chunkMessage));
+        
         if (end < file.size) {
           this.sliceAndSend(file, ws, end);
         }
