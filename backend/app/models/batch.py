@@ -2,7 +2,16 @@
 
 from pydantic import BaseModel, Field
 from typing import List, Optional
+from enum import Enum
 import datetime
+
+class BatchStatus(str, Enum):
+    """Batch upload status enumeration"""
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
 
 class BatchMetadata(BaseModel):
     """
@@ -12,6 +21,9 @@ class BatchMetadata(BaseModel):
     file_ids: List[str] = Field(default_factory=list)
     creation_date: datetime.datetime = Field(default_factory=datetime.datetime.utcnow)
     owner_id: Optional[str] = None
+    status: BatchStatus = BatchStatus.PENDING
+    cancelled_at: Optional[datetime.datetime] = None
+    cancelled_files_count: Optional[int] = None
 
     class Config:
         populate_by_name = True

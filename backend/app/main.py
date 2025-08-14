@@ -73,7 +73,7 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 app = FastAPI(title="File Transfer Service")
-origins = ["http://localhost:4200", "http://135.148.33.247", "https://teletransfer.vercel.app", "https://*.vercel.app"]
+origins = ["http://localhost:4200", "http://192.168.1.23:4200", "http://135.148.33.247", "https://teletransfer.vercel.app", "https://*.vercel.app"]
 
 # Add priority middleware first (before CORS)
 app.add_middleware(PriorityMiddleware)
@@ -205,11 +205,53 @@ async def websocket_upload_proxy(websocket: WebSocket, file_id: str, gdrive_url:
     
     total_size = file_doc.get("size_bytes", 0)
     
+    # --- NEW: Background task to check for cancellation ---
+    cancellation_detected = False
+    
+    async def check_cancellation():
+        nonlocal cancellation_detected
+        while not cancellation_detected:
+            try:
+                await asyncio.sleep(0.5)  # Check every 500ms for instant detection
+                current_file_doc = db.files.find_one({"_id": file_id})
+                if current_file_doc and current_file_doc.get("status") == "cancelled":
+                    cancellation_detected = True
+                    print(f"[{file_id}] Background task detected cancellation, stopping upload")
+                    break
+            except Exception as e:
+                print(f"[{file_id}] Error in cancellation check: {e}")
+                break
+    
+    # Start the background cancellation checker
+    cancellation_task = asyncio.create_task(check_cancellation())
+    
     try:
         # Simplified upload proxy logic
         async with httpx.AsyncClient(timeout=None) as client:
             bytes_sent = 0
             while bytes_sent < total_size:
+                # --- NEW: Check for cancellation before processing each chunk ---
+                if cancellation_detected:
+                    print(f"[{file_id}] Cancellation detected, stopping upload immediately")
+                    break
+                
+                current_file_doc = db.files.find_one({"_id": file_id})
+                if not current_file_doc:
+                    print(f"[{file_id}] File document not found during upload, stopping")
+                    break
+                
+                current_status = current_file_doc.get("status")
+                if current_status == "cancelled":
+                    print(f"[{file_id}] Upload detected as cancelled, stopping immediately")
+                    cancellation_detected = True
+                    break  # Exit immediately, no more Google Drive API calls
+                
+                if current_status not in ["pending", "uploading"]:
+                    print(f"[{file_id}] File status changed to {current_status}, stopping upload")
+                    break
+                
+                # --- END: Cancellation check ---
+                
                 message = await websocket.receive()
                 chunk = message.get("bytes")
                 if not chunk: continue
@@ -217,6 +259,11 @@ async def websocket_upload_proxy(websocket: WebSocket, file_id: str, gdrive_url:
                 start_byte = bytes_sent
                 end_byte = bytes_sent + len(chunk) - 1
                 headers = {'Content-Length': str(len(chunk)), 'Content-Range': f'bytes {start_byte}-{end_byte}/{total_size}'}
+                
+                # Update file status to uploading if this is the first chunk
+                if bytes_sent == 0:
+                    db.files.update_one({"_id": file_id}, {"$set": {"status": "uploading"}})
+                
                 response = await client.put(gdrive_url, content=chunk, headers=headers)
                 
                 if response.status_code not in [200, 201, 308]:
@@ -251,10 +298,20 @@ async def websocket_upload_proxy(websocket: WebSocket, file_id: str, gdrive_url:
 
     except Exception as e:
         print(f"!!! [{file_id}] Upload proxy failed: {e}")
-        db.files.update_one({"_id": file_id}, {"$set": {"status": UploadStatus.FAILED}})
-        try: await websocket.send_json({"type": "error", "value": "Upload failed."})
-        except RuntimeError: pass
+        # Only update status if it's not already cancelled
+        current_file_doc = db.files.find_one({"_id": file_id})
+        if current_file_doc and current_file_doc.get("status") != "cancelled":
+            db.files.update_one({"_id": file_id}, {"$set": {"status": UploadStatus.FAILED}})
+            try: await websocket.send_json({"type": "error", "value": "Upload failed."})
+            except RuntimeError: pass
     finally:
+        # Cancel the background task
+        cancellation_task.cancel()
+        try:
+            await cancellation_task
+        except asyncio.CancelledError:
+            pass
+        
         if websocket.client_state != "DISCONNECTED": await websocket.close()
 
 # Include other routers

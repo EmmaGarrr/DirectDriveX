@@ -15,6 +15,7 @@ class UploadStatus(str, Enum):
     UPLOADING = "uploading"
     COMPLETED = "completed"
     FAILED = "failed"
+    CANCELLED = "cancelled"
 
 # --- NEW: A status to track the background backup process ---
 class BackupStatus(str, Enum):

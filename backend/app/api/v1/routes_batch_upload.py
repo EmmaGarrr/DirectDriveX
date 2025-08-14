@@ -4,6 +4,7 @@ import uuid
 from typing import Optional, List
 from fastapi.responses import StreamingResponse
 from fastapi import APIRouter, HTTPException, Depends
+from datetime import datetime
 
 from app.models.batch import BatchMetadata, InitiateBatchRequest, InitiateBatchResponse
 from app.models.file import FileMetadataCreate, UploadStatus, FileMetadataInDB
@@ -112,3 +113,56 @@ async def download_batch_as_zip(batch_id: str):
         media_type="application/zip",
         headers=headers
     )
+
+@router.post("/cancel/{batch_id}")
+async def cancel_batch_upload(batch_id: str):
+    """Cancel an entire batch upload and all its files"""
+    
+    # 1. Find the batch
+    batch_doc = db.batches.find_one({"_id": batch_id})
+    if not batch_doc:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    
+    # 2. Get all files in the batch
+    file_docs = list(db.files.find({"batch_id": batch_id}))
+    if not file_docs:
+        raise HTTPException(status_code=404, detail="No files found for this batch")
+    
+    # 3. Cancel all files in the batch
+    cancelled_count = 0
+    for file_doc in file_docs:
+        if file_doc.get("status") in [UploadStatus.PENDING, UploadStatus.UPLOADING]:
+            update_result = db.files.update_one(
+                {"_id": file_doc["_id"]}, 
+                {
+                    "$set": {
+                        "status": "cancelled", 
+                        "cancelled_at": datetime.utcnow(),
+                        "cancelled_by": "batch_cancel"
+                    }
+                }
+            )
+            if update_result.modified_count > 0:
+                cancelled_count += 1
+    
+    # 4. Update batch status
+    db.batches.update_one(
+        {"_id": batch_id}, 
+        {
+            "$set": {
+                "status": "cancelled",
+                "cancelled_at": datetime.utcnow(),
+                "cancelled_files_count": cancelled_count
+            }
+        }
+    )
+    
+    print(f"[BATCH_CANCEL] Batch {batch_id} cancelled successfully. {cancelled_count} files cancelled.")
+    
+    return {
+        "message": "Batch upload cancelled successfully",
+        "batch_id": batch_id,
+        "cancelled_files_count": cancelled_count,
+        "total_files_in_batch": len(file_docs),
+        "cancelled_at": datetime.utcnow().isoformat()
+    }
