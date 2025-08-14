@@ -1,13 +1,15 @@
+import json
+import base64
 import asyncio
-import time
 import logging
-from typing import List, Dict, Optional, Tuple
+import time
+from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
 import httpx
-from app.services.chunk_buffer_pool import chunk_buffer_pool
-from app.services.memory_monitor import memory_monitor
 from app.core.config import settings
-import json
+from app.services.upload_concurrency_manager import UploadConcurrencyManager
+from app.services.memory_monitor import MemoryMonitor
+from app.services.chunk_buffer_pool import ChunkBufferPool
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +160,17 @@ class ParallelChunkProcessor:
                                 print(f"[DEBUG] 📦 Chunk data extracted: {type(chunk_data) if chunk_data else 'None'}")
                                 if chunk_data:
                                     print(f"[DEBUG] 📏 Chunk size: {len(chunk_data)} bytes")
+                                    # Decode base64 string back to bytes
+                                    try:
+                                        if isinstance(chunk_data, str):
+                                            print(f"[DEBUG] 🔄 Decoding base64 string to bytes...")
+                                            chunk_data = base64.b64decode(chunk_data)
+                                            print(f"[DEBUG] ✅ Base64 decoded successfully, bytes length: {len(chunk_data)}")
+                                        else:
+                                            print(f"[DEBUG] ⚠️ Chunk data is not a string, type: {type(chunk_data)}")
+                                    except Exception as e:
+                                        print(f"[DEBUG] ❌ Failed to decode base64: {e}")
+                                        continue
                             else:
                                 print(f"[DEBUG] ⏭️ No chunk data in parsed text, skipping...")
                                 continue
@@ -177,6 +190,19 @@ class ParallelChunkProcessor:
                     
                     if not chunk_data:
                         print(f"[DEBUG] ⚠️ No chunk data found, continuing...")
+                        continue
+                    
+                    # Decode base64 string back to bytes if it's a string
+                    if isinstance(chunk_data, str):
+                        try:
+                            print(f"[DEBUG] 🔄 Decoding base64 string to bytes...")
+                            chunk_data = base64.b64decode(chunk_data)
+                            print(f"[DEBUG] ✅ Base64 decoded successfully, bytes length: {len(chunk_data)}")
+                        except Exception as e:
+                            print(f"[DEBUG] ❌ Failed to decode base64: {e}")
+                            continue
+                    elif not isinstance(chunk_data, bytes):
+                        print(f"[DEBUG] ⚠️ Chunk data is not bytes or string, type: {type(chunk_data)}")
                         continue
                     
                     print(f"[DEBUG] ✅ Chunk data received successfully!")

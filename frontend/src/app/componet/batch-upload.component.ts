@@ -349,16 +349,31 @@ export class BatchUploadComponent implements OnDestroy {
       if (ws.readyState === WebSocket.OPEN && e.target?.result) {
         console.log(`[DEBUG] 🔌 [BATCH] WebSocket is OPEN, sending chunk data`);
         
+        // Convert ArrayBuffer to base64 string for JSON serialization
+        let chunkData;
+        if (e.target.result instanceof ArrayBuffer) {
+          // Convert ArrayBuffer to base64 string
+          const bytes = new Uint8Array(e.target.result);
+          let binary = '';
+          for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          chunkData = btoa(binary); // Convert to base64
+          console.log(`[DEBUG] 🔄 [BATCH] Converted ArrayBuffer to base64, length:`, chunkData.length);
+        } else {
+          chunkData = e.target.result;
+        }
+        
         // Send chunk as JSON object with bytes key (backend expects this format)
         const chunkMessage = {
-          bytes: e.target.result
+          bytes: chunkData
         };
         
         console.log(`[DEBUG] 📤 [BATCH] Chunk message to send:`, {
           hasBytes: !!chunkMessage.bytes,
           bytesType: typeof chunkMessage.bytes,
           bytesConstructor: chunkMessage.bytes?.constructor?.name,
-          bytesSize: chunkMessage.bytes instanceof ArrayBuffer ? chunkMessage.bytes.byteLength : 'not ArrayBuffer'
+          bytesSize: typeof chunkMessage.bytes === 'string' ? chunkMessage.bytes.length : 'not string'
         });
         
         const jsonMessage = JSON.stringify(chunkMessage);
