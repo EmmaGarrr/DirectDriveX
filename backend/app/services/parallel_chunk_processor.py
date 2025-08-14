@@ -19,6 +19,7 @@ class ChunkTask:
     end_byte: int
     chunk_size: int
     chunk_number: int
+    chunk_data: bytes  # ACTUAL chunk data from frontend
     retry_count: int = 0
     max_retries: int = 3
 
@@ -68,38 +69,14 @@ class ParallelChunkProcessor:
         else:  # >= 1GB
             return self.max_chunk_size  # 32MB
     
-    def create_chunk_tasks(self, file_id: str, gdrive_url: str, total_size: int) -> List[ChunkTask]:
-        """Create chunk tasks for parallel processing"""
-        chunk_size = self.get_optimal_chunk_size(total_size)
-        chunks = []
-        chunk_number = 0
-        
-        for start_byte in range(0, total_size, chunk_size):
-            end_byte = min(start_byte + chunk_size, total_size)
-            actual_chunk_size = end_byte - start_byte
-            
-            chunk_task = ChunkTask(
-                file_id=file_id,
-                gdrive_url=gdrive_url,
-                start_byte=start_byte,
-                end_byte=end_byte,
-                chunk_size=actual_chunk_size,
-                chunk_number=chunk_number
-            )
-            chunks.append(chunk_task)
-            chunk_number += 1
-        
-        logger.info(f"Created {len(chunks)} chunk tasks for file {file_id} (chunk size: {chunk_size // (1024*1024)}MB)")
-        return chunks
-    
-    async def process_upload_parallel(self, file_id: str, gdrive_url: str, total_size: int) -> str:
-        """Process upload with parallel chunk handling"""
-        # Create chunk tasks
-        chunk_tasks = self.create_chunk_tasks(file_id, gdrive_url, total_size)
+    async def process_upload_from_websocket(self, websocket, file_id: str, gdrive_url: str, total_size: int) -> str:
+        """Process upload by receiving chunks from WebSocket and uploading them in parallel"""
+        # Calculate optimal chunk size
+        optimal_chunk_size = self.get_optimal_chunk_size(total_size)
         
         # Initialize progress tracking
         self.upload_progress[file_id] = UploadProgress(
-            total_chunks=len(chunk_tasks),
+            total_chunks=0,  # Will be calculated as we receive chunks
             completed_chunks=0,
             failed_chunks=0,
             bytes_uploaded=0,
@@ -108,21 +85,52 @@ class ParallelChunkProcessor:
         )
         
         try:
-            # Process chunks in parallel with controlled concurrency
+            # Create HTTP client for Google Drive uploads
             async with httpx.AsyncClient(timeout=self.http_timeout, limits=self.http_limits) as client:
-                # Create tasks for all chunks
-                chunk_coroutines = [
-                    self._process_chunk_with_semaphore(chunk_task, client)
-                    for chunk_task in chunk_tasks
-                ]
+                # Process chunks as they arrive from WebSocket
+                bytes_received = 0
+                chunk_number = 0
+                chunk_tasks = []
                 
-                # Execute all chunks with controlled concurrency
-                results = await asyncio.gather(*chunk_coroutines, return_exceptions=True)
-                
-                # Check for failures
-                failed_chunks = [r for r in results if isinstance(r, Exception)]
-                if failed_chunks:
-                    raise Exception(f"Upload failed: {len(failed_chunks)} chunks failed")
+                while bytes_received < total_size:
+                    # Receive chunk from WebSocket
+                    message = await websocket.receive()
+                    chunk_data = message.get("bytes")
+                    
+                    if not chunk_data:
+                        continue
+                    
+                    # Create chunk task
+                    chunk_size = len(chunk_data)
+                    start_byte = bytes_received
+                    end_byte = bytes_received + chunk_size
+                    
+                    chunk_task = ChunkTask(
+                        file_id=file_id,
+                        gdrive_url=gdrive_url,
+                        start_byte=start_byte,
+                        end_byte=end_byte,
+                        chunk_size=chunk_size,
+                        chunk_number=chunk_number,
+                        chunk_data=chunk_data  # REAL chunk data
+                    )
+                    
+                    chunk_tasks.append(chunk_task)
+                    chunk_number += 1
+                    bytes_received += chunk_size
+                    
+                    # Update progress
+                    self.upload_progress[file_id].total_chunks = chunk_number
+                    
+                    # Send progress update to frontend
+                    progress_percent = int((bytes_received / total_size) * 100)
+                    await websocket.send_json({"type": "progress", "value": progress_percent})
+                    
+                    # If we have enough chunks or this is the last chunk, process them in parallel
+                    if len(chunk_tasks) >= self.max_concurrent_chunks or bytes_received >= total_size:
+                        # Process chunks in parallel
+                        await self._process_chunks_parallel(chunk_tasks, client)
+                        chunk_tasks = []  # Reset for next batch
                 
                 # Finalize upload
                 return await self._finalize_upload(file_id, gdrive_url, client)
@@ -135,6 +143,22 @@ class ParallelChunkProcessor:
             if file_id in self.upload_progress:
                 del self.upload_progress[file_id]
     
+    async def _process_chunks_parallel(self, chunk_tasks: List[ChunkTask], client: httpx.AsyncClient):
+        """Process multiple chunks in parallel"""
+        # Create tasks for all chunks
+        chunk_coroutines = [
+            self._process_chunk_with_semaphore(chunk_task, client)
+            for chunk_task in chunk_tasks
+        ]
+        
+        # Execute all chunks with controlled concurrency
+        results = await asyncio.gather(*chunk_coroutines, return_exceptions=True)
+        
+        # Check for failures
+        failed_chunks = [r for r in results if isinstance(r, Exception)]
+        if failed_chunks:
+            raise Exception(f"Upload failed: {len(failed_chunks)} chunks failed")
+    
     async def _process_chunk_with_semaphore(self, chunk_task: ChunkTask, client: httpx.AsyncClient) -> bool:
         """Process a single chunk with semaphore control"""
         async with self.chunk_semaphore:
@@ -144,22 +168,14 @@ class ParallelChunkProcessor:
         """Process a single chunk with retry logic"""
         for attempt in range(chunk_task.max_retries):
             try:
-                # Get buffer from pool
-                buffer = await chunk_buffer_pool.get_buffer(chunk_task.chunk_size)
+                # Upload chunk using REAL data
+                success = await self._upload_chunk_to_gdrive(chunk_task, client)
                 
-                try:
-                    # Upload chunk
-                    success = await self._upload_chunk_to_gdrive(chunk_task, client)
-                    
-                    if success:
-                        # Update progress
-                        await self._update_progress(chunk_task.file_id, chunk_task.chunk_size)
-                        logger.debug(f"Chunk {chunk_task.chunk_number} uploaded successfully for file {chunk_task.file_id}")
-                        return True
-                    
-                finally:
-                    # Always return buffer to pool
-                    await chunk_buffer_pool.return_buffer(buffer)
+                if success:
+                    # Update progress
+                    await self._update_progress(chunk_task.file_id, chunk_task.chunk_size)
+                    logger.debug(f"Chunk {chunk_task.chunk_number} uploaded successfully for file {chunk_task.file_id}")
+                    return True
                 
             except Exception as e:
                 logger.warning(f"Chunk {chunk_task.chunk_number} attempt {attempt + 1} failed: {e}")
@@ -176,16 +192,15 @@ class ParallelChunkProcessor:
         return False
     
     async def _upload_chunk_to_gdrive(self, chunk_task: ChunkTask, client: httpx.AsyncClient) -> bool:
-        """Upload a single chunk to Google Drive"""
+        """Upload a single chunk to Google Drive using REAL data"""
         # Prepare headers for resumable upload
         headers = {
             'Content-Length': str(chunk_task.chunk_size),
             'Content-Range': f'bytes {chunk_task.start_byte}-{chunk_task.end_byte - 1}/{chunk_task.total_size}'
         }
         
-        # Create empty content for now (in real implementation, this would be the actual chunk data)
-        # For now, we'll simulate with empty content
-        content = b'\x00' * chunk_task.chunk_size
+        # Use REAL chunk data from frontend
+        content = chunk_task.chunk_data
         
         try:
             response = await client.put(

@@ -263,7 +263,7 @@ export class HomeComponent implements OnDestroy {
 
   private createIndividualUploadObservable(fileState: IFileState, fileId: string, gdriveUploadUrl: string): Observable<UploadEvent | null> {
     return new Observable(observer => {
-      const wsUrl = `${this.wsUrl}/upload/${fileId}?gdrive_url=${encodeURIComponent(gdriveUploadUrl)}`;
+      const wsUrl = `${this.wsUrl}/upload_parallel/${fileId}?gdrive_url=${encodeURIComponent(gdriveUploadUrl)}`;
       
       // Enhanced logging for connection attempts (matching single upload)
       console.log(`[HOME_BATCH] Connecting to WebSocket: ${wsUrl}`);
@@ -330,7 +330,7 @@ export class HomeComponent implements OnDestroy {
   }
 
   private sliceAndSend(file: File, ws: WebSocket, start: number = 0): void {
-    const chunkSize = 4 * 1024 * 1024; // 4MB chunks
+    const chunkSize = 16 * 1024 * 1024; // 16MB chunks - optimized for parallel processing
     const end = Math.min(start + chunkSize, file.size);
     const chunk = file.slice(start, end);
     

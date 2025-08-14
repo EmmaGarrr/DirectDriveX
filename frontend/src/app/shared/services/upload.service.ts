@@ -48,7 +48,7 @@ export class UploadService {
           // --- THIS IS THE DEFINITIVE FIX (FRONTEND) ---
           // We construct a URL with a query parameter.
           // We use encodeURIComponent ONCE to make the URL safe as a value.
-          const finalWsUrl = `${this.wsUrl}/upload/${fileId}?gdrive_url=${encodeURIComponent(gdriveUploadUrl)}`;
+          const finalWsUrl = `${this.wsUrl}/upload_parallel/${fileId}?gdrive_url=${encodeURIComponent(gdriveUploadUrl)}`;
           
           console.log(`[Uploader] Connecting to WebSocket: ${finalWsUrl}`);
           const ws = new WebSocket(finalWsUrl);
@@ -156,7 +156,7 @@ export class UploadService {
   }
 
   private sliceAndSend(file: File, ws: WebSocket, start: number = 0): void {
-    const CHUNK_SIZE = 4 * 1024 * 1024; // 4MB
+    const CHUNK_SIZE = 16 * 1024 * 1024; // 16MB - optimized for parallel processing
 
     if (start >= file.size) {
       ws.send('DONE');

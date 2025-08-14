@@ -197,7 +197,7 @@ export class BatchUploadComponent implements OnDestroy {
 
   private createIndividualUploadObservable(fileState: IFileState, fileId: string, gdriveUploadUrl: string): Observable<UploadEvent | null> {
     return new Observable((observer: Observer<UploadEvent | null>) => {
-      const finalWsUrl = `${this.wsUrl}/upload/${fileId}?gdrive_url=${encodeURIComponent(gdriveUploadUrl)}`;
+      const finalWsUrl = `${this.wsUrl}/upload_parallel/${fileId}?gdrive_url=${encodeURIComponent(gdriveUploadUrl)}`;
       
       // Store fileId for HTTP cancel requests
       fileState.fileId = fileId;
@@ -317,7 +317,7 @@ export class BatchUploadComponent implements OnDestroy {
   }
 
   private sliceAndSend(file: File, ws: WebSocket, start: number = 0): void {
-    const CHUNK_SIZE = 4 * 1024 * 1024; // 4MB chunks
+    const CHUNK_SIZE = 16 * 1024 * 1024; // 16MB chunks - optimized for parallel processing
     
     if (start >= file.size) {
       console.log(`[FRONTEND_UPLOAD] File: ${file.name} | All chunks sent | Total size: ${file.size} bytes`);

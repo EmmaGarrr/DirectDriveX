@@ -54,7 +54,6 @@ async def test_parallel_upload_system():
         print("✅ Buffer pool working")
         
         # Test 6: Test parallel processor configuration
-        print("\n6️⃣ Testing parallel processor...")
         print(f"   Max concurrent chunks: {parallel_chunk_processor.max_concurrent_chunks}")
         print(f"   Default chunk size: {parallel_chunk_processor.default_chunk_size // (1024*1024)}MB")
         print("✅ Parallel processor configured correctly")
@@ -74,8 +73,18 @@ async def test_parallel_upload_system():
         print(f"   2GB file -> {large_chunk // (1024*1024)}MB chunks")
         print("✅ Chunk size calculation working")
         
-        # Test 8: Test memory allocation
-        print("\n8️⃣ Testing memory allocation...")
+        # Test 8: Test new method exists
+        print("\n8️⃣ Testing new parallel processor method...")
+        if hasattr(parallel_chunk_processor, 'process_upload_from_websocket'):
+            print("   ✅ process_upload_from_websocket method exists")
+        else:
+            print("   ❌ process_upload_from_websocket method missing")
+            return False
+        
+        print("✅ New parallel processor method available")
+        
+        # Test 9: Test memory allocation
+        print("\n9️⃣ Testing memory allocation...")
         test_file_id = "test_file_123"
         test_memory = 100 * 1024 * 1024  # 100MB
         

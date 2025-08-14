@@ -372,8 +372,8 @@ async def websocket_upload_proxy_parallel(websocket: WebSocket, file_id: str, gd
         db.files.update_one({"_id": file_id}, {"$set": {"status": "uploading"}})
         
         # Start parallel processing
-        gdrive_id = await parallel_chunk_processor.process_upload_parallel(
-            file_id, gdrive_url, total_size
+        gdrive_id = await parallel_chunk_processor.process_upload_from_websocket(
+            websocket, file_id, gdrive_url, total_size
         )
         
         # Update database with success
