@@ -1,0 +1,11 @@
+{
+  "projectId": "directdrivex",
+  "orgId": "your-org-id",
+  "settings": {
+    "framework": "angular",
+    "buildCommand": "npm run build",
+    "outputDirectory": "dist",
+    "installCommand": "npm install",
+    "devCommand": "npm start"
+  }
+}
