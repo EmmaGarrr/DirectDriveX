@@ -206,40 +206,34 @@ export class BatchUploadComponent implements OnDestroy {
       console.log(`[FRONTEND_UPLOAD] File: ${fileState.file.name} (${fileId}) | Attempting WebSocket connection to: ${finalWsUrl}`);
       
       const ws = new WebSocket(finalWsUrl);
-      let connectionStartTime = Date.now();
       
-      // Store WebSocket reference for cancellation
-      fileState.websocket = ws;
-      
-      // Add connection timeout to prevent infinite waiting
-      const connectionTimeout = setTimeout(() => {
-        if (ws.readyState === WebSocket.CONNECTING) {
-          console.error(`[FRONTEND_UPLOAD] File: ${fileState.file.name} (${fileId}) | Connection timeout after 30 seconds`);
-          ws.close();
-          fileState.state = 'error';
-          fileState.error = 'Connection timeout - server may be unavailable';
-          observer.error(new Error('Connection timeout'));
-        }
-      }, 30000); // 30 second timeout
-
+      // Comprehensive WebSocket debugging
       ws.onopen = () => {
-        clearTimeout(connectionTimeout); // Clear timeout on successful connection
-        const connectionTime = Date.now() - connectionStartTime;
-        console.log(`[FRONTEND_UPLOAD] File: ${fileState.file.name} (${fileId}) | WebSocket connected successfully | Connection time: ${connectionTime}ms`);
-        fileState.state = 'uploading';
+        console.log(`[DEBUG] 🔌 [BATCH] WebSocket opened successfully`);
+        console.log(`[DEBUG] 🔌 [BATCH] WebSocket readyState:`, ws.readyState);
+        console.log(`[DEBUG] 🔌 [BATCH] WebSocket URL:`, ws.url);
+        console.log(`[DEBUG] 🔌 [BATCH] WebSocket protocol:`, ws.protocol);
+        console.log(`[DEBUG] 🔌 [BATCH] WebSocket extensions:`, ws.extensions);
         this.sliceAndSend(fileState.file, ws);
       };
       
       ws.onmessage = (event) => {
+        console.log(`[DEBUG] 📨 [BATCH] WebSocket message received:`, {
+          data: event.data,
+          type: event.type,
+          origin: event.origin,
+          lastEventId: event.lastEventId
+        });
+        
         try {
-          const message: any = JSON.parse(event.data); // Use any to handle extended message types
-          
+          const message: any = JSON.parse(event.data);
           if (message.type === 'progress') {
             fileState.progress = message.value;
             // Log major progress milestones
             if (message.value % 25 === 0) {
               console.log(`[FRONTEND_UPLOAD] File: ${fileState.file.name} (${fileId}) | Progress: ${message.value}%`);
             }
+            observer.next(message);
           } else if (message.type === 'success') {
             console.log(`[FRONTEND_UPLOAD] File: ${fileState.file.name} (${fileId}) | Upload completed successfully`);
             fileState.state = 'success';
@@ -264,44 +258,35 @@ export class BatchUploadComponent implements OnDestroy {
             observer.next(null);
             observer.complete();
           }
-        } catch (parseError) {
-          console.error(`[FRONTEND_UPLOAD] File: ${fileState.file.name} (${fileId}) | Failed to parse server message:`, parseError, event.data);
-          fileState.state = 'error';
-          fileState.error = 'Invalid server response';
-          observer.next(null);
-          observer.complete();
+        } catch (e) {
+          console.error('[BATCH] Failed to parse message:', event.data);
         }
       };
       
-      ws.onerror = (errorEvent) => {
-        clearTimeout(connectionTimeout); // Clear timeout on error
-        console.error(`[FRONTEND_UPLOAD] File: ${fileState.file.name} (${fileId}) | WebSocket error:`, errorEvent);
-        fileState.state = 'error';
-        fileState.error = 'Connection to server failed. Please check your internet connection.';
-        observer.next(null);
-        observer.complete();
+      ws.onerror = (error) => {
+        console.log(`[DEBUG] ❌ [BATCH] WebSocket error occurred:`, error);
+        console.log(`[DEBUG] ❌ [BATCH] WebSocket readyState during error:`, ws.readyState);
+        observer.error({ type: 'error', value: 'Connection failed' });
       };
       
       ws.onclose = (event) => {
-        clearTimeout(connectionTimeout); // Clear timeout on close
-        const wasClean = event.wasClean;
-        const code = event.code;
-        const reason = event.reason;
+        console.log(`[DEBUG] 🔌 [BATCH] WebSocket closed:`, {
+          code: event.code,
+          reason: event.reason,
+          wasClean: event.wasClean,
+          readyState: ws.readyState
+        });
+        console.log(`[DEBUG] 🔌 [BATCH] Close codes: NORMAL=1000, GOING_AWAY=1001, ABNORMAL_CLOSURE=1006`);
         
-        console.log(`[FRONTEND_UPLOAD] File: ${fileState.file.name} (${fileId}) | WebSocket closed | Clean: ${wasClean} | Code: ${code} | Reason: ${reason}`);
-        
-        if (!wasClean && fileState.state !== 'success' && fileState.state !== 'cancelled') {
-          fileState.state = 'error';
-          fileState.error = `Connection lost (Code: ${code}${reason ? `, Reason: ${reason}` : ''})`;
-          console.error(`[FRONTEND_UPLOAD] File: ${fileState.file.name} (${fileId}) | Unexpected connection loss`);
-        } else if (fileState.state === 'uploading') {
-          // If we were uploading and connection closed cleanly, it might be cancellation
-          console.log(`[FRONTEND_UPLOAD] File: ${fileState.file.name} (${fileId}) | Upload cancelled by user`);
-          fileState.state = 'cancelled';
+        if (event.code === 1006) {
+          console.log(`[DEBUG] ❌ [BATCH] ABNORMAL_CLOSURE detected - connection was closed unexpectedly`);
         }
         
-        observer.next(null);
-        observer.complete();
+        if (!event.wasClean) {
+          observer.error({ type: 'error', value: 'Connection lost' });
+        } else {
+          observer.complete();
+        }
       };
 
       return () => {

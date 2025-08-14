@@ -284,47 +284,63 @@ export class HomeComponent implements OnDestroy {
         }
       }, 30000); // 30 second timeout
       
+      // Comprehensive WebSocket debugging
       ws.onopen = () => {
         clearTimeout(connectionTimeout);
         const connectionTime = Date.now() - connectionStartTime;
-        console.log(`[HOME_BATCH WS] Connection opened for ${fileId}. Starting file stream. | Connection time: ${connectionTime}ms`);
-        fileState.state = 'uploading';
+        console.log(`[DEBUG] 🔌 [HOME] WebSocket opened successfully`);
+        console.log(`[DEBUG] 🔌 [HOME] WebSocket readyState:`, ws.readyState);
+        console.log(`[DEBUG] 🔌 [HOME] WebSocket URL:`, ws.url);
+        console.log(`[DEBUG] 🔌 [HOME] WebSocket protocol:`, ws.protocol);
+        console.log(`[DEBUG] 🔌 [HOME] WebSocket extensions:`, ws.extensions);
+        console.log(`[DEBUG] 🔌 [HOME] WebSocket extensions:`, ws.extensions);
         this.sliceAndSend(fileState.file, ws);
       };
       
       ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === 'progress') {
-          fileState.progress = data.value;
-        } else if (data.type === 'success') {
-          fileState.state = 'success';
-          fileState.websocket = undefined; // Clean up reference
-          observer.complete();
-        } else if (data.type === 'error') {
-          fileState.state = 'error';
-          fileState.error = data.value;
-          fileState.websocket = undefined; // Clean up reference
-          observer.error(new Error(data.value));
+        console.log(`[DEBUG] 📨 [HOME] WebSocket message received:`, {
+          data: event.data,
+          type: event.type,
+          origin: event.origin,
+          lastEventId: event.lastEventId
+        });
+        
+        try {
+          const message: any = JSON.parse(event.data);
+          if (message.type === 'progress') {
+            observer.next(message);
+          }
+        } catch (e) {
+          console.error('[HOME] Failed to parse message:', event.data);
         }
       };
       
-      ws.onerror = (errorEvent) => {
+      ws.onerror = (error) => {
         clearTimeout(connectionTimeout); // Clear timeout on error
-        console.error(`[HOME_BATCH] WebSocket error for file: ${fileState.file.name} (${fileId})`, errorEvent);
-        fileState.state = 'error';
-        fileState.error = 'WebSocket connection failed';
-        fileState.websocket = undefined; // Clean up reference
-        observer.error(new Error('WebSocket connection failed'));
+        console.log(`[DEBUG] ❌ [HOME] WebSocket error occurred:`, error);
+        console.log(`[DEBUG] ❌ [HOME] WebSocket readyState during error:`, ws.readyState);
+        observer.error({ type: 'error', value: 'Connection failed' });
       };
       
       ws.onclose = (event) => {
         clearTimeout(connectionTimeout); // Clear timeout on close
-        console.log(`[HOME_BATCH] WebSocket closed for file: ${fileState.file.name} (${fileId}) | Clean: ${event.wasClean} | Code: ${event.code}`);
-        if (fileState.state === 'uploading') {
-          fileState.state = 'cancelled';
+        console.log(`[DEBUG] 🔌 [HOME] WebSocket closed:`, {
+          code: event.code,
+          reason: event.reason,
+          wasClean: event.wasClean,
+          readyState: ws.readyState
+        });
+        console.log(`[DEBUG] 🔌 [HOME] Close codes: NORMAL=1000, GOING_AWAY=1001, ABNORMAL_CLOSURE=1006`);
+        
+        if (event.code === 1006) {
+          console.log(`[DEBUG] ❌ [HOME] ABNORMAL_CLOSURE detected - connection was closed unexpectedly`);
         }
-        fileState.websocket = undefined; // Clean up reference
-        observer.complete();
+        
+        if (!event.wasClean) {
+          observer.error({ type: 'error', value: 'Connection lost' });
+        } else {
+          observer.complete();
+        }
       };
     });
   }

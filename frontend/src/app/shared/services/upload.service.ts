@@ -56,10 +56,22 @@ export class UploadService {
           
           ws.onopen = () => {
             console.log(`[Uploader WS] Connection opened for ${fileId}. Starting file stream.`);
+            console.log(`[DEBUG] 🔌 WebSocket opened successfully`);
+            console.log(`[DEBUG] 🔌 WebSocket readyState:`, ws.readyState);
+            console.log(`[DEBUG] 🔌 WebSocket URL:`, ws.url);
+            console.log(`[DEBUG] 🔌 WebSocket protocol:`, ws.protocol);
+            console.log(`[DEBUG] 🔌 WebSocket extensions:`, ws.extensions);
             this.sliceAndSend(file, ws);
           };
 
           ws.onmessage = (event) => {
+            console.log(`[DEBUG] 📨 WebSocket message received:`, {
+              data: event.data,
+              type: event.type,
+              origin: event.origin,
+              lastEventId: event.lastEventId
+            });
+            
             try {
               const message: any = JSON.parse(event.data);
               
@@ -74,12 +86,26 @@ export class UploadService {
 
           ws.onerror = (error) => {
             console.error('[Uploader WS] Error:', error);
+            console.log(`[DEBUG] ❌ WebSocket error occurred:`, error);
+            console.log(`[DEBUG] ❌ WebSocket readyState during error:`, ws.readyState);
             this.currentWebSocket = undefined;
             this.currentFileId = undefined; // Clear file ID on error
             observer.error({ type: 'error', value: 'Connection to server failed.' });
           };
 
           ws.onclose = (event) => {
+            console.log(`[DEBUG] 🔌 WebSocket closed:`, {
+              code: event.code,
+              reason: event.reason,
+              wasClean: event.wasClean,
+              readyState: ws.readyState
+            });
+            console.log(`[DEBUG] 🔌 Close codes: NORMAL=1000, GOING_AWAY=1001, ABNORMAL_CLOSURE=1006`);
+            
+            if (event.code === 1006) {
+              console.log(`[DEBUG] ❌ ABNORMAL_CLOSURE detected - connection was closed unexpectedly`);
+            }
+            
             this.currentWebSocket = undefined;
             this.currentFileId = undefined; // Clear file ID on close
             
