@@ -21,7 +21,7 @@ async def test_parallel_upload_system():
         from app.services.upload_concurrency_manager import upload_concurrency_manager
         from app.services.memory_monitor import memory_monitor
         from app.services.chunk_buffer_pool import chunk_buffer_pool
-        from app.services.parallel_chunk_processor import parallel_chunk_processor
+        from app.services.parallel_chunk_processor import sequential_chunk_processor
         print("✅ All services imported successfully")
         
         # Test 2: Check service initialization
@@ -29,7 +29,7 @@ async def test_parallel_upload_system():
         print(f"   Concurrency Manager: {type(upload_concurrency_manager).__name__}")
         print(f"   Memory Monitor: {type(memory_monitor).__name__}")
         print(f"   Buffer Pool: {type(chunk_buffer_pool).__name__}")
-        print(f"   Parallel Processor: {type(parallel_chunk_processor).__name__}")
+        print(f"   Sequential Processor: {type(sequential_chunk_processor).__name__}")
         print("✅ All services initialized successfully")
         
         # Test 3: Test memory monitoring
@@ -53,10 +53,10 @@ async def test_parallel_upload_system():
         print(f"   Available buffers: {buffer_status['usage']['total_available']}")
         print("✅ Buffer pool working")
         
-        # Test 6: Test parallel processor configuration
-        print(f"   Max concurrent chunks: {parallel_chunk_processor.max_concurrent_chunks}")
-        print(f"   Default chunk size: {parallel_chunk_processor.default_chunk_size // (1024*1024)}MB")
-        print("✅ Parallel processor configured correctly")
+        # Test 6: Test sequential processor configuration
+        print(f"   Max chunks per batch: {sequential_chunk_processor.max_concurrent_chunks}")
+        print(f"   Default chunk size: {sequential_chunk_processor.default_chunk_size // (1024*1024)}MB")
+        print("✅ Sequential processor configured correctly")
         
         # Test 7: Test chunk size calculation
         print("\n7️⃣ Testing chunk size calculation...")
@@ -64,18 +64,18 @@ async def test_parallel_upload_system():
         medium_file = 500 * 1024 * 1024  # 500MB
         large_file = 2 * 1024 * 1024 * 1024  # 2GB
         
-        small_chunk = parallel_chunk_processor.get_optimal_chunk_size(small_file)
-        medium_chunk = parallel_chunk_processor.get_optimal_chunk_size(medium_file)
-        large_chunk = parallel_chunk_processor.get_optimal_chunk_size(large_file)
+        small_chunk = sequential_chunk_processor.get_optimal_chunk_size(small_file)
+        medium_chunk = sequential_chunk_processor.get_optimal_chunk_size(medium_file)
+        large_chunk = sequential_chunk_processor.get_optimal_chunk_size(large_file)
         
         print(f"   50MB file -> {small_chunk // (1024*1024)}MB chunks")
         print(f"   500MB file -> {medium_chunk // (1024*1024)}MB chunks")
         print(f"   2GB file -> {large_chunk // (1024*1024)}MB chunks")
         print("✅ Chunk size calculation working")
         
-        # Test 8: Test new method exists
-        print("\n8️⃣ Testing new parallel processor method...")
-        if hasattr(parallel_chunk_processor, 'process_upload_from_websocket'):
+        # Test 8: Test new sequential method exists
+        print("\n8️⃣ Testing new sequential processor method...")
+        if hasattr(sequential_chunk_processor, 'process_upload_from_websocket'):
             print("   ✅ process_upload_from_websocket method exists")
         else:
             print("   ❌ process_upload_from_websocket method missing")

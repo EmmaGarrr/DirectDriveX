@@ -21,7 +21,7 @@ from app.middleware.priority_middleware import PriorityMiddleware
 # New parallel upload services
 from app.services.upload_concurrency_manager import upload_concurrency_manager
 from app.services.memory_monitor import memory_monitor
-from app.services.parallel_chunk_processor import parallel_chunk_processor
+from app.services.parallel_chunk_processor import sequential_chunk_processor
 
 # Strict concurrency limiter for server stability
 BACKUP_TASK_SEMAPHORE = asyncio.Semaphore(1)
@@ -387,9 +387,9 @@ async def websocket_upload_proxy_parallel(websocket: WebSocket, file_id: str, gd
         db.files.update_one({"_id": file_id}, {"$set": {"status": "uploading"}})
         print(f"[DEBUG] ✅ File status updated")
         
-        # Start parallel processing
-        print(f"[DEBUG] 🚀 Starting parallel chunk processor...")
-        gdrive_id = await parallel_chunk_processor.process_upload_from_websocket(
+        # Start sequential processing
+        print(f"[DEBUG] 🚀 Starting sequential chunk processor...")
+        gdrive_id = await sequential_chunk_processor.process_upload_from_websocket(
             websocket, file_id, gdrive_url, total_size
         )
         print(f"[DEBUG] ✅ Parallel processing completed, GDrive ID: {gdrive_id}")
@@ -497,11 +497,11 @@ async def get_upload_system_status():
         return {
             "concurrency_manager": upload_concurrency_manager.get_status(),
             "memory_monitor": memory_monitor.get_memory_status(),
-            "buffer_pool": parallel_chunk_processor.chunk_buffer_pool.get_pool_status(),
-            "parallel_processor": {
-                "max_concurrent_chunks": parallel_chunk_processor.max_concurrent_chunks,
-                "active_uploads": len(parallel_chunk_processor.upload_progress),
-                "chunk_semaphore_value": parallel_chunk_processor.chunk_semaphore._value
+            "buffer_pool": sequential_chunk_processor.chunk_buffer_pool.get_pool_status(),
+            "sequential_processor": {
+                "max_concurrent_chunks": sequential_chunk_processor.max_concurrent_chunks,
+                "active_uploads": len(sequential_chunk_processor.upload_progress),
+                "chunk_semaphore_value": sequential_chunk_processor.chunk_semaphore._value
             },
             "system_info": {
                 "total_memory_gb": round(psutil.virtual_memory().total / (1024**3), 2),
@@ -516,7 +516,7 @@ async def get_upload_system_status():
 async def get_upload_progress(file_id: str):
     """Get upload progress for a specific file"""
     try:
-        progress = parallel_chunk_processor.get_upload_progress(file_id)
+        progress = sequential_chunk_processor.get_upload_progress(file_id)
         if progress:
             return progress
         else:

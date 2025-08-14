@@ -38,8 +38,8 @@ class UploadProgress:
     start_time: float
     estimated_completion: Optional[float] = None
 
-class ParallelChunkProcessor:
-    """Processes file uploads with parallel chunk handling for optimal performance"""
+class SequentialChunkProcessor:
+    """Processes file uploads with sequential chunk handling for Google Drive compatibility"""
     
     def __init__(self):
         # Get configuration from settings
@@ -62,7 +62,7 @@ class ParallelChunkProcessor:
             keepalive_expiry=30.0
         )
         
-        logger.info(f"ParallelChunkProcessor initialized with {self.max_concurrent_chunks} concurrent chunks, {self.default_chunk_size // (1024*1024)}MB default chunk size")
+        logger.info(f"SequentialChunkProcessor initialized with {self.max_concurrent_chunks} max chunks per batch, {self.default_chunk_size // (1024*1024)}MB default chunk size")
     
     def get_optimal_chunk_size(self, file_size: int) -> int:
         """Determine optimal chunk size based on file size"""
@@ -242,11 +242,11 @@ class ParallelChunkProcessor:
                     await websocket.send_json({"type": "progress", "value": progress_percent})
                     print(f"[DEBUG] ✅ Progress update sent")
                     
-                    # If we have enough chunks or this is the last chunk, process them in parallel
+                    # If we have enough chunks or this is the last chunk, process them in order
                     if len(chunk_tasks) >= self.max_concurrent_chunks or bytes_received >= total_size:
-                        print(f"[DEBUG] 🚀 Processing {len(chunk_tasks)} chunks in parallel...")
-                        # Process chunks in parallel
-                        await self._process_chunks_parallel(chunk_tasks, client)
+                        print(f"[DEBUG] 🚀 Processing {len(chunk_tasks)} chunks in sequential order...")
+                        # Process chunks sequentially (Google Drive requirement)
+                        await self._process_chunks_sequential(chunk_tasks, client)
                         print(f"[DEBUG] ✅ Chunks processed successfully")
                         chunk_tasks = []  # Reset for next batch
                         print(f"[DEBUG] 🔄 Reset chunk tasks for next batch")
@@ -268,21 +268,25 @@ class ParallelChunkProcessor:
                 del self.upload_progress[file_id]
             print(f"[DEBUG] ✅ Cleanup completed")
     
-    async def _process_chunks_parallel(self, chunk_tasks: List[ChunkTask], client: httpx.AsyncClient):
-        """Process multiple chunks in parallel"""
-        # Create tasks for all chunks
-        chunk_coroutines = [
-            self._process_chunk_with_semaphore(chunk_task, client)
-            for chunk_task in chunk_tasks
-        ]
+    async def _process_chunks_sequential(self, chunk_tasks: List[ChunkTask], client: httpx.AsyncClient):
+        """Process multiple chunks in sequential order for Google Drive resumable upload compatibility"""
+        # Sort chunks by start_byte to ensure sequential upload order
+        sorted_chunks = sorted(chunk_tasks, key=lambda x: x.start_byte)
         
-        # Execute all chunks with controlled concurrency
-        results = await asyncio.gather(*chunk_coroutines, return_exceptions=True)
+        print(f"[DEBUG] 🔄 Processing {len(sorted_chunks)} chunks in sequential order...")
         
-        # Check for failures
-        failed_chunks = [r for r in results if isinstance(r, Exception)]
-        if failed_chunks:
-            raise Exception(f"Upload failed: {len(failed_chunks)} chunks failed")
+        # Process chunks sequentially (Google Drive requirement for resumable uploads)
+        for chunk_task in sorted_chunks:
+            try:
+                success = await self._process_chunk_with_semaphore(chunk_task, client)
+                if not success:
+                    raise Exception(f"Chunk {chunk_task.chunk_number} failed")
+                print(f"[DEBUG] ✅ Chunk {chunk_task.chunk_number} uploaded successfully")
+            except Exception as e:
+                print(f"[DEBUG] ❌ Chunk {chunk_task.chunk_number} failed: {e}")
+                raise Exception(f"Upload failed at chunk {chunk_task.chunk_number}: {e}")
+        
+        print(f"[DEBUG] ✅ All {len(sorted_chunks)} chunks processed successfully in order")
     
     async def _process_chunk_with_semaphore(self, chunk_task: ChunkTask, client: httpx.AsyncClient) -> bool:
         """Process a single chunk with semaphore control"""
@@ -413,4 +417,4 @@ class ParallelChunkProcessor:
         }
 
 # Global instance
-parallel_chunk_processor = ParallelChunkProcessor()
+sequential_chunk_processor = SequentialChunkProcessor()
