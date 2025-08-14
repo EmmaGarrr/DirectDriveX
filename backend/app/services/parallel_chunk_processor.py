@@ -23,6 +23,7 @@ class ChunkTask:
     chunk_size: int
     chunk_number: int
     chunk_data: bytes  # ACTUAL chunk data from frontend
+    total_size: int  # Total file size for Content-Range header
     retry_count: int = 0
     max_retries: int = 3
 
@@ -43,9 +44,9 @@ class ParallelChunkProcessor:
     def __init__(self):
         # Get configuration from settings
         self.max_concurrent_chunks = getattr(settings, 'PARALLEL_UPLOAD_MAX_CONCURRENT_CHUNKS', 8)
-        self.default_chunk_size = getattr(settings, 'PARALLEL_UPLOAD_CHUNK_SIZE_MB', 16) * 1024 * 1024
-        self.max_chunk_size = self.default_chunk_size * 2  # 32MB
-        self.min_chunk_size = self.default_chunk_size // 2  # 8MB
+        self.default_chunk_size = getattr(settings, 'PARALLEL_UPLOAD_CHUNK_SIZE_MB', 4) * 1024 * 1024  # 4MB chunks
+        self.max_chunk_size = self.default_chunk_size * 2  # 8MB
+        self.min_chunk_size = self.default_chunk_size // 2  # 2MB
         
         # Chunk processing semaphore
         self.chunk_semaphore = asyncio.Semaphore(self.max_concurrent_chunks)
@@ -222,7 +223,8 @@ class ParallelChunkProcessor:
                         end_byte=end_byte,
                         chunk_size=chunk_size,
                         chunk_number=chunk_number,
-                        chunk_data=chunk_data  # REAL chunk data
+                        chunk_data=chunk_data,  # REAL chunk data
+                        total_size=total_size
                     )
                     
                     chunk_tasks.append(chunk_task)
