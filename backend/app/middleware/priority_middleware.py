@@ -32,7 +32,7 @@ class PriorityQueueManager:
         self.request_counter = 0
         self.admin_workers = 2  # Number of admin workers
         self.user_workers = 3   # Number of user workers
-        self.admin_workers = 2  # Number of admin workers
+        self._workers_started = False  # Track if workers have been started
         # Don't start workers during init - will start lazily when needed
     
     def _ensure_workers_started(self):
