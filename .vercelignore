@@ -1,16 +1,4 @@
-# Only ignore what's absolutely necessary
-backend/
-docs/
-zdocs/
-.venv/
-*.log
-.env*
-.git/
-node_modules/
-build/
-
-# Explicitly preserve frontend directory and its contents
+# Ignore everything except frontend for deployment
+*
 !frontend/
 !frontend/**
-!vercel.json
-!package.json
