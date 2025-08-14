@@ -135,38 +135,45 @@ class ParallelChunkProcessor:
                         print(f"[DEBUG] ⏭️ Skipping control message: {message.get('type')}")
                         continue
                     
+                    # Handle double-encoded JSON (text field contains JSON string)
+                    if message.get("type") == "websocket.receive" and message.get("text"):
+                        print(f"[DEBUG] 🔍 Found websocket.receive message, parsing text field...")
+                        try:
+                            # Parse the JSON string from the text field
+                            text_content = message.get("text")
+                            print(f"[DEBUG] 📋 Text content: {text_content[:100]}...")
+                            
+                            if text_content == "DONE":
+                                print(f"[DEBUG] ✅ Received DONE message, upload complete")
+                                break
+                            
+                            # Try to parse as JSON
+                            parsed_text = json.loads(text_content)
+                            print(f"[DEBUG] ✅ Parsed text field successfully")
+                            
+                            # Check if it contains chunk data
+                            if "bytes" in parsed_text:
+                                print(f"[DEBUG] 🎯 Found chunk data in parsed text!")
+                                chunk_data = parsed_text.get("bytes")
+                                print(f"[DEBUG] 📦 Chunk data extracted: {type(chunk_data) if chunk_data else 'None'}")
+                                if chunk_data:
+                                    print(f"[DEBUG] 📏 Chunk size: {len(chunk_data)} bytes")
+                            else:
+                                print(f"[DEBUG] ⏭️ No chunk data in parsed text, skipping...")
+                                continue
+                                
+                        except (json.JSONDecodeError, AttributeError) as e:
+                            print(f"[DEBUG] ❌ Failed to parse text field: {e}")
+                            print(f"[DEBUG] 📋 Raw text content: {text_content}")
+                            continue
+                    
                     # Only process messages that might contain chunk data
-                    if "bytes" not in message:
+                    elif "bytes" not in message:
                         print(f"[DEBUG] ⏭️ Message has no 'bytes' key, skipping...")
                         continue
-                    
-                    print(f"[DEBUG] 🔍 Processing potential chunk message...")
-                    
-                    # Parse JSON message from frontend
-                    print(f"[DEBUG] 🔍 Parsing message...")
-                    try:
-                        if isinstance(message, dict):
-                            print(f"[DEBUG] ✅ Message is already a dict")
-                            chunk_data = message.get("bytes")
-                        elif isinstance(message, str):
-                            print(f"[DEBUG] 🔤 Message is string, parsing JSON...")
-                            # Parse JSON string
-                            parsed_message = json.loads(message)
-                            print(f"[DEBUG] ✅ JSON parsed successfully")
-                            chunk_data = parsed_message.get("bytes")
-                        else:
-                            print(f"[DEBUG] ❓ Unknown message type, trying to get bytes...")
-                            # Try to get bytes directly
-                            chunk_data = message.get("bytes") if hasattr(message, 'get') else None
-                        
-                        print(f"[DEBUG] 📦 Chunk data extracted: {type(chunk_data) if chunk_data else 'None'}")
-                        if chunk_data:
-                            print(f"[DEBUG] 📏 Chunk size: {len(chunk_data)} bytes")
-                        
-                    except (json.JSONDecodeError, AttributeError) as e:
-                        print(f"[DEBUG] ❌ Failed to parse message: {e}")
-                        print(f"[DEBUG] 📋 Raw message content: {str(message)[:200]}...")
-                        continue
+                    else:
+                        print(f"[DEBUG] 🔍 Processing direct chunk message...")
+                        chunk_data = message.get("bytes")
                     
                     if not chunk_data:
                         print(f"[DEBUG] ⚠️ No chunk data found, continuing...")
