@@ -73,7 +73,7 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 app = FastAPI(title="File Transfer Service")
-origins = ["http://localhost:4200", "http://192.168.1.23:4200", "http://135.148.33.247", "https://teletransfer.vercel.app", "https://*.vercel.app"]
+origins = ["http://localhost:4200", "http://192.168.1.23:4200", "http://135.148.33.247", "https://teletransfer.vercel.app", "https://direct-drive-x.vercel.app", "https://*.vercel.app"]
 
 # Add priority middleware first (before CORS)
 app.add_middleware(PriorityMiddleware)
