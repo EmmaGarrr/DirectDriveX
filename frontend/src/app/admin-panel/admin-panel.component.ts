@@ -28,7 +28,7 @@ interface GoogleDriveStorageStats {
   available_storage: number;
   available_storage_formatted: string;
   usage_percentage: number;
-  health_status: 'good' | 'warning' | 'critical';
+  health_status: 'good' | 'warning' | 'critical' | 'unknown';
 }
 
 interface SystemHealthResponse {
