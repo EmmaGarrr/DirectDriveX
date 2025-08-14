@@ -115,6 +115,7 @@ class ParallelChunkProcessor:
                     print(f"[DEBUG] 📨 Message received!")
                     print(f"[DEBUG] 📋 Message type: {type(message)}")
                     print(f"[DEBUG] 📋 Message keys: {list(message.keys()) if isinstance(message, dict) else 'Not a dict'}")
+                    print(f"[DEBUG] 📋 Message content: {str(message)[:200]}...")
                     
                     # Handle different message types
                     if message.get("type") == "websocket.disconnect":
@@ -122,13 +123,24 @@ class ParallelChunkProcessor:
                         raise Exception("WebSocket disconnected")
                     
                     # Skip control messages (like 'DONE', progress updates, etc.)
-                    if message.get("type") == "text" and message.get("text") == "DONE":
-                        print(f"[DEBUG] ✅ Received DONE message, upload complete")
-                        break
+                    if message.get("type") == "text":
+                        if message.get("text") == "DONE":
+                            print(f"[DEBUG] ✅ Received DONE message, upload complete")
+                            break
+                        else:
+                            print(f"[DEBUG] ⏭️ Skipping text message: '{message.get('text')}'")
+                            continue
                     
-                    if message.get("type") in ["progress", "text", "control"]:
+                    if message.get("type") in ["progress", "control"]:
                         print(f"[DEBUG] ⏭️ Skipping control message: {message.get('type')}")
                         continue
+                    
+                    # Only process messages that might contain chunk data
+                    if "bytes" not in message:
+                        print(f"[DEBUG] ⏭️ Message has no 'bytes' key, skipping...")
+                        continue
+                    
+                    print(f"[DEBUG] 🔍 Processing potential chunk message...")
                     
                     # Parse JSON message from frontend
                     print(f"[DEBUG] 🔍 Parsing message...")
