@@ -48,6 +48,13 @@ class Settings(BaseSettings):
 
     ADMIN_WEBSOCKET_TOKEN: Optional[str] = None
 
+    # --- NEW: FEATURE FLAGS FOR PARALLEL UPLOAD SYSTEM ---
+    ENABLE_PARALLEL_UPLOADS: bool = False  # Disabled by default for safety
+    PARALLEL_UPLOAD_CHUNK_SIZE_MB: int = 16  # 16MB chunks
+    PARALLEL_UPLOAD_MAX_CONCURRENT_CHUNKS: int = 8  # Max 8 chunks simultaneously
+    PARALLEL_UPLOAD_MAX_CONCURRENT_USERS: int = 20  # Max 20 concurrent users
+    PARALLEL_UPLOAD_MAX_MEMORY_PERCENT: float = 80.0  # Max 80% memory usage
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

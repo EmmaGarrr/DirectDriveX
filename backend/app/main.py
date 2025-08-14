@@ -5,6 +5,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 import asyncio
+import psutil
 
 from app.api.v1.routes_upload import router as http_upload_router
 from app.api.v1 import routes_auth, routes_download, routes_batch_upload
@@ -17,6 +18,10 @@ from app.services.google_drive_account_service import GoogleDriveAccountService
 from app.services.google_drive_service import gdrive_pool_manager
 # Priority queue middleware
 from app.middleware.priority_middleware import PriorityMiddleware
+# New parallel upload services
+from app.services.upload_concurrency_manager import upload_concurrency_manager
+from app.services.memory_monitor import memory_monitor
+from app.services.parallel_chunk_processor import parallel_chunk_processor
 
 # Strict concurrency limiter for server stability
 BACKUP_TASK_SEMAPHORE = asyncio.Semaphore(1)
@@ -26,10 +31,25 @@ class ConnectionManager:
     # ...
     def __init__(self): 
         self.active_connections: List[WebSocket] = []
-        # Start background task for periodic updates
-        asyncio.create_task(self.periodic_updates())
+        self._periodic_task_started = False
+        # Don't start periodic task during init - will start lazily when needed
+        
+    def _ensure_periodic_task_started(self):
+        """Start periodic task if it hasn't been started yet"""
+        if not self._periodic_task_started:
+            try:
+                # Only start task if we're in an async context
+                loop = asyncio.get_running_loop()
+                loop.create_task(self.periodic_updates())
+                self._periodic_task_started = True
+            except RuntimeError:
+                # No running loop, task will start when needed
+                pass
         
     async def connect(self, websocket: WebSocket): 
+        # Ensure periodic task is started
+        self._ensure_periodic_task_started()
+        
         await websocket.accept()
         self.active_connections.append(websocket)
         
@@ -314,6 +334,107 @@ async def websocket_upload_proxy(websocket: WebSocket, file_id: str, gdrive_url:
         
         if websocket.client_state != "DISCONNECTED": await websocket.close()
 
+# --- NEW: PARALLEL UPLOAD WEBSOCKET HANDLER ---
+@app.websocket("/ws_api/upload_parallel/{file_id}")
+async def websocket_upload_proxy_parallel(websocket: WebSocket, file_id: str, gdrive_url: str):
+    """Parallel upload handler with improved performance and concurrency control"""
+    await websocket.accept()
+    
+    # Get file metadata
+    file_doc = db.files.find_one({"_id": file_id})
+    if not file_doc:
+        await websocket.close(code=1008, reason="File ID not found")
+        return
+    
+    if not gdrive_url:
+        await websocket.close(code=1008, reason="gdrive_url query parameter is missing.")
+        return
+    
+    total_size = file_doc.get("size_bytes", 0)
+    user_id = file_doc.get("owner_id", "anonymous")
+    
+    print(f"[PARALLEL_UPLOAD] Starting parallel upload for file {file_id} ({total_size} bytes)")
+    
+    # Check concurrency limits
+    if not await upload_concurrency_manager.acquire_upload_slot(user_id, file_id, total_size):
+        await websocket.close(code=1008, reason="Upload limit exceeded or insufficient resources")
+        return
+    
+    # Allocate memory for upload
+    estimated_memory = int(total_size * 0.1)  # 10% of file size
+    if not await memory_monitor.allocate_memory(file_id, estimated_memory):
+        await upload_concurrency_manager.release_upload_slot(user_id, file_id)
+        await websocket.close(code=1008, reason="Insufficient memory for upload")
+        return
+    
+    try:
+        # Update file status to uploading
+        db.files.update_one({"_id": file_id}, {"$set": {"status": "uploading"}})
+        
+        # Start parallel processing
+        gdrive_id = await parallel_chunk_processor.process_upload_parallel(
+            file_id, gdrive_url, total_size
+        )
+        
+        # Update database with success
+        db.files.update_one(
+            {"_id": file_id}, 
+            {
+                "$set": {
+                    "gdrive_id": gdrive_id, 
+                    "status": UploadStatus.COMPLETED, 
+                    "storage_location": StorageLocation.GDRIVE
+                }
+            }
+        )
+        
+        # Send success response
+        await websocket.send_json({
+            "type": "success", 
+            "value": f"/api/v1/download/stream/{file_id}"
+        })
+        
+        # Update Google Drive account stats
+        try:
+            updated_doc = db.files.find_one({"_id": file_id})
+            if updated_doc and updated_doc.get("gdrive_account_id"):
+                await GoogleDriveAccountService.update_account_after_file_operation(
+                    updated_doc.get("gdrive_account_id"),
+                    updated_doc.get("size_bytes", 0)
+                )
+        except Exception as e:
+            print(f"[PARALLEL_UPLOAD] Failed to update account stats: {e}")
+        
+        # Trigger backup
+        print(f"[PARALLEL_UPLOAD] Triggering backup for file_id: {file_id}")
+        asyncio.create_task(run_controlled_backup(file_id))
+        
+        print(f"[PARALLEL_UPLOAD] Successfully completed upload for file {file_id}")
+        
+    except Exception as e:
+        print(f"!!! [PARALLEL_UPLOAD] Upload failed for file {file_id}: {e}")
+        
+        # Update status to failed
+        current_file_doc = db.files.find_one({"_id": file_id})
+        if current_file_doc and current_file_doc.get("status") != "cancelled":
+            db.files.update_one({"_id": file_id}, {"$set": {"status": UploadStatus.FAILED}})
+        
+        # Send error response
+        try:
+            await websocket.send_json({"type": "error", "value": f"Upload failed: {str(e)}"})
+        except RuntimeError:
+            pass
+    
+    finally:
+        # Cleanup resources
+        await memory_monitor.release_memory(file_id)
+        await upload_concurrency_manager.release_upload_slot(user_id, file_id)
+        
+        if websocket.client_state != "DISCONNECTED":
+            await websocket.close()
+
+# --- END: PARALLEL UPLOAD HANDLER ---
+
 # Include other routers
 app.include_router(routes_auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(http_upload_router, prefix="/api/v1", tags=["Upload"])
@@ -332,3 +453,40 @@ app.include_router(routes_admin_notifications.router, prefix="/api/v1/admin", ta
 app.include_router(routes_admin_reports.router, prefix="/api/v1/admin", tags=["Admin Reports & Export"])
 @app.get("/")
 def read_root(): return {"message": "Welcome to the File Transfer API"}
+
+# --- NEW: MONITORING ENDPOINTS FOR PARALLEL UPLOAD SYSTEM ---
+@app.get("/api/v1/system/upload-status")
+async def get_upload_system_status():
+    """Get comprehensive status of the upload system"""
+    try:
+        return {
+            "concurrency_manager": upload_concurrency_manager.get_status(),
+            "memory_monitor": memory_monitor.get_memory_status(),
+            "buffer_pool": parallel_chunk_processor.chunk_buffer_pool.get_pool_status(),
+            "parallel_processor": {
+                "max_concurrent_chunks": parallel_chunk_processor.max_concurrent_chunks,
+                "active_uploads": len(parallel_chunk_processor.upload_progress),
+                "chunk_semaphore_value": parallel_chunk_processor.chunk_semaphore._value
+            },
+            "system_info": {
+                "total_memory_gb": round(psutil.virtual_memory().total / (1024**3), 2),
+                "available_memory_gb": round(psutil.virtual_memory().available / (1024**3), 2),
+                "memory_usage_percent": psutil.virtual_memory().percent
+            }
+        }
+    except Exception as e:
+        return {"error": f"Failed to get system status: {str(e)}"}
+
+@app.get("/api/v1/system/upload-progress/{file_id}")
+async def get_upload_progress(file_id: str):
+    """Get upload progress for a specific file"""
+    try:
+        progress = parallel_chunk_processor.get_upload_progress(file_id)
+        if progress:
+            return progress
+        else:
+            return {"error": "File not found or no active upload"}
+    except Exception as e:
+        return {"error": f"Failed to get progress: {str(e)}"}
+
+# --- END: MONITORING ENDPOINTS ---
