@@ -158,25 +158,73 @@ export class UploadService {
   private sliceAndSend(file: File, ws: WebSocket, start: number = 0): void {
     const CHUNK_SIZE = 16 * 1024 * 1024; // 16MB - optimized for parallel processing
 
+    console.log(`[DEBUG] 🔪 sliceAndSend called - start: ${start}, file size: ${file.size}`);
+    console.log(`[DEBUG] 📏 CHUNK_SIZE: ${CHUNK_SIZE} bytes (${CHUNK_SIZE / (1024*1024)} MB)`);
+
     if (start >= file.size) {
+      console.log(`[DEBUG] ✅ File upload complete, sending DONE message`);
       ws.send('DONE');
       return;
     }
 
     const end = Math.min(start + CHUNK_SIZE, file.size);
     const chunk = file.slice(start, end);
+    
+    console.log(`[DEBUG] 📦 Chunk created - start: ${start}, end: ${end}, size: ${chunk.size} bytes`);
+    console.log(`[DEBUG] 📋 Chunk type: ${chunk.type}`);
 
     const reader = new FileReader();
+    
     reader.onload = (e) => {
+      console.log(`[DEBUG] 📖 FileReader onload triggered`);
+      console.log(`[DEBUG] 📊 Event target:`, e.target);
+      console.log(`[DEBUG] 📊 Event result:`, e.target?.result);
+      console.log(`[DEBUG] 📊 Result type:`, typeof e.target?.result);
+      console.log(`[DEBUG] 📊 Result constructor:`, e.target?.result?.constructor?.name);
+      
+      if (e.target?.result && e.target.result instanceof ArrayBuffer) {
+        console.log(`[DEBUG] 📏 Result byteLength:`, e.target.result.byteLength);
+      }
+      
       if (ws.readyState === WebSocket.OPEN) {
+        console.log(`[DEBUG] 🔌 WebSocket is OPEN, sending chunk data`);
+        
         // Send chunk as JSON object with bytes key (backend expects this format)
         const chunkMessage = {
           bytes: e.target?.result
         };
-        ws.send(JSON.stringify(chunkMessage));
+        
+        console.log(`[DEBUG] 📤 Chunk message to send:`, {
+          hasBytes: !!chunkMessage.bytes,
+          bytesType: typeof chunkMessage.bytes,
+          bytesConstructor: chunkMessage.bytes?.constructor?.name,
+          bytesSize: chunkMessage.bytes instanceof ArrayBuffer ? chunkMessage.bytes.byteLength : 'not ArrayBuffer'
+        });
+        
+        const jsonMessage = JSON.stringify(chunkMessage);
+        console.log(`[DEBUG] 📤 JSON message length:`, jsonMessage.length);
+        console.log(`[DEBUG] 📤 JSON message preview:`, jsonMessage.substring(0, 100));
+        
+        ws.send(jsonMessage);
+        console.log(`[DEBUG] ✅ Chunk sent successfully, calling next slice`);
+        
         this.sliceAndSend(file, ws, end);
+      } else {
+        console.log(`[DEBUG] ❌ WebSocket not ready, state:`, ws.readyState);
+        console.log(`[DEBUG] ❌ WebSocket states: CONNECTING=${WebSocket.CONNECTING}, OPEN=${WebSocket.OPEN}, CLOSING=${WebSocket.CLOSING}, CLOSED=${WebSocket.CLOSED}`);
       }
     };
+    
+    reader.onerror = (e) => {
+      console.error(`[DEBUG] ❌ FileReader error:`, e);
+      console.error(`[DEBUG] ❌ FileReader error details:`, e.target?.error);
+    };
+    
+    reader.onabort = (e) => {
+      console.log(`[DEBUG] ⚠️ FileReader aborted:`, e);
+    };
+    
+    console.log(`[DEBUG] 📖 Starting FileReader.readAsArrayBuffer for chunk`);
     reader.readAsArrayBuffer(chunk);
   }
 }

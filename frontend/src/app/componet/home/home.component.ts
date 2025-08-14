@@ -331,23 +331,74 @@ export class HomeComponent implements OnDestroy {
 
   private sliceAndSend(file: File, ws: WebSocket, start: number = 0): void {
     const chunkSize = 16 * 1024 * 1024; // 16MB chunks - optimized for parallel processing
+    
+    console.log(`[DEBUG] 🔪 [HOME] sliceAndSend called - start: ${start}, file size: ${file.size}`);
+    console.log(`[DEBUG] 📏 [HOME] CHUNK_SIZE: ${chunkSize} bytes (${chunkSize / (1024*1024)} MB)`);
+
+    if (start >= file.size) {
+      console.log(`[DEBUG] ✅ [HOME] File upload complete, sending DONE message`);
+      ws.send('DONE');
+      return;
+    }
+
     const end = Math.min(start + chunkSize, file.size);
     const chunk = file.slice(start, end);
     
+    console.log(`[DEBUG] 📦 [HOME] Chunk created - start: ${start}, end: ${end}, size: ${chunk.size} bytes`);
+    console.log(`[DEBUG] 📋 [HOME] Chunk type: ${chunk.type}`);
+    
     const reader = new FileReader();
+    
     reader.onload = (e) => {
+      console.log(`[DEBUG] 📖 [HOME] FileReader onload triggered`);
+      console.log(`[DEBUG] 📊 [HOME] Event result:`, e.target?.result);
+      console.log(`[DEBUG] 📊 [HOME] Result type:`, typeof e.target?.result);
+      console.log(`[DEBUG] 📊 [HOME] Result constructor:`, e.target?.result?.constructor?.name);
+      
+      if (e.target?.result && e.target.result instanceof ArrayBuffer) {
+        console.log(`[DEBUG] 📏 [HOME] Result byteLength:`, e.target.result.byteLength);
+      }
+      
       if (ws.readyState === WebSocket.OPEN && e.target?.result) {
+        console.log(`[DEBUG] 🔌 [HOME] WebSocket is OPEN, sending chunk data`);
+        
         // Send chunk as JSON object with bytes key (backend expects this format)
         const chunkMessage = {
           bytes: e.target.result
         };
-        ws.send(JSON.stringify(chunkMessage));
+        
+        console.log(`[DEBUG] 📤 [HOME] Chunk message to send:`, {
+          hasBytes: !!chunkMessage.bytes,
+          bytesType: typeof chunkMessage.bytes,
+          bytesConstructor: chunkMessage.bytes?.constructor?.name,
+          bytesSize: chunkMessage.bytes instanceof ArrayBuffer ? chunkMessage.bytes.byteLength : 'not ArrayBuffer'
+        });
+        
+        const jsonMessage = JSON.stringify(chunkMessage);
+        console.log(`[DEBUG] 📤 [HOME] JSON message length:`, jsonMessage.length);
+        console.log(`[DEBUG] 📤 [HOME] JSON message preview:`, jsonMessage.substring(0, 100));
+        
+        ws.send(jsonMessage);
+        console.log(`[DEBUG] ✅ [HOME] Chunk sent successfully, calling next slice`);
         
         if (end < file.size) {
           this.sliceAndSend(file, ws, end);
         }
+      } else {
+        console.log(`[DEBUG] ❌ [HOME] WebSocket not ready or no result, state:`, ws.readyState, 'result:', !!e.target?.result);
       }
     };
+    
+    reader.onerror = (e) => {
+      console.error(`[DEBUG] ❌ [HOME] FileReader error:`, e);
+      console.error(`[DEBUG] ❌ [HOME] FileReader error details:`, e.target?.error);
+    };
+    
+    reader.onabort = (e) => {
+      console.log(`[DEBUG] ⚠️ [HOME] FileReader aborted:`, e);
+    };
+    
+    console.log(`[DEBUG] 📖 [HOME] Starting FileReader.readAsArrayBuffer for chunk`);
     reader.readAsArrayBuffer(chunk);
   }
 

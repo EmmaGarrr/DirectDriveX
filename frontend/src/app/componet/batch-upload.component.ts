@@ -318,43 +318,74 @@ export class BatchUploadComponent implements OnDestroy {
 
   private sliceAndSend(file: File, ws: WebSocket, start: number = 0): void {
     const CHUNK_SIZE = 16 * 1024 * 1024; // 16MB chunks - optimized for parallel processing
-    
+
+    console.log(`[DEBUG] 🔪 [BATCH] sliceAndSend called - start: ${start}, file size: ${file.size}`);
+    console.log(`[DEBUG] 📏 [BATCH] CHUNK_SIZE: ${CHUNK_SIZE} bytes (${CHUNK_SIZE / (1024*1024)} MB)`);
+
     if (start >= file.size) {
-      console.log(`[FRONTEND_UPLOAD] File: ${file.name} | All chunks sent | Total size: ${file.size} bytes`);
+      console.log(`[DEBUG] ✅ [BATCH] File upload complete, sending DONE message`);
       ws.send('DONE');
       return;
     }
-    
+
     const end = Math.min(start + CHUNK_SIZE, file.size);
     const chunk = file.slice(start, end);
-    const chunkNumber = Math.floor(start / CHUNK_SIZE) + 1;
-    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-    const progressPercent = Math.round((start / file.size) * 100);
     
-    // Log every 10th chunk or major progress milestones to avoid spam
-    if (chunkNumber % 10 === 0 || progressPercent % 25 === 0) {
-      console.log(`[FRONTEND_UPLOAD] File: ${file.name} | Sending chunk ${chunkNumber}/${totalChunks} | Progress: ${progressPercent}% | Chunk size: ${chunk.size} bytes`);
-    }
-    
+    console.log(`[DEBUG] 📦 [BATCH] Chunk created - start: ${start}, end: ${end}, size: ${chunk.size} bytes`);
+    console.log(`[DEBUG] 📋 [BATCH] Chunk type: ${chunk.type}`);
+
     const reader = new FileReader();
+    
     reader.onload = (e) => {
+      console.log(`[DEBUG] 📖 [BATCH] FileReader onload triggered`);
+      console.log(`[DEBUG] 📊 [BATCH] Event result:`, e.target?.result);
+      console.log(`[DEBUG] 📊 [BATCH] Result type:`, typeof e.target?.result);
+      console.log(`[DEBUG] 📊 [BATCH] Result constructor:`, e.target?.result?.constructor?.name);
+      
+      if (e.target?.result && e.target.result instanceof ArrayBuffer) {
+        console.log(`[DEBUG] 📏 [BATCH] Result byteLength:`, e.target.result.byteLength);
+      }
+      
       if (ws.readyState === WebSocket.OPEN && e.target?.result) {
+        console.log(`[DEBUG] 🔌 [BATCH] WebSocket is OPEN, sending chunk data`);
+        
         // Send chunk as JSON object with bytes key (backend expects this format)
         const chunkMessage = {
           bytes: e.target.result
         };
-        ws.send(JSON.stringify(chunkMessage));
+        
+        console.log(`[DEBUG] 📤 [BATCH] Chunk message to send:`, {
+          hasBytes: !!chunkMessage.bytes,
+          bytesType: typeof chunkMessage.bytes,
+          bytesConstructor: chunkMessage.bytes?.constructor?.name,
+          bytesSize: chunkMessage.bytes instanceof ArrayBuffer ? chunkMessage.bytes.byteLength : 'not ArrayBuffer'
+        });
+        
+        const jsonMessage = JSON.stringify(chunkMessage);
+        console.log(`[DEBUG] 📤 [BATCH] JSON message length:`, jsonMessage.length);
+        console.log(`[DEBUG] 📤 [BATCH] JSON message preview:`, jsonMessage.substring(0, 100));
+        
+        ws.send(jsonMessage);
+        console.log(`[DEBUG] ✅ [BATCH] Chunk sent successfully, calling next slice`);
         
         if (end < file.size) {
           this.sliceAndSend(file, ws, end);
         }
+      } else {
+        console.log(`[DEBUG] ❌ [BATCH] WebSocket not ready or no result, state:`, ws.readyState, 'result:', !!e.target?.result);
       }
     };
     
-    reader.onerror = (error) => {
-      console.error(`[FRONTEND_UPLOAD] File: ${file.name} | Error reading chunk ${chunkNumber}:`, error);
+    reader.onerror = (e) => {
+      console.error(`[DEBUG] ❌ [BATCH] FileReader error:`, e);
+      console.error(`[DEBUG] ❌ [BATCH] FileReader error details:`, e.target?.error);
     };
     
+    reader.onabort = (e) => {
+      console.log(`[DEBUG] ⚠️ [BATCH] FileReader aborted:`, e);
+    };
+    
+    console.log(`[DEBUG] 📖 [BATCH] Starting FileReader.readAsArrayBuffer for chunk`);
     reader.readAsArrayBuffer(chunk);
   }
 
