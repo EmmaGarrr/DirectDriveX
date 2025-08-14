@@ -28,6 +28,5 @@ Thumbs.db
 # Node modules (will be installed by Vercel)
 node_modules/
 
-# Build artifacts
-dist/
+# Build artifacts (but keep frontend/dist for deployment)
 build/
