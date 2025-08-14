@@ -3,6 +3,5 @@
   "outputDirectory": "frontend/dist",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "installCommand": "cd frontend && npm install"
+  ]
 }
