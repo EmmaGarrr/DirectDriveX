@@ -8,3 +8,9 @@ zdocs/
 .git/
 node_modules/
 build/
+
+# Explicitly preserve frontend directory and its contents
+!frontend/
+!frontend/**
+!vercel.json
+!package.json
