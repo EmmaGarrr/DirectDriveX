@@ -72,8 +72,13 @@ class ParallelChunkProcessor:
     
     async def process_upload_from_websocket(self, websocket, file_id: str, gdrive_url: str, total_size: int) -> str:
         """Process upload by receiving chunks from WebSocket and uploading them in parallel"""
+        print(f"[DEBUG] 🚀 Starting process_upload_from_websocket for file {file_id}")
+        print(f"[DEBUG] 📊 Total size: {total_size} bytes ({total_size // (1024*1024)} MB)")
+        print(f"[DEBUG] 🔗 GDrive URL: {gdrive_url[:100]}...")
+        
         # Calculate optimal chunk size
         optimal_chunk_size = self.get_optimal_chunk_size(total_size)
+        print(f"[DEBUG] 📦 Optimal chunk size: {optimal_chunk_size // (1024*1024)} MB")
         
         # Initialize progress tracking
         self.upload_progress[file_id] = UploadProgress(
@@ -84,45 +89,77 @@ class ParallelChunkProcessor:
             total_bytes=total_size,
             start_time=time.time()
         )
+        print(f"[DEBUG] 📈 Progress tracking initialized")
         
         try:
             # Create HTTP client for Google Drive uploads
+            print(f"[DEBUG] 🌐 Creating HTTP client...")
             async with httpx.AsyncClient(timeout=self.http_timeout, limits=self.http_limits) as client:
+                print(f"[DEBUG] ✅ HTTP client created successfully")
+                
                 # Process chunks as they arrive from WebSocket
                 bytes_received = 0
                 chunk_number = 0
                 chunk_tasks = []
                 
+                print(f"[DEBUG] 🔄 Starting chunk processing loop...")
+                print(f"[DEBUG] 🎯 Target: {total_size} bytes, Current: {bytes_received} bytes")
+                
                 while bytes_received < total_size:
+                    print(f"[DEBUG] 🔄 Loop iteration {chunk_number + 1}")
+                    print(f"[DEBUG] 📊 Progress: {bytes_received}/{total_size} bytes ({int((bytes_received/total_size)*100)}%)")
+                    
                     # Receive chunk from WebSocket
+                    print(f"[DEBUG] 📡 Waiting for WebSocket message...")
                     message = await websocket.receive()
+                    print(f"[DEBUG] 📨 Message received!")
+                    print(f"[DEBUG] 📋 Message type: {type(message)}")
+                    print(f"[DEBUG] 📋 Message keys: {list(message.keys()) if isinstance(message, dict) else 'Not a dict'}")
                     
                     # Handle different message types
                     if message.get("type") == "websocket.disconnect":
+                        print(f"[DEBUG] ❌ WebSocket disconnect detected")
                         raise Exception("WebSocket disconnected")
                     
                     # Parse JSON message from frontend
+                    print(f"[DEBUG] 🔍 Parsing message...")
                     try:
                         if isinstance(message, dict):
+                            print(f"[DEBUG] ✅ Message is already a dict")
                             chunk_data = message.get("bytes")
                         elif isinstance(message, str):
+                            print(f"[DEBUG] 🔤 Message is string, parsing JSON...")
                             # Parse JSON string
                             parsed_message = json.loads(message)
+                            print(f"[DEBUG] ✅ JSON parsed successfully")
                             chunk_data = parsed_message.get("bytes")
                         else:
+                            print(f"[DEBUG] ❓ Unknown message type, trying to get bytes...")
                             # Try to get bytes directly
                             chunk_data = message.get("bytes") if hasattr(message, 'get') else None
+                        
+                        print(f"[DEBUG] 📦 Chunk data extracted: {type(chunk_data) if chunk_data else 'None'}")
+                        if chunk_data:
+                            print(f"[DEBUG] 📏 Chunk size: {len(chunk_data)} bytes")
+                        
                     except (json.JSONDecodeError, AttributeError) as e:
-                        logger.warning(f"Failed to parse message: {e}, message type: {type(message)}")
+                        print(f"[DEBUG] ❌ Failed to parse message: {e}")
+                        print(f"[DEBUG] 📋 Raw message content: {str(message)[:200]}...")
                         continue
                     
                     if not chunk_data:
+                        print(f"[DEBUG] ⚠️ No chunk data found, continuing...")
                         continue
+                    
+                    print(f"[DEBUG] ✅ Chunk data received successfully!")
                     
                     # Create chunk task
                     chunk_size = len(chunk_data)
                     start_byte = bytes_received
                     end_byte = bytes_received + chunk_size
+                    
+                    print(f"[DEBUG] 🎯 Creating chunk task {chunk_number + 1}")
+                    print(f"[DEBUG] 📍 Bytes: {start_byte}-{end_byte} (size: {chunk_size})")
                     
                     chunk_task = ChunkTask(
                         file_id=file_id,
@@ -138,29 +175,42 @@ class ParallelChunkProcessor:
                     chunk_number += 1
                     bytes_received += chunk_size
                     
+                    print(f"[DEBUG] 📊 Updated progress: {bytes_received}/{total_size} bytes")
+                    
                     # Update progress
                     self.upload_progress[file_id].total_chunks = chunk_number
                     
                     # Send progress update to frontend
                     progress_percent = int((bytes_received / total_size) * 100)
+                    print(f"[DEBUG] 📈 Sending progress update: {progress_percent}%")
                     await websocket.send_json({"type": "progress", "value": progress_percent})
+                    print(f"[DEBUG] ✅ Progress update sent")
                     
                     # If we have enough chunks or this is the last chunk, process them in parallel
                     if len(chunk_tasks) >= self.max_concurrent_chunks or bytes_received >= total_size:
+                        print(f"[DEBUG] 🚀 Processing {len(chunk_tasks)} chunks in parallel...")
                         # Process chunks in parallel
                         await self._process_chunks_parallel(chunk_tasks, client)
+                        print(f"[DEBUG] ✅ Chunks processed successfully")
                         chunk_tasks = []  # Reset for next batch
+                        print(f"[DEBUG] 🔄 Reset chunk tasks for next batch")
+                    else:
+                        print(f"[DEBUG] ⏳ Waiting for more chunks... ({len(chunk_tasks)}/{self.max_concurrent_chunks})")
                 
+                print(f"[DEBUG] 🎉 All chunks received! Finalizing upload...")
                 # Finalize upload
                 return await self._finalize_upload(file_id, gdrive_url, client)
                 
         except Exception as e:
+            print(f"[DEBUG] ❌ Exception in process_upload_from_websocket: {e}")
             logger.error(f"Parallel upload failed for file {file_id}: {e}")
             raise
         finally:
+            print(f"[DEBUG] 🧹 Cleaning up progress tracking...")
             # Cleanup progress tracking
             if file_id in self.upload_progress:
                 del self.upload_progress[file_id]
+            print(f"[DEBUG] ✅ Cleanup completed")
     
     async def _process_chunks_parallel(self, chunk_tasks: List[ChunkTask], client: httpx.AsyncClient):
         """Process multiple chunks in parallel"""

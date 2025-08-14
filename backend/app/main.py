@@ -338,45 +338,64 @@ async def websocket_upload_proxy(websocket: WebSocket, file_id: str, gdrive_url:
 @app.websocket("/ws_api/upload_parallel/{file_id}")
 async def websocket_upload_proxy_parallel(websocket: WebSocket, file_id: str, gdrive_url: str):
     """Parallel upload handler with improved performance and concurrency control"""
-    await websocket.accept()
+    print(f"[DEBUG] 🌐 WebSocket connection request for file {file_id}")
     
-    # Get file metadata
+    await websocket.accept()
+    print(f"[DEBUG] ✅ WebSocket accepted for file {file_id}")
+    
     file_doc = db.files.find_one({"_id": file_id})
     if not file_doc:
+        print(f"[DEBUG] ❌ File ID {file_id} not found in database")
         await websocket.close(code=1008, reason="File ID not found")
         return
     
     if not gdrive_url:
+        print(f"[DEBUG] ❌ gdrive_url query parameter missing for file {file_id}")
         await websocket.close(code=1008, reason="gdrive_url query parameter is missing.")
         return
     
     total_size = file_doc.get("size_bytes", 0)
     user_id = file_doc.get("owner_id", "anonymous")
     
+    print(f"[DEBUG] 📊 File details - Size: {total_size} bytes, User: {user_id}")
     print(f"[PARALLEL_UPLOAD] Starting parallel upload for file {file_id} ({total_size} bytes)")
     
     # Check concurrency limits
+    print(f"[DEBUG] 🔒 Checking concurrency limits...")
     if not await upload_concurrency_manager.acquire_upload_slot(user_id, file_id, total_size):
+        print(f"[DEBUG] ❌ Failed to acquire upload slot for file {file_id}")
         await websocket.close(code=1008, reason="Upload limit exceeded or insufficient resources")
         return
     
+    print(f"[DEBUG] ✅ Upload slot acquired for file {file_id}")
+    
     # Allocate memory for upload
     estimated_memory = int(total_size * 0.1)  # 10% of file size
+    print(f"[DEBUG] 💾 Allocating {estimated_memory // (1024*1024)} MB for file {file_id}")
+    
     if not await memory_monitor.allocate_memory(file_id, estimated_memory):
+        print(f"[DEBUG] ❌ Failed to allocate memory for file {file_id}")
         await upload_concurrency_manager.release_upload_slot(user_id, file_id)
         await websocket.close(code=1008, reason="Insufficient memory for upload")
         return
     
+    print(f"[DEBUG] ✅ Memory allocated for file {file_id}")
+    
     try:
         # Update file status to uploading
+        print(f"[DEBUG] 📝 Updating file status to uploading...")
         db.files.update_one({"_id": file_id}, {"$set": {"status": "uploading"}})
+        print(f"[DEBUG] ✅ File status updated")
         
         # Start parallel processing
+        print(f"[DEBUG] 🚀 Starting parallel chunk processor...")
         gdrive_id = await parallel_chunk_processor.process_upload_from_websocket(
             websocket, file_id, gdrive_url, total_size
         )
+        print(f"[DEBUG] ✅ Parallel processing completed, GDrive ID: {gdrive_id}")
         
         # Update database with success
+        print(f"[DEBUG] 💾 Updating database with success...")
         db.files.update_one(
             {"_id": file_id}, 
             {
@@ -387,23 +406,28 @@ async def websocket_upload_proxy_parallel(websocket: WebSocket, file_id: str, gd
                 }
             }
         )
+        print(f"[DEBUG] ✅ Database updated successfully")
         
         # Send success response
+        print(f"[DEBUG] 📤 Sending success response to frontend...")
         await websocket.send_json({
             "type": "success", 
             "value": f"/api/v1/download/stream/{file_id}"
         })
+        print(f"[DEBUG] ✅ Success response sent")
         
         # Update Google Drive account stats
         try:
+            print(f"[DEBUG] 📊 Updating Google Drive account stats...")
             updated_doc = db.files.find_one({"_id": file_id})
             if updated_doc and updated_doc.get("gdrive_account_id"):
                 await GoogleDriveAccountService.update_account_after_file_operation(
                     updated_doc.get("gdrive_account_id"),
                     updated_doc.get("size_bytes", 0)
                 )
+                print(f"[DEBUG] ✅ Account stats updated")
         except Exception as e:
-            print(f"[PARALLEL_UPLOAD] Failed to update account stats: {e}")
+            print(f"[DEBUG] ⚠️ Failed to update account stats: {e}")
         
         # Trigger backup
         print(f"[PARALLEL_UPLOAD] Triggering backup for file_id: {file_id}")
@@ -412,6 +436,7 @@ async def websocket_upload_proxy_parallel(websocket: WebSocket, file_id: str, gd
         print(f"[PARALLEL_UPLOAD] Successfully completed upload for file {file_id}")
         
     except Exception as e:
+        print(f"[DEBUG] ❌ Exception occurred: {e}")
         print(f"!!! [PARALLEL_UPLOAD] Upload failed for file {file_id}: {e}")
         
         # Update status to failed
@@ -426,6 +451,7 @@ async def websocket_upload_proxy_parallel(websocket: WebSocket, file_id: str, gd
             pass
     
     finally:
+        print(f"[DEBUG] 🧹 Starting cleanup...")
         # Cleanup resources
         await memory_monitor.release_memory(file_id)
         await upload_concurrency_manager.release_upload_slot(user_id, file_id)
@@ -433,10 +459,14 @@ async def websocket_upload_proxy_parallel(websocket: WebSocket, file_id: str, gd
         # Only close WebSocket if it's not already closed
         try:
             if websocket.client_state != "DISCONNECTED" and websocket.client_state != "CLOSED":
+                print(f"[DEBUG] 🔒 Closing WebSocket...")
                 await websocket.close()
+                print(f"[DEBUG] ✅ WebSocket closed")
         except Exception as e:
-            print(f"[PARALLEL_UPLOAD] WebSocket close error (ignored): {e}")
+            print(f"[DEBUG] ⚠️ WebSocket close error (ignored): {e}")
             pass
+        
+        print(f"[DEBUG] ✅ Cleanup completed for file {file_id}")
 
 # --- END: PARALLEL UPLOAD HANDLER ---
 
