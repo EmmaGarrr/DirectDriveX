@@ -346,90 +346,77 @@ export class HomeComponent implements OnDestroy {
   }
 
   private sliceAndSend(file: File, ws: WebSocket, start: number = 0): void {
-    const chunkSize = 16 * 1024 * 1024; // 16MB chunks - optimized for parallel processing
+    const chunkSize = 4 * 1024 * 1024; // 4MB - reduced from 16MB to avoid WebSocket message size limits
+    console.log(`[DEBUG] 🔪 sliceAndSend called - start: ${start}, file size: ${file.size}`);
+    console.log(`[DEBUG] 📏 CHUNK_SIZE: ${chunkSize} bytes (4 MB)`);
     
-    console.log(`[DEBUG] 🔪 [HOME] sliceAndSend called - start: ${start}, file size: ${file.size}`);
-    console.log(`[DEBUG] 📏 [HOME] CHUNK_SIZE: ${chunkSize} bytes (${chunkSize / (1024*1024)} MB)`);
-
     if (start >= file.size) {
-      console.log(`[DEBUG] ✅ [HOME] File upload complete, sending DONE message`);
-      ws.send('DONE');
+      console.log(`[DEBUG] ✅ File upload complete, sending DONE message`);
+      ws.send("DONE");
       return;
     }
 
     const end = Math.min(start + chunkSize, file.size);
     const chunk = file.slice(start, end);
-    
-    console.log(`[DEBUG] 📦 [HOME] Chunk created - start: ${start}, end: ${end}, size: ${chunk.size} bytes`);
-    console.log(`[DEBUG] 📋 [HOME] Chunk type: ${chunk.type}`);
-    
+    console.log(`[DEBUG] 📦 Chunk created - start: ${start}, end: ${end}, size: ${chunk.size} bytes`);
+    console.log(`[DEBUG] 📋 Chunk type: ${chunk.type}`);
+
     const reader = new FileReader();
-    
     reader.onload = (e) => {
-      console.log(`[DEBUG] 📖 [HOME] FileReader onload triggered`);
-      console.log(`[DEBUG] 📊 [HOME] Event result:`, e.target?.result);
-      console.log(`[DEBUG] 📊 [HOME] Result type:`, typeof e.target?.result);
-      console.log(`[DEBUG] 📊 [HOME] Result constructor:`, e.target?.result?.constructor?.name);
+      console.log(`[DEBUG] 📖 FileReader onload triggered`);
+      console.log(`[DEBUG] 📊 Event target:`, e.target);
+      console.log(`[DEBUG] 📊 Event result:`, e.target?.result);
+      console.log(`[DEBUG] 📊 Result type:`, typeof e.target?.result);
+      console.log(`[DEBUG] 📊 Result constructor:`, e.target?.result?.constructor?.name);
       
-      if (e.target?.result && e.target.result instanceof ArrayBuffer) {
-        console.log(`[DEBUG] 📏 [HOME] Result byteLength:`, e.target.result.byteLength);
+      if (e.target?.result instanceof ArrayBuffer) {
+        console.log(`[DEBUG] 📏 Result byteLength:`, e.target.result.byteLength);
       }
-      
-      if (ws.readyState === WebSocket.OPEN && e.target?.result) {
-        console.log(`[DEBUG] 🔌 [HOME] WebSocket is OPEN, sending chunk data`);
-        
+
+      if (ws.readyState === WebSocket.OPEN) {
+        console.log(`[DEBUG] 🔌 WebSocket is OPEN, sending chunk data`);
         // Convert ArrayBuffer to base64 string for JSON serialization
         let chunkData;
-        if (e.target.result instanceof ArrayBuffer) {
-          // Convert ArrayBuffer to base64 string
+        if (e.target?.result instanceof ArrayBuffer) {
           const bytes = new Uint8Array(e.target.result);
           let binary = '';
           for (let i = 0; i < bytes.byteLength; i++) {
             binary += String.fromCharCode(bytes[i]);
           }
           chunkData = btoa(binary); // Convert to base64
-          console.log(`[DEBUG] 🔄 [HOME] Converted ArrayBuffer to base64, length:`, chunkData.length);
+          console.log(`[DEBUG] 🔄 Converted ArrayBuffer to base64, length:`, chunkData.length);
         } else {
-          chunkData = e.target.result;
+          chunkData = e.target?.result;
         }
-        
-        // Send chunk as JSON object with bytes key (backend expects this format)
+
         const chunkMessage = {
           bytes: chunkData
         };
-        
-        console.log(`[DEBUG] 📤 [HOME] Chunk message to send:`, {
+        console.log(`[DEBUG] 📤 Chunk message to send:`, {
           hasBytes: !!chunkMessage.bytes,
           bytesType: typeof chunkMessage.bytes,
           bytesConstructor: chunkMessage.bytes?.constructor?.name,
           bytesSize: typeof chunkMessage.bytes === 'string' ? chunkMessage.bytes.length : 'not string'
         });
-        
         const jsonMessage = JSON.stringify(chunkMessage);
-        console.log(`[DEBUG] 📤 [HOME] JSON message length:`, jsonMessage.length);
-        console.log(`[DEBUG] 📤 [HOME] JSON message preview:`, jsonMessage.substring(0, 100));
-        
+        console.log(`[DEBUG] 📤 JSON message length:`, jsonMessage.length);
+        console.log(`[DEBUG] 📤 JSON message preview:`, jsonMessage.substring(0, 100));
         ws.send(jsonMessage);
-        console.log(`[DEBUG] ✅ [HOME] Chunk sent successfully, calling next slice`);
-        
-        if (end < file.size) {
-          this.sliceAndSend(file, ws, end);
-        }
+        console.log(`[DEBUG] ✅ Chunk sent successfully, calling next slice`);
+        this.sliceAndSend(file, ws, end);
       } else {
-        console.log(`[DEBUG] ❌ [HOME] WebSocket not ready or no result, state:`, ws.readyState, 'result:', !!e.target?.result);
+        console.log(`[DEBUG] ❌ WebSocket not ready, state:`, ws.readyState);
+        console.log(`[DEBUG] ❌ WebSocket states: CONNECTING=${WebSocket.CONNECTING}, OPEN=${WebSocket.OPEN}, CLOSING=${WebSocket.CLOSING}, CLOSED=${WebSocket.CLOSED}`);
       }
     };
-    
     reader.onerror = (e) => {
-      console.error(`[DEBUG] ❌ [HOME] FileReader error:`, e);
-      console.error(`[DEBUG] ❌ [HOME] FileReader error details:`, e.target?.error);
+      console.error(`[DEBUG] ❌ FileReader error:`, e);
+      console.error(`[DEBUG] ❌ FileReader error details:`, e.target?.error);
     };
-    
     reader.onabort = (e) => {
-      console.log(`[DEBUG] ⚠️ [HOME] FileReader aborted:`, e);
+      console.log(`[DEBUG] ⚠️ FileReader aborted:`, e);
     };
-    
-    console.log(`[DEBUG] 📖 [HOME] Starting FileReader.readAsArrayBuffer for chunk`);
+    console.log(`[DEBUG] 📖 Starting FileReader.readAsArrayBuffer for chunk`);
     reader.readAsArrayBuffer(chunk);
   }
 

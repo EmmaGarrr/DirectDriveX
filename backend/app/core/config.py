@@ -50,7 +50,7 @@ class Settings(BaseSettings):
 
     # --- NEW: FEATURE FLAGS FOR PARALLEL UPLOAD SYSTEM ---
     ENABLE_PARALLEL_UPLOADS: bool = False  # Disabled by default for safety
-    PARALLEL_UPLOAD_CHUNK_SIZE_MB: int = 16  # 16MB chunks
+    PARALLEL_UPLOAD_CHUNK_SIZE_MB: int = 4  # 4MB chunks - reduced from 16MB to avoid WebSocket message size limits
     PARALLEL_UPLOAD_MAX_CONCURRENT_CHUNKS: int = 8  # Max 8 chunks simultaneously
     PARALLEL_UPLOAD_MAX_CONCURRENT_USERS: int = 20  # Max 20 concurrent users
     PARALLEL_UPLOAD_MAX_MEMORY_PERCENT: float = 80.0  # Max 80% memory usage
