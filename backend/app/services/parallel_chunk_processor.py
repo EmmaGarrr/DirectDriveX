@@ -121,6 +121,15 @@ class ParallelChunkProcessor:
                         print(f"[DEBUG] ❌ WebSocket disconnect detected")
                         raise Exception("WebSocket disconnected")
                     
+                    # Skip control messages (like 'DONE', progress updates, etc.)
+                    if message.get("type") == "text" and message.get("text") == "DONE":
+                        print(f"[DEBUG] ✅ Received DONE message, upload complete")
+                        break
+                    
+                    if message.get("type") in ["progress", "text", "control"]:
+                        print(f"[DEBUG] ⏭️ Skipping control message: {message.get('type')}")
+                        continue
+                    
                     # Parse JSON message from frontend
                     print(f"[DEBUG] 🔍 Parsing message...")
                     try:
