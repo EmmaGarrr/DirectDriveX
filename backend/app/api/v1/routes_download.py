@@ -6,8 +6,7 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import StreamingResponse
 import httpx
 from app.db.mongodb import db
-from app.services.google_drive_service import async_stream_gdrive_file
-from app.services.hetzner_service import gdrive_pool_manager
+from app.services.google_drive_service import async_stream_gdrive_file, gdrive_pool_manager
 from app.core.config import settings
 from app.models.file import FileMetadataInDB
 
