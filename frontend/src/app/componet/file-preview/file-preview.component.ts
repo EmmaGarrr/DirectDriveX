@@ -49,6 +49,8 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
   }
 
   async loadPreviewMetadata(): Promise<void> {
+    const startTime = performance.now();
+    
     try {
       this.loading = true;
       this.error = false;
@@ -64,6 +66,10 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
       
       // Initialize preview based on type
       await this.initializePreview();
+      
+      // Log performance metrics
+      const loadTime = performance.now() - startTime;
+      console.log(`[FILE_PREVIEW] Preview loaded in ${loadTime.toFixed(2)}ms for type: ${this.previewType}`);
       
     } catch (error) {
       console.error('Error loading preview metadata:', error);
@@ -92,7 +98,9 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
     // Handle video/audio types
     if (previewType === 'video' || previewType === 'audio' || 
         contentType.startsWith('video/') || contentType.startsWith('audio/')) {
+      console.log(`[FILE_PREVIEW] Setting up ${previewType} preview for ${contentType}`);
       this.mediaUrl = this.fileService.getPreviewStreamUrl(this.fileId);
+      console.log(`[FILE_PREVIEW] Media URL set to: ${this.mediaUrl}`);
       return;
     }
 
@@ -194,6 +202,23 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
   // Video control methods
   onVideoLoaded(): void {
     console.log('[VIDEO] Video metadata loaded, seeking should now work properly');
+    this.loading = false;
+  }
+
+  // Enhanced video event handlers for better user experience
+  onVideoLoadStart(): void {
+    console.log('[VIDEO] Load started');
+    this.loading = true;
+  }
+
+  onVideoCanPlay(): void {
+    console.log('[VIDEO] Can start playing');
+    this.loading = false;
+  }
+
+  onVideoCanPlayThrough(): void {
+    console.log('[VIDEO] Can play through without buffering');
+    this.loading = false;
   }
 
   skipForward(): void {

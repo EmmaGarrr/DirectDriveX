@@ -39,8 +39,12 @@ export class DownloadComponent implements OnInit {
         this.previewAvailable = metadata.preview_available;
         this.previewType = metadata.preview_type;
         this.previewMessage = metadata.message || '';
+        
         console.log('[DOWNLOAD_COMPONENT] Preview available:', this.previewAvailable);
         console.log('[DOWNLOAD_COMPONENT] Preview type:', this.previewType);
+        console.log('[DOWNLOAD_COMPONENT] Content type:', metadata.content_type);
+        console.log('[DOWNLOAD_COMPONENT] Can stream:', metadata.can_stream);
+        
         if (!this.previewAvailable && metadata.message) {
           console.log('[DOWNLOAD_COMPONENT] Preview message:', metadata.message);
         }

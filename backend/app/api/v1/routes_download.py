@@ -1,13 +1,14 @@
 # In file: Backend/app/api/v1/routes_download.py
 
-from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import StreamingResponse
+import time
 from urllib.parse import quote
-import httpx # --- NEW: Import httpx for Hetzner downloads ---
-
+from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi.responses import StreamingResponse
+import httpx
 from app.db.mongodb import db
-from app.core.config import settings # --- NEW: Import settings for credentials ---
-from app.services.google_drive_service import gdrive_pool_manager, async_stream_gdrive_file
+from app.services.google_drive_service import async_stream_gdrive_file
+from app.services.hetzner_service import gdrive_pool_manager
+from app.core.config import settings
 from app.models.file import FileMetadataInDB
 
 router = APIRouter()
@@ -108,6 +109,8 @@ def is_previewable(content_type: str) -> bool:
 )
 def get_file_preview_metadata(file_id: str):
     """Get metadata for file preview - returns graceful response for non-previewable files"""
+    start_time = time.time()
+    
     file_doc = db.files.find_one({"_id": file_id})
     if not file_doc:
         raise HTTPException(status_code=404, detail="File not found")
@@ -120,7 +123,7 @@ def get_file_preview_metadata(file_id: str):
     
     if not preview_available:
         # Graceful handling for non-previewable files (like ZIP)
-        return {
+        response = {
             "file_id": file_id,
             "filename": filename,
             "content_type": content_type,
@@ -130,18 +133,38 @@ def get_file_preview_metadata(file_id: str):
             "can_stream": False,
             "suggested_action": "download"
         }
+    else:
+        # Return preview metadata for previewable files
+        # Determine preview type based on content type for better frontend handling
+        if content_type.startswith("image/"):
+            preview_type = "thumbnail"
+        elif content_type.startswith("video/"):
+            preview_type = "video"
+        elif content_type.startswith("audio/"):
+            preview_type = "audio"
+        elif content_type == "application/pdf":
+            preview_type = "document"
+        elif content_type.startswith("text/"):
+            preview_type = "text"
+        else:
+            preview_type = "viewer"
+        
+        response = {
+            "file_id": file_id,
+            "filename": filename,
+            "content_type": content_type,
+            "preview_available": True,
+            "preview_type": preview_type,  # Use the determined preview type
+            "preview_url": f"/api/v1/download/stream/{file_id}",
+            "can_stream": content_type.startswith(("video/", "audio/")),
+            "suggested_action": "preview"
+        }
     
-    # Return preview metadata for previewable files
-    return {
-        "file_id": file_id,
-        "filename": filename,
-        "content_type": content_type,
-        "preview_available": True,
-        "preview_type": "thumbnail" if content_type.startswith("image/") else "viewer",
-        "preview_url": f"/api/v1/download/stream/{file_id}",
-        "can_stream": content_type.startswith(("video/", "audio/")),
-        "suggested_action": "preview"
-    }
+    # Log performance metrics
+    processing_time = time.time() - start_time
+    print(f"[PREVIEW_META] Generated metadata in {processing_time:.3f}s for {filename} (type: {preview_type if 'preview_type' in locals() else 'none'})")
+    
+    return response
 
 @router.get(
     "/preview/stream/{file_id}",

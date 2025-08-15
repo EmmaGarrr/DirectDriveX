@@ -182,9 +182,9 @@ export class UploadService {
   }
 
   private sliceAndSend(file: File, ws: WebSocket, start: number = 0): void {
-    const CHUNK_SIZE = 4 * 1024 * 1024; // 4MB - reduced from 16MB to avoid WebSocket message size limits
+    const CHUNK_SIZE = 16 * 1024 * 1024; // 16MB chunks for optimal performance
     console.log(`[DEBUG] 🔪 sliceAndSend called - start: ${start}, file size: ${file.size}`);
-    console.log(`[DEBUG] 📏 CHUNK_SIZE: ${CHUNK_SIZE} bytes (4 MB)`);
+    console.log(`[DEBUG] 📏 CHUNK_SIZE: ${CHUNK_SIZE} bytes (16 MB)`);
     
     if (start >= file.size) {
       console.log(`[DEBUG] ✅ File upload complete, sending DONE message`);

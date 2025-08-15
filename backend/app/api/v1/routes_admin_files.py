@@ -289,11 +289,25 @@ async def get_file_preview(
     
     # For now, return preview metadata
     # In production, this would return actual preview data or thumbnail
+    # Determine preview type based on content type for better frontend handling
+    if content_type.startswith("image/"):
+        preview_type = "thumbnail"
+    elif content_type.startswith("video/"):
+        preview_type = "video"
+    elif content_type.startswith("audio/"):
+        preview_type = "audio"
+    elif content_type == "application/pdf":
+        preview_type = "document"
+    elif content_type.startswith("text/"):
+        preview_type = "text"
+    else:
+        preview_type = "viewer"
+    
     preview_data = {
         "file_id": file_id,
         "filename": file_doc.get("filename"),
         "content_type": content_type,
-        "preview_type": "thumbnail" if content_type.startswith("image/") else "viewer",
+        "preview_type": preview_type,  # Use the determined preview type
         "preview_url": f"/api/v1/download/stream/{file_id}",  # For now, link to actual file
         "can_stream": content_type.startswith(("video/", "audio/"))
     }

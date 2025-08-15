@@ -63,10 +63,13 @@
           #videoPlayer
           [src]="mediaUrl" 
           controls 
-          preload="none"
+          preload="metadata"
           class="video-player"
           (error)="onVideoError($event)"
-          (loadedmetadata)="onVideoLoaded()">
+          (loadedmetadata)="onVideoLoaded()"
+          (loadstart)="onVideoLoadStart()"
+          (canplay)="onVideoCanPlay()"
+          (canplaythrough)="onVideoCanPlayThrough()">
           Your browser does not support the video tag.
         </video>
         
