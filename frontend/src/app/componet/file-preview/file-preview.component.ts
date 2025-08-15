@@ -92,6 +92,7 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
     if (previewType === 'image' || previewType === 'thumbnail' || contentType.startsWith('image/')) {
       this.previewType = 'image'; // Normalize to 'image'
       this.imageUrl = this.fileService.getPreviewStreamUrl(this.fileId);
+      this.loading = false; // Clear loading for images
       return;
     }
 
@@ -101,6 +102,10 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
       console.log(`[FILE_PREVIEW] Setting up ${previewType} preview for ${contentType}`);
       this.mediaUrl = this.fileService.getPreviewStreamUrl(this.fileId);
       console.log(`[FILE_PREVIEW] Media URL set to: ${this.mediaUrl}`);
+      
+      // For video/audio, keep loading true until video events fire
+      // This ensures proper loading state management
+      console.log(`[FILE_PREVIEW] Loading state set to true for ${previewType} preview`);
       return;
     }
 
@@ -108,6 +113,7 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
     if (previewType === 'document' || previewType === 'viewer' || contentType === 'application/pdf') {
       this.previewType = 'document'; // Normalize to 'document'
       this.pdfUrl = this.fileService.getPreviewStreamUrl(this.fileId);
+      this.loading = false; // Clear loading for PDFs
       return;
     }
 
@@ -120,6 +126,7 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
 
     // If no supported type found
     this.error = true;
+    this.loading = false; // Clear loading on error
     this.errorMessage = `Preview not supported for ${contentType || previewType} files.`;
   }
 
@@ -162,6 +169,7 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
   onVideoError(event: any): void {
     console.error('Video error:', event);
     this.error = true;
+    this.loading = false;  // Clear loading state on error
     this.errorMessage = 'Failed to load video. Please try downloading the file instead.';
     this.snackBar.open(this.errorMessage, 'Close', { duration: 5000 });
   }
@@ -196,7 +204,17 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
   }
 
   retry(): void {
+    console.log('[FILE_PREVIEW] Retrying preview load...');
+    this.loading = true;
+    this.error = false;
+    this.errorMessage = '';
     this.loadPreviewMetadata();
+  }
+
+  // Manual method to clear loading state if needed
+  clearLoadingState(): void {
+    console.log('[FILE_PREVIEW] Manually clearing loading state');
+    this.loading = false;
   }
 
   // Video control methods
@@ -209,16 +227,24 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
   onVideoLoadStart(): void {
     console.log('[VIDEO] Load started');
     this.loading = true;
+    
+    // Add timeout fallback to prevent infinite loading for large files
+    setTimeout(() => {
+      if (this.loading) {
+        console.log('[VIDEO] Timeout fallback - clearing loading state after 15 seconds');
+        this.loading = false;
+      }
+    }, 15000); // 15 second timeout for very large files
   }
 
   onVideoCanPlay(): void {
-    console.log('[VIDEO] Can start playing');
-    this.loading = false;
+    console.log('[VIDEO] Can start playing - clearing loading state');
+    this.loading = false;  // Clear loading as soon as video can play
   }
 
   onVideoCanPlayThrough(): void {
     console.log('[VIDEO] Can play through without buffering');
-    this.loading = false;
+    this.loading = false;  // Additional safety to ensure loading is cleared
   }
 
   skipForward(): void {
