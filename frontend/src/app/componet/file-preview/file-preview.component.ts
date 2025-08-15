@@ -258,17 +258,24 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
   onVideoLoaded(): void {
     console.log('[VIDEO] Video metadata loaded, seeking should now work properly');
     this.loading = false;
+    this.videoLoadingStarted = false;  // Reset the video loading flag
+    
+    // Clear timeout since video is ready
+    if (this.videoLoadingTimeout) {
+      clearTimeout(this.videoLoadingTimeout);
+      this.videoLoadingTimeout = null;
+    }
   }
 
   // Enhanced video event handlers for better user experience
   onVideoLoadStart(): void {
     // Prevent multiple load start calls
     if (this.videoLoadingStarted) {
-      console.log('[VIDEO] Load already started, ignoring duplicate call');
+      console.log('[VIDEO] Load already started, ignoring duplicate call - videoLoadingStarted:', this.videoLoadingStarted);
       return;
     }
     
-    console.log('[VIDEO] Load started');
+    console.log('[VIDEO] Load started - setting videoLoadingStarted to true');
     this.videoLoadingStarted = true;
     this.loading = true;
     
