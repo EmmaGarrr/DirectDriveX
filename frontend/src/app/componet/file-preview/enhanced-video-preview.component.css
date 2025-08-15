@@ -7,6 +7,7 @@
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  margin-top: 0; /* Remove top margin since parent has proper spacing */
 }
 
 /* Loading States */
@@ -80,6 +81,7 @@
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 16px;
+  margin-top: 0; /* Remove top margin since parent has proper spacing */
 }
 
 .file-details h3 {
@@ -215,6 +217,7 @@
 /* Video Player Container */
 .video-player-container {
   padding: 24px;
+  margin-top: 0; /* Remove top margin since parent has proper spacing */
 }
 
 .video-wrapper {
@@ -347,42 +350,7 @@
   background: rgba(0, 0, 0, 0.8) !important;
 }
 
-/* Video Information */
-.video-info {
-  margin-top: 20px;
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
 
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-.info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.info-item:last-child {
-  border-bottom: none;
-}
-
-.info-label {
-  font-weight: 600;
-  color: #333;
-  font-size: 14px;
-}
-
-.info-value {
-  color: #666;
-  font-size: 14px;
-}
 
 /* Action Buttons */
 .action-buttons {
@@ -395,8 +363,7 @@
 }
 
 .download-button,
-.retry-button,
-.fallback-button {
+.retry-button {
   min-width: 160px;
   height: 48px;
   font-size: 16px;
@@ -406,8 +373,7 @@
 }
 
 .download-button:hover,
-.retry-button:hover,
-.fallback-button:hover {
+.retry-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -445,8 +411,7 @@
   }
   
   .download-button,
-  .retry-button,
-  .fallback-button {
+  .retry-button {
     width: 100%;
     max-width: 300px;
   }

@@ -368,24 +368,7 @@ export class EnhancedVideoPreviewComponent implements OnInit, OnDestroy {
     return video.readyState >= 1 && !this.isSeeking;
   }
 
-  // Get current video time for display
-  getCurrentVideoTime(): string {
-    if (this.videoPlayer?.nativeElement) {
-      const video = this.videoPlayer.nativeElement;
-      const currentTime = video.currentTime || 0;
-      const duration = video.duration || 0;
-      
-      if (duration > 0) {
-        const currentMinutes = Math.floor(currentTime / 60);
-        const currentSeconds = Math.floor(currentTime % 60);
-        const totalMinutes = Math.floor(duration / 60);
-        const totalSeconds = Math.floor(duration % 60);
-        
-        return `${currentMinutes}:${currentSeconds.toString().padStart(2, '0')} / ${totalMinutes}:${totalSeconds.toString().padStart(2, '0')}`;
-      }
-    }
-    return '0:00 / 0:00';
-  }
+
 
   // Get current video time in seconds
   getCurrentVideoTimeSeconds(): number {
@@ -441,14 +424,7 @@ export class EnhancedVideoPreviewComponent implements OnInit, OnDestroy {
     this.initializeVideoPreview();
   }
 
-  // Fallback to regular video preview
-  useFallbackPreview(): void {
-    console.log('[VIDEO_PREVIEW] Using fallback preview');
-    this.mediaUrl = this.fileService.getPreviewStreamUrl(this.fileId);
-    this.videoReady = true;
-    this.error = false;
-    this.videoError = false;
-  }
+
 
   downloadFile(): void {
     const downloadUrl = this.fileService.getStreamUrl(this.fileId);

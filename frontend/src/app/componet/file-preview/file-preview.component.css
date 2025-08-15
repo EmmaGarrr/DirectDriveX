@@ -6,6 +6,7 @@
   background: #ffffff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 0; /* Remove top margin since main has padding-top */
 }
 
 /* Loading State */
@@ -69,7 +70,7 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 24px;
-  padding-bottom: 16px;
+  padding: 20px 0 16px 0; /* Add top padding for better spacing */
   border-bottom: 1px solid #e0e0e0;
 }
 
@@ -403,6 +404,7 @@
 @media (max-width: 768px) {
   .file-preview-container {
     padding: 16px;
+    margin-top: 0; /* Remove margin since main has padding-top */
   }
 
   .file-info-header {
@@ -440,6 +442,7 @@
 @media (max-width: 480px) {
   .file-preview-container {
     padding: 12px;
+    margin-top: 0; /* Remove margin since main has padding-top */
   }
 
   .file-name {

@@ -95,6 +95,27 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Main content spacing */
+main {
+  padding-top: 80px; /* Add top padding to account for fixed header */
+  min-height: calc(100vh - 80px); /* Ensure full height minus header */
+}
+
+/* Responsive main content spacing */
+@media (max-width: 768px) {
+  main {
+    padding-top: 70px;
+    min-height: calc(100vh - 70px);
+  }
+}
+
+@media (max-width: 480px) {
+  main {
+    padding-top: 60px;
+    min-height: calc(100vh - 60px);
+  }
+}
+
 /* BOLT-Inspired Typography System */
 h1, h2, h3, h4, h5, h6 {
   margin: 0;

@@ -1,4 +1,4 @@
-<div class="flex justify-center items-center min-h-[60vh]">
+<div class="flex justify-center items-start min-h-[60vh] py-8">
   <div *ngIf="fileMeta$ | async as file; else loadingOrError" class="w-full max-w-4xl p-8 bg-white rounded-lg shadow-2xl">
     
     <!-- File Info Header -->
@@ -43,7 +43,7 @@
       </div>
 
       <!-- Preview Content -->
-      <div *ngIf="showPreview" class="preview-section">
+      <div *ngIf="showPreview" class="preview-section mt-6">
         <app-file-preview [fileId]="fileId!"></app-file-preview>
       </div>
     </div>
