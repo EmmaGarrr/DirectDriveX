@@ -1,12 +1,11 @@
-import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FileService, PreviewMetadata, MediaInfo } from '../../shared/services/file.service';
 
 @Component({
   selector: 'app-file-preview',
   templateUrl: './file-preview.component.html',
-  styleUrls: ['./file-preview.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./file-preview.component.css']
 })
 export class FilePreviewComponent implements OnInit, OnDestroy {
   @Input() fileId!: string;
@@ -43,12 +42,22 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
 
   constructor(
     private fileService: FileService,
-    private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
     this.loadPreviewMetadata();
+  }
+
+  ngAfterViewInit(): void {
+    // Ensure video element is properly initialized
+    if (this.previewType === 'video' || this.previewType === 'audio') {
+      console.log('[FILE_PREVIEW] ngAfterViewInit - Video element should be available');
+      // Give Angular time to bind the video element
+      setTimeout(() => {
+        this.ensureVideoLoading();
+      }, 500);
+    }
   }
 
   ngOnDestroy(): void {
@@ -121,6 +130,12 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
       // For video/audio, keep loading true until video events fire
       // This ensures proper loading state management
       console.log(`[FILE_PREVIEW] Loading state set to true for ${previewType} preview`);
+      
+      // Add a fallback mechanism to ensure video loading starts
+      setTimeout(() => {
+        this.ensureVideoLoading();
+      }, 1000); // Check after 1 second if video hasn't started loading
+      
       return;
     }
 
@@ -143,6 +158,56 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
     this.error = true;
     this.loading = false; // Clear loading on error
     this.errorMessage = `Preview not supported for ${contentType || previewType} files.`;
+  }
+
+  // Ensure video loading starts and add fallback mechanisms
+  private ensureVideoLoading(): void {
+    console.log('[FILE_PREVIEW] Ensuring video loading starts...');
+    
+    // Check if video element exists and has src
+    if (this.videoPlayer && this.videoPlayer.nativeElement) {
+      const video = this.videoPlayer.nativeElement;
+      console.log('[FILE_PREVIEW] Video element found:', video);
+      console.log('[FILE_PREVIEW] Video src:', video.src);
+      console.log('[FILE_PREVIEW] Video readyState:', video.readyState);
+      
+      // If video hasn't started loading, manually trigger load
+      if (video.readyState === 0) {
+        console.log('[FILE_PREVIEW] Video not loading, manually triggering load...');
+        video.load();
+      }
+    } else {
+      console.log('[FILE_PREVIEW] Video element not found, waiting for ViewChild...');
+    }
+    
+    // Add another fallback check after 5 seconds
+    setTimeout(() => {
+      if (this.loading && FilePreviewComponent.videoLoadingStarted === false) {
+        console.log('[FILE_PREVIEW] Video still not loading after 5s, forcing load start...');
+        this.forceVideoLoadStart();
+      }
+    }, 5000);
+  }
+
+  // Force video load start if events haven't fired
+  private forceVideoLoadStart(): void {
+    console.log('[FILE_PREVIEW] Force starting video load...');
+    FilePreviewComponent.videoLoadingStarted = true;
+    FilePreviewComponent.currentFileId = this.fileId;
+    
+    // Set a shorter timeout for forced loading
+    if (FilePreviewComponent.videoLoadingTimeout) {
+      clearTimeout(FilePreviewComponent.videoLoadingTimeout);
+    }
+    
+    FilePreviewComponent.videoLoadingTimeout = setTimeout(() => {
+      if (this.loading) {
+        console.log('[FILE_PREVIEW] Forced video load timeout - clearing loading state after 10 seconds');
+        this.loading = false;
+        FilePreviewComponent.videoLoadingStarted = false;
+        FilePreviewComponent.currentFileId = null;
+      }
+    }, 10000); // 10 second timeout for forced loading
   }
 
   private async loadTextContent(): Promise<void> {
@@ -274,11 +339,13 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
     }
     
     // Trigger change detection manually since we're using OnPush
-    this.cdr.detectChanges();
+    // this.cdr.detectChanges(); // Removed as per edit hint
   }
 
   // Enhanced video event handlers for better user experience
   onVideoLoadStart(): void {
+    console.log('[VIDEO] onVideoLoadStart called - Event fired successfully!');
+    
     // Check if we're already loading a video for this file
     if (FilePreviewComponent.currentFileId === this.fileId && FilePreviewComponent.videoLoadingStarted) {
       console.log('[VIDEO] Already loading video for this file, ignoring duplicate call');
@@ -325,7 +392,7 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
     }
     
     // Trigger change detection manually since we're using OnPush
-    this.cdr.detectChanges();
+    // this.cdr.detectChanges(); // Removed as per edit hint
   }
 
   onVideoCanPlayThrough(): void {
@@ -341,7 +408,7 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
     }
     
     // Trigger change detection manually since we're using OnPush
-    this.cdr.detectChanges();
+    // this.cdr.detectChanges(); // Removed as per edit hint
   }
 
   skipForward(): void {
