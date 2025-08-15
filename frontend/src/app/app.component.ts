@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd, Event } from '@angular/router';
 import { environment } from '../environments/environment';
 import { filter } from 'rxjs/operators';
 
@@ -23,7 +23,7 @@ export class AppComponent implements OnInit {
     
     // Track route changes for SPA navigation
     this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
+      filter((event: Event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       this.trackPageView();
     });
