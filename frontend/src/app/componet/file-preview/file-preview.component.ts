@@ -35,6 +35,10 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
   pdfUrl = '';
   pdfLoading = false;
 
+  // Video loading state management
+  private videoLoadingStarted = false;
+  private videoLoadingTimeout: any = null;
+
   constructor(
     private fileService: FileService,
     private snackBar: MatSnackBar
@@ -46,6 +50,14 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     // Clean up any resources if needed
+    if (this.videoLoadingTimeout) {
+      clearTimeout(this.videoLoadingTimeout);
+      this.videoLoadingTimeout = null;
+    }
+    
+    // Reset video loading state
+    this.videoLoadingStarted = false;
+    this.loading = false;
   }
 
   async loadPreviewMetadata(): Promise<void> {
@@ -170,6 +182,14 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
     console.error('Video error:', event);
     this.error = true;
     this.loading = false;  // Clear loading state on error
+    this.videoLoadingStarted = false;  // Reset video loading flag
+    
+    // Clear timeout on error
+    if (this.videoLoadingTimeout) {
+      clearTimeout(this.videoLoadingTimeout);
+      this.videoLoadingTimeout = null;
+    }
+    
     this.errorMessage = 'Failed to load video. Please try downloading the file instead.';
     this.snackBar.open(this.errorMessage, 'Close', { duration: 5000 });
   }
@@ -205,9 +225,19 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
 
   retry(): void {
     console.log('[FILE_PREVIEW] Retrying preview load...');
+    
+    // Reset all video loading state
     this.loading = true;
     this.error = false;
     this.errorMessage = '';
+    this.videoLoadingStarted = false;
+    
+    // Clear any existing timeout
+    if (this.videoLoadingTimeout) {
+      clearTimeout(this.videoLoadingTimeout);
+      this.videoLoadingTimeout = null;
+    }
+    
     this.loadPreviewMetadata();
   }
 
@@ -215,6 +245,13 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
   clearLoadingState(): void {
     console.log('[FILE_PREVIEW] Manually clearing loading state');
     this.loading = false;
+    this.videoLoadingStarted = false;
+    
+    // Clear timeout when manually clearing state
+    if (this.videoLoadingTimeout) {
+      clearTimeout(this.videoLoadingTimeout);
+      this.videoLoadingTimeout = null;
+    }
   }
 
   // Video control methods
@@ -225,26 +262,53 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
 
   // Enhanced video event handlers for better user experience
   onVideoLoadStart(): void {
+    // Prevent multiple load start calls
+    if (this.videoLoadingStarted) {
+      console.log('[VIDEO] Load already started, ignoring duplicate call');
+      return;
+    }
+    
     console.log('[VIDEO] Load started');
+    this.videoLoadingStarted = true;
     this.loading = true;
     
+    // Clear any existing timeout
+    if (this.videoLoadingTimeout) {
+      clearTimeout(this.videoLoadingTimeout);
+    }
+    
     // Add timeout fallback to prevent infinite loading for large files
-    setTimeout(() => {
-      if (this.loading) {
+    this.videoLoadingTimeout = setTimeout(() => {
+      if (this.loading && this.videoLoadingStarted) {
         console.log('[VIDEO] Timeout fallback - clearing loading state after 15 seconds');
         this.loading = false;
+        this.videoLoadingStarted = false;
       }
     }, 15000); // 15 second timeout for very large files
   }
 
   onVideoCanPlay(): void {
     console.log('[VIDEO] Can start playing - clearing loading state');
-    this.loading = false;  // Clear loading as soon as video can play
+    this.loading = false;
+    this.videoLoadingStarted = false;
+    
+    // Clear timeout since video is ready
+    if (this.videoLoadingTimeout) {
+      clearTimeout(this.videoLoadingTimeout);
+      this.videoLoadingTimeout = null;
+    }
   }
 
   onVideoCanPlayThrough(): void {
     console.log('[VIDEO] Can play through without buffering');
-    this.loading = false;  // Additional safety to ensure loading is cleared
+    this.loading = false;
+    this.videoLoadingStarted = false;
+    
+    // Clear timeout since video is ready
+    if (this.videoLoadingTimeout) {
+      clearTimeout(this.videoLoadingTimeout);
+      this.videoLoadingTimeout = null;
+    }
   }
 
   skipForward(): void {
