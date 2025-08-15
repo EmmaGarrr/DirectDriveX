@@ -63,6 +63,7 @@ import { StorageCleanupComponent } from './admin-panel/storage-cleanup/storage-c
 import { ForgotPasswordComponent } from './componet/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './componet/reset-password/reset-password.component';
 import { FilePreviewComponent } from './componet/file-preview/file-preview.component';
+import { EnhancedVideoPreviewComponent } from './componet/file-preview/enhanced-video-preview.component';
 import { SafePipe } from './shared/pipes/safe.pipe';
 
 
@@ -98,6 +99,7 @@ import { SafePipe } from './shared/pipes/safe.pipe';
     ForgotPasswordComponent,
     ResetPasswordComponent,
     FilePreviewComponent,
+    EnhancedVideoPreviewComponent,
     SafePipe
   ],
   imports: [
@@ -133,7 +135,6 @@ import { SafePipe } from './shared/pipes/safe.pipe';
     MatExpansionModule,
     MatBadgeModule,
     MatTooltipModule,
-    MatChipsModule,
     MatFormFieldModule,
     MatInputModule
   ],

@@ -92,7 +92,15 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
     // Handle video/audio types
     if (previewType === 'video' || previewType === 'audio' || 
         contentType.startsWith('video/') || contentType.startsWith('audio/')) {
-      this.mediaUrl = this.fileService.getPreviewStreamUrl(this.fileId);
+      // Use enhanced video preview for video files
+      if (contentType.startsWith('video/')) {
+        this.previewType = 'video';
+        // The enhanced component will handle the streaming
+        this.mediaUrl = this.fileService.getPreviewStreamUrl(this.fileId);
+      } else {
+        this.previewType = 'audio';
+        this.mediaUrl = this.fileService.getPreviewStreamUrl(this.fileId);
+      }
       return;
     }
 

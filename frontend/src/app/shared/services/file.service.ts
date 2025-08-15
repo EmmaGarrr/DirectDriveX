@@ -75,6 +75,23 @@ export class FileService {
     return url;
   }
 
+  // --- NEW: Video thumbnail URL method ---
+  getVideoThumbnailUrl(id: string): string {
+    const url = `${environment.apiUrl}/api/v1/preview/thumbnail/${id}`;
+    console.log('[FILE_SERVICE] Generated thumbnail URL:', url);
+    return url;
+  }
+
+  // --- NEW: Cache statistics method ---
+  getCacheStats(): Observable<any> {
+    return this.http.get<any>(`${this.fileApiUrl}/preview/cache/stats`);
+  }
+
+  // --- NEW: Clear cache method ---
+  clearCache(): Observable<any> {
+    return this.http.delete<any>(`${this.fileApiUrl}/preview/cache/clear`);
+  }
+
   // --- NEW: Check if content type is previewable ---
   isPreviewableContentType(contentType: string): boolean {
     const previewableTypes = [

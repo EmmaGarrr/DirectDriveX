@@ -56,50 +56,9 @@
       </div>
     </div>
 
-    <!-- Video Preview -->
+    <!-- Enhanced Video Preview -->
     <div *ngIf="previewType === 'video'" class="video-preview">
-      <div class="video-container">
-        <video 
-          #videoPlayer
-          [src]="mediaUrl" 
-          controls 
-          preload="none"
-          class="video-player"
-          (error)="onVideoError($event)"
-          (loadedmetadata)="onVideoLoaded()">
-          Your browser does not support the video tag.
-        </video>
-        
-        <!-- Custom Video Controls Overlay -->
-        <div class="custom-video-controls">
-          <button 
-            mat-mini-fab 
-            color="primary" 
-            class="skip-button skip-back"
-            (click)="skipBackward()"
-            title="Skip back 10 seconds">
-            <mat-icon>replay_10</mat-icon>
-          </button>
-          
-          <button 
-            mat-mini-fab 
-            color="primary" 
-            class="skip-button skip-forward"
-            (click)="skipForward()"
-            title="Skip forward 10 seconds">
-            <mat-icon>forward_10</mat-icon>
-          </button>
-        </div>
-      </div>
-      
-      <div class="video-info" *ngIf="mediaInfo">
-        <p *ngIf="mediaInfo && mediaInfo.format">Format: {{ mediaInfo.format }}</p>
-        <p *ngIf="mediaInfo && mediaInfo.bitrate">Bitrate: {{ mediaInfo.bitrate }} kbps</p>
-        <p *ngIf="mediaInfo && mediaInfo.fps">Frame Rate: {{ mediaInfo.fps }} fps</p>
-        <p *ngIf="mediaInfo && mediaInfo.has_audio !== undefined">
-          Audio: {{ mediaInfo.has_audio ? 'Yes' : 'No' }}
-        </p>
-      </div>
+      <app-enhanced-video-preview [fileId]="fileId"></app-enhanced-video-preview>
     </div>
 
     <!-- Audio Preview -->

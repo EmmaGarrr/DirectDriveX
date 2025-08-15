@@ -2,11 +2,11 @@ version: '3.8'
 
 services:
   app:
-    build: ./Backend
+    build: .
     ports:
       - "5000:5000"
     env_file:
-      - ./Backend/.env
+      - .env
     # volumes:
     #   - ./Backend:/app
     # depends_on was removed
