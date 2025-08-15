@@ -1,11 +1,12 @@
-import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FileService, PreviewMetadata, MediaInfo } from '../../shared/services/file.service';
 
 @Component({
   selector: 'app-file-preview',
   templateUrl: './file-preview.component.html',
-  styleUrls: ['./file-preview.component.css']
+  styleUrls: ['./file-preview.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FilePreviewComponent implements OnInit, OnDestroy {
   @Input() fileId!: string;
@@ -35,13 +36,15 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
   pdfUrl = '';
   pdfLoading = false;
 
-  // Video loading state management
-  private videoLoadingStarted = false;
-  private videoLoadingTimeout: any = null;
+  // Video loading state management - static to persist across component re-renders
+  private static videoLoadingStarted = false;
+  private static videoLoadingTimeout: any = null;
+  private static currentFileId: string | null = null;
 
   constructor(
     private fileService: FileService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -50,13 +53,13 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     // Clean up any resources if needed
-    if (this.videoLoadingTimeout) {
-      clearTimeout(this.videoLoadingTimeout);
-      this.videoLoadingTimeout = null;
+    if (FilePreviewComponent.videoLoadingTimeout) {
+      clearTimeout(FilePreviewComponent.videoLoadingTimeout);
+      FilePreviewComponent.videoLoadingTimeout = null;
     }
     
     // Reset video loading state
-    this.videoLoadingStarted = false;
+    FilePreviewComponent.videoLoadingStarted = false;
     this.loading = false;
   }
 
@@ -182,12 +185,13 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
     console.error('Video error:', event);
     this.error = true;
     this.loading = false;  // Clear loading state on error
-    this.videoLoadingStarted = false;  // Reset video loading flag
+    FilePreviewComponent.videoLoadingStarted = false;  // Reset video loading flag
+    FilePreviewComponent.currentFileId = null;
     
     // Clear timeout on error
-    if (this.videoLoadingTimeout) {
-      clearTimeout(this.videoLoadingTimeout);
-      this.videoLoadingTimeout = null;
+    if (FilePreviewComponent.videoLoadingTimeout) {
+      clearTimeout(FilePreviewComponent.videoLoadingTimeout);
+      FilePreviewComponent.videoLoadingTimeout = null;
     }
     
     this.errorMessage = 'Failed to load video. Please try downloading the file instead.';
@@ -230,12 +234,13 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = false;
     this.errorMessage = '';
-    this.videoLoadingStarted = false;
+    FilePreviewComponent.videoLoadingStarted = false;
+    FilePreviewComponent.currentFileId = null;
     
     // Clear any existing timeout
-    if (this.videoLoadingTimeout) {
-      clearTimeout(this.videoLoadingTimeout);
-      this.videoLoadingTimeout = null;
+    if (FilePreviewComponent.videoLoadingTimeout) {
+      clearTimeout(FilePreviewComponent.videoLoadingTimeout);
+      FilePreviewComponent.videoLoadingTimeout = null;
     }
     
     this.loadPreviewMetadata();
@@ -245,12 +250,13 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
   clearLoadingState(): void {
     console.log('[FILE_PREVIEW] Manually clearing loading state');
     this.loading = false;
-    this.videoLoadingStarted = false;
+    FilePreviewComponent.videoLoadingStarted = false;
+    FilePreviewComponent.currentFileId = null;
     
     // Clear timeout when manually clearing state
-    if (this.videoLoadingTimeout) {
-      clearTimeout(this.videoLoadingTimeout);
-      this.videoLoadingTimeout = null;
+    if (FilePreviewComponent.videoLoadingTimeout) {
+      clearTimeout(FilePreviewComponent.videoLoadingTimeout);
+      FilePreviewComponent.videoLoadingTimeout = null;
     }
   }
 
@@ -258,38 +264,50 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
   onVideoLoaded(): void {
     console.log('[VIDEO] Video metadata loaded, seeking should now work properly');
     this.loading = false;
-    this.videoLoadingStarted = false;  // Reset the video loading flag
+    FilePreviewComponent.videoLoadingStarted = false;  // Reset the video loading flag
+    FilePreviewComponent.currentFileId = null;
     
     // Clear timeout since video is ready
-    if (this.videoLoadingTimeout) {
-      clearTimeout(this.videoLoadingTimeout);
-      this.videoLoadingTimeout = null;
+    if (FilePreviewComponent.videoLoadingTimeout) {
+      clearTimeout(FilePreviewComponent.videoLoadingTimeout);
+      FilePreviewComponent.videoLoadingTimeout = null;
     }
+    
+    // Trigger change detection manually since we're using OnPush
+    this.cdr.detectChanges();
   }
 
   // Enhanced video event handlers for better user experience
   onVideoLoadStart(): void {
-    // Prevent multiple load start calls
-    if (this.videoLoadingStarted) {
-      console.log('[VIDEO] Load already started, ignoring duplicate call - videoLoadingStarted:', this.videoLoadingStarted);
+    // Check if we're already loading a video for this file
+    if (FilePreviewComponent.currentFileId === this.fileId && FilePreviewComponent.videoLoadingStarted) {
+      console.log('[VIDEO] Already loading video for this file, ignoring duplicate call');
       return;
     }
     
-    console.log('[VIDEO] Load started - setting videoLoadingStarted to true');
-    this.videoLoadingStarted = true;
+    // Prevent multiple load start calls
+    if (FilePreviewComponent.videoLoadingStarted) {
+      console.log('[VIDEO] Load already started, ignoring duplicate call - videoLoadingStarted:', FilePreviewComponent.videoLoadingStarted);
+      return;
+    }
+    
+    console.log('[VIDEO] Load started - setting videoLoadingStarted to true for file:', this.fileId);
+    FilePreviewComponent.videoLoadingStarted = true;
+    FilePreviewComponent.currentFileId = this.fileId;
     this.loading = true;
     
     // Clear any existing timeout
-    if (this.videoLoadingTimeout) {
-      clearTimeout(this.videoLoadingTimeout);
+    if (FilePreviewComponent.videoLoadingTimeout) {
+      clearTimeout(FilePreviewComponent.videoLoadingTimeout);
     }
     
     // Add timeout fallback to prevent infinite loading for large files
-    this.videoLoadingTimeout = setTimeout(() => {
-      if (this.loading && this.videoLoadingStarted) {
+    FilePreviewComponent.videoLoadingTimeout = setTimeout(() => {
+      if (this.loading && FilePreviewComponent.videoLoadingStarted) {
         console.log('[VIDEO] Timeout fallback - clearing loading state after 15 seconds');
         this.loading = false;
-        this.videoLoadingStarted = false;
+        FilePreviewComponent.videoLoadingStarted = false;
+        FilePreviewComponent.currentFileId = null;
       }
     }, 15000); // 15 second timeout for very large files
   }
@@ -297,25 +315,33 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
   onVideoCanPlay(): void {
     console.log('[VIDEO] Can start playing - clearing loading state');
     this.loading = false;
-    this.videoLoadingStarted = false;
+    FilePreviewComponent.videoLoadingStarted = false;
+    FilePreviewComponent.currentFileId = null;
     
     // Clear timeout since video is ready
-    if (this.videoLoadingTimeout) {
-      clearTimeout(this.videoLoadingTimeout);
-      this.videoLoadingTimeout = null;
+    if (FilePreviewComponent.videoLoadingTimeout) {
+      clearTimeout(FilePreviewComponent.videoLoadingTimeout);
+      FilePreviewComponent.videoLoadingTimeout = null;
     }
+    
+    // Trigger change detection manually since we're using OnPush
+    this.cdr.detectChanges();
   }
 
   onVideoCanPlayThrough(): void {
     console.log('[VIDEO] Can play through without buffering');
     this.loading = false;
-    this.videoLoadingStarted = false;
+    FilePreviewComponent.videoLoadingStarted = false;
+    FilePreviewComponent.currentFileId = null;
     
     // Clear timeout since video is ready
-    if (this.videoLoadingTimeout) {
-      clearTimeout(this.videoLoadingTimeout);
-      this.videoLoadingTimeout = null;
+    if (FilePreviewComponent.videoLoadingTimeout) {
+      clearTimeout(FilePreviewComponent.videoLoadingTimeout);
+      FilePreviewComponent.videoLoadingTimeout = null;
     }
+    
+    // Trigger change detection manually since we're using OnPush
+    this.cdr.detectChanges();
   }
 
   skipForward(): void {
