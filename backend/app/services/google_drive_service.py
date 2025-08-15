@@ -4,6 +4,7 @@ import asyncio
 import io
 import json
 import time
+import httpx
 from typing import AsyncGenerator, List, Dict, Optional
 from collections import defaultdict
 import threading
@@ -197,6 +198,8 @@ async def async_stream_gdrive_file(gdrive_id: str, account: GoogleAccountConfig)
         print(f"!!! [{account.id}] Google API error during stream: {e.content}"); raise e
     except Exception as e:
         print(f"!!! [{account.id}] Unexpected error during Google Drive stream: {e}"); raise e
+
+
 
 async def delete_gdrive_file(gdrive_id: str, account: GoogleAccountConfig) -> bool:
     """

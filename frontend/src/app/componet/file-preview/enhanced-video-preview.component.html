@@ -92,7 +92,7 @@
                mat-mini-fab 
                color="primary" 
                class="skip-button skip-back"
-               [disabled]="!isVideoReadyForSeeking()"
+               [disabled]="isSeeking"
                (click)="skipBackward()"
                (mouseenter)="onButtonHover('back')"
                (mouseleave)="onButtonLeave()"
@@ -107,7 +107,7 @@
                mat-mini-fab 
                color="primary" 
                class="skip-button skip-forward"
-               [disabled]="!isVideoReadyForSeeking()"
+               [disabled]="isSeeking"
                (click)="skipForward()"
                (mouseenter)="onButtonHover('forward')"
                (mouseleave)="onButtonLeave()"
@@ -125,6 +125,7 @@
            </div>
            <span class="seeking-text">Seeking...</span>
          </div>
+
       </div>
       
       
@@ -149,6 +150,8 @@
          </div>
       </div>
     </div>
+
+
 
          <!-- Action Buttons -->
      <div class="action-buttons">

@@ -244,13 +244,13 @@ def get_file_preview_metadata(file_id: str):
         "suggested_action": "preview"
     }
 
-# --- NEW: Range request support for video streaming ---
+# --- SIMPLIFIED: Video streaming with proper seeking support ---
 @router.get(
     "/preview/stream/{file_id}",
-    summary="Stream File for Preview with Range Support"
+    summary="Stream File for Preview with Seeking Support"
 )
 async def stream_preview(file_id: str, request: Request):
-    """Stream file content for preview with enhanced range request support"""
+    """Stream file content for preview with proper seeking support"""
     file_doc = db.files.find_one({"_id": file_id})
     if not file_doc:
         raise HTTPException(status_code=404, detail="File not found")
@@ -266,18 +266,9 @@ async def stream_preview(file_id: str, request: Request):
 
     filename = file_doc.get("filename", "preview")
     filesize = file_doc.get("size_bytes", 0)
-    
-    # --- NEW: Handle Range requests for video/audio files ---
-    range_header = request.headers.get("range")
     is_video_or_audio = content_type.startswith(("video/", "audio/"))
     
-    # Temporarily disable range requests to fix Content-Length mismatch
-    # TODO: Implement proper range request handling later
-    if range_header and is_video_or_audio:
-        print(f"[PREVIEW] Range request received but disabled for now: {range_header}")
-        # Continue to full streaming below
-    
-    # --- FALLBACK: Full file streaming for non-range requests ---
+    # --- SIMPLIFIED: Content streamer without range requests ---
     async def content_streamer():
         try:
             print(f"[PREVIEW] Attempting to stream preview for '{filename}'...")
@@ -291,6 +282,8 @@ async def stream_preview(file_id: str, request: Request):
             if not storage_account:
                 raise ValueError(f"Configuration for GDrive account '{account_id}' not found.")
 
+            # Always stream full file - let browser handle seeking
+            print(f"[PREVIEW] Streaming full file from Google Drive")
             async for chunk in async_stream_gdrive_file(gdrive_id, account=storage_account):
                 yield chunk
             
@@ -321,20 +314,22 @@ async def stream_preview(file_id: str, request: Request):
         except Exception as e:
             print(f"!!! [PREVIEW] Fallback preview from Hetzner also failed for '{filename}': {e}")
     
-        # Set appropriate headers for preview (inline instead of attachment)
+    # --- SIMPLIFIED: Proper headers for video seeking ---
     headers = {
         "Content-Type": content_type,
         "Accept-Ranges": "bytes" if is_video_or_audio else "none",
         "Content-Disposition": f"inline; filename*=UTF-8''{quote(filename)}"
     }
     
-    # Don't set Content-Length for streaming responses to avoid mismatch
-    # The browser will handle the streaming properly without Content-Length
+    # Always set Content-Length for proper seeking support
+    if filesize > 0:
+        headers["Content-Length"] = str(filesize)
     
     return StreamingResponse(
         content=content_streamer(),
         media_type=content_type,
-        headers=headers
+        headers=headers,
+        status_code=200
     )
 
 # --- NEW: Video thumbnail endpoint ---

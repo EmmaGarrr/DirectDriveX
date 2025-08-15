@@ -176,7 +176,7 @@ export class EnhancedVideoPreviewComponent implements OnInit, OnDestroy {
     // Not used with direct streaming
   }
 
-  // Video player event handlers
+  // Enhanced video player event handlers
   onVideoLoaded(): void {
     console.log('[VIDEO_PREVIEW] Video metadata loaded');
     this.videoLoading = false;
@@ -188,17 +188,82 @@ export class EnhancedVideoPreviewComponent implements OnInit, OnDestroy {
       console.log(`[VIDEO_PREVIEW] Video duration: ${video.duration}s`);
       console.log(`[VIDEO_PREVIEW] Video ready state: ${video.readyState}`);
       
-      // Add event listeners for seeking
-      video.addEventListener('seeked', () => {
-        console.log(`[VIDEO_PREVIEW] Video seeked to: ${video.currentTime}s`);
-        this.isSeeking = false;
+      // Enhanced event listeners for video state
+      video.addEventListener('loadedmetadata', () => {
+        console.log(`[VIDEO_PREVIEW] Video metadata loaded - Duration: ${video.duration}s`);
+        this.videoReady = true;
+        this.cdr.detectChanges();
+      });
+      
+      video.addEventListener('canplay', () => {
+        console.log('[VIDEO_PREVIEW] Video can start playing');
+        this.videoReady = true;
+        this.videoLoading = false;
+        this.cdr.detectChanges();
+      });
+      
+      video.addEventListener('canplaythrough', () => {
+        console.log('[VIDEO_PREVIEW] Video can play through without buffering');
+        this.videoReady = true;
+        this.videoLoading = false;
         this.cdr.detectChanges();
       });
       
       video.addEventListener('seeking', () => {
         console.log(`[VIDEO_PREVIEW] Video seeking to: ${video.currentTime}s`);
-        this.isSeeking = true;
         this.cdr.detectChanges();
+      });
+      
+      video.addEventListener('seeked', () => {
+        console.log(`[VIDEO_PREVIEW] Video seeked to: ${video.currentTime}s`);
+        this.cdr.detectChanges();
+      });
+      
+      video.addEventListener('waiting', () => {
+        console.log('[VIDEO_PREVIEW] Video waiting for data');
+        this.videoLoading = true;
+        this.cdr.detectChanges();
+      });
+      
+      video.addEventListener('playing', () => {
+        console.log('[VIDEO_PREVIEW] Video started playing');
+        this.videoLoading = false;
+        this.cdr.detectChanges();
+      });
+      
+      video.addEventListener('pause', () => {
+        console.log('[VIDEO_PREVIEW] Video paused');
+        this.cdr.detectChanges();
+      });
+      
+      video.addEventListener('ended', () => {
+        console.log('[VIDEO_PREVIEW] Video ended');
+        this.cdr.detectChanges();
+      });
+      
+      // Enhanced error handling
+      video.addEventListener('error', (event) => {
+        console.error('[VIDEO_PREVIEW] Video error:', event);
+        console.error('[VIDEO_PREVIEW] Video error details:', video.error);
+        this.videoError = true;
+        this.cdr.detectChanges();
+      });
+      
+      // Add loadstart event
+      video.addEventListener('loadstart', () => {
+        console.log('[VIDEO_PREVIEW] Video load started');
+        this.videoLoading = true;
+        this.cdr.detectChanges();
+      });
+      
+      // Add progress event for buffering
+      video.addEventListener('progress', () => {
+        if (video.buffered.length > 0) {
+          const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+          const duration = video.duration;
+          const bufferedPercent = (bufferedEnd / duration) * 100;
+          console.log(`[VIDEO_PREVIEW] Video buffered: ${bufferedPercent.toFixed(1)}%`);
+        }
       });
     }
   }
@@ -235,7 +300,7 @@ export class EnhancedVideoPreviewComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  // Video control methods
+  // Enhanced video control methods with proper seeking
   skipForward(): void {
     console.log('[VIDEO_PREVIEW] Skip forward button clicked');
     
@@ -246,49 +311,19 @@ export class EnhancedVideoPreviewComponent implements OnInit, OnDestroy {
     
     const video = this.videoPlayer.nativeElement;
     
-    // Check if video is ready
-    if (video.readyState < 1) {
+    // Check if video is ready for seeking
+    if (!this.isVideoReadyForSeeking(video)) {
       console.warn('[VIDEO_PREVIEW] Video not ready for seeking');
       this.snackBar.open('Video not ready yet. Please wait...', 'Close', { duration: 2000 });
       return;
     }
     
-    // Store current playback state
-    const wasPlaying = !video.paused;
     const currentTime = video.currentTime || 0;
     const duration = video.duration || 0;
-    
-    // Calculate new time
     const newTime = Math.min(currentTime + 10, duration);
     
-    console.log(`[VIDEO_PREVIEW] Current time: ${currentTime}s, Duration: ${duration}s`);
-    console.log(`[VIDEO_PREVIEW] Seeking to: ${newTime}s`);
-    
-    // Perform the seek
-    try {
-      this.isSeeking = true;
-      this.cdr.detectChanges();
-      
-      video.currentTime = newTime;
-      
-      // Resume playback if it was playing before
-      if (wasPlaying) {
-        video.play().catch(e => {
-          console.log('[VIDEO_PREVIEW] Auto-play prevented after seek:', e);
-        });
-      }
-      
-      console.log(`[VIDEO_PREVIEW] Successfully skipped forward 10s to ${newTime}s`);
-      
-      // Show feedback
-      this.snackBar.open(`Skipped forward to ${this.formatTime(newTime)}`, 'Close', { duration: 1500 });
-      
-    } catch (error) {
-      console.error('[VIDEO_PREVIEW] Error during seek:', error);
-      this.snackBar.open('Failed to skip video. Please try again.', 'Close', { duration: 3000 });
-    } finally {
-      this.isSeeking = false;
-      this.cdr.detectChanges();
+    if (newTime !== currentTime) {
+      this.performSeek(video, newTime, 'forward');
     }
   }
 
@@ -302,50 +337,136 @@ export class EnhancedVideoPreviewComponent implements OnInit, OnDestroy {
     
     const video = this.videoPlayer.nativeElement;
     
-    // Check if video is ready
-    if (video.readyState < 1) {
+    // Check if video is ready for seeking
+    if (!this.isVideoReadyForSeeking(video)) {
       console.warn('[VIDEO_PREVIEW] Video not ready for seeking');
       this.snackBar.open('Video not ready yet. Please wait...', 'Close', { duration: 2000 });
       return;
     }
     
-    // Store current playback state
-    const wasPlaying = !video.paused;
     const currentTime = video.currentTime || 0;
-    
-    // Calculate new time
     const newTime = Math.max(currentTime - 10, 0);
     
-    console.log(`[VIDEO_PREVIEW] Current time: ${currentTime}s`);
-    console.log(`[VIDEO_PREVIEW] Seeking to: ${newTime}s`);
+    if (newTime !== currentTime) {
+      this.performSeek(video, newTime, 'backward');
+    }
+  }
+
+  // Enhanced seeking method with proper state management
+  private performSeek(video: HTMLVideoElement, newTime: number, direction: 'forward' | 'backward'): void {
+    console.log(`[VIDEO_PREVIEW] Performing ${direction} seek to ${newTime}s`);
     
-    // Perform the seek
-    try {
+    // Set seeking state
+    this.isSeeking = true;
+    this.cdr.detectChanges();
+    
+    // Store current playback state
+    const wasPlaying = !video.paused;
+    const wasMuted = video.muted;
+    const volume = video.volume;
+    
+    // Set up seeking event listeners
+    const onSeeking = () => {
+      console.log(`[VIDEO_PREVIEW] Video seeking to ${newTime}s`);
       this.isSeeking = true;
       this.cdr.detectChanges();
+    };
+    
+    const onSeeked = () => {
+      console.log(`[VIDEO_PREVIEW] Video seeked to ${video.currentTime}s`);
       
-      video.currentTime = newTime;
+      // Reset seeking state
+      this.isSeeking = false;
+      this.cdr.detectChanges();
       
-      // Resume playback if it was playing before
-      if (wasPlaying) {
+      // Restore playback state
+      if (wasPlaying && video.paused) {
         video.play().catch(e => {
           console.log('[VIDEO_PREVIEW] Auto-play prevented after seek:', e);
         });
       }
       
-      console.log(`[VIDEO_PREVIEW] Successfully skipped backward 10s to ${newTime}s`);
+      // Restore audio state
+      video.muted = wasMuted;
+      video.volume = volume;
       
-      // Show feedback
-      this.snackBar.open(`Skipped backward to ${this.formatTime(newTime)}`, 'Close', { duration: 1500 });
+      // Show success message
+      this.snackBar.open(`Skipped ${direction} to ${this.formatTime(newTime)}`, 'Close', { duration: 1500 });
       
-    } catch (error) {
-      console.error('[VIDEO_PREVIEW] Error during seek:', error);
-      this.snackBar.open('Failed to skip video. Please try again.', 'Close', { duration: 3000 });
-    } finally {
+      // Clean up event listeners
+      video.removeEventListener('seeking', onSeeking);
+      video.removeEventListener('seeked', onSeeked);
+    };
+    
+    const onError = (event: Event) => {
+      console.error('[VIDEO_PREVIEW] Error during seeking:', event);
+      
+      // Reset seeking state
       this.isSeeking = false;
       this.cdr.detectChanges();
+      
+      this.snackBar.open(`Failed to skip ${direction}. Please try again.`, 'Close', { duration: 3000 });
+      
+      // Clean up event listeners
+      video.removeEventListener('seeking', onSeeking);
+      video.removeEventListener('seeked', onSeeked);
+      video.removeEventListener('error', onError);
+    };
+    
+    // Add event listeners
+    video.addEventListener('seeking', onSeeking);
+    video.addEventListener('seeked', onSeeked);
+    video.addEventListener('error', onError);
+    
+    // Perform the seek
+    try {
+      video.currentTime = newTime;
+    } catch (error) {
+      console.error('[VIDEO_PREVIEW] Error setting currentTime:', error);
+      
+      // Reset seeking state
+      this.isSeeking = false;
+      this.cdr.detectChanges();
+      
+      this.snackBar.open(`Failed to skip ${direction}. Please try again.`, 'Close', { duration: 3000 });
+      
+      // Clean up event listeners
+      video.removeEventListener('seeking', onSeeking);
+      video.removeEventListener('seeked', onSeeked);
+      video.removeEventListener('error', onError);
     }
   }
+
+  // Check if video is ready for seeking
+  private isVideoReadyForSeeking(video: HTMLVideoElement): boolean {
+    // Check if video has metadata loaded
+    if (video.readyState < 1) {
+      console.log('[VIDEO_PREVIEW] Video readyState too low:', video.readyState);
+      return false;
+    }
+    
+    // Check if video has duration
+    if (!video.duration || video.duration <= 0) {
+      console.log('[VIDEO_PREVIEW] Video duration not available:', video.duration);
+      return false;
+    }
+    
+    // Check if video is not currently seeking
+    if (video.seeking) {
+      console.log('[VIDEO_PREVIEW] Video is already seeking');
+      return false;
+    }
+    
+    // Check if video has no errors
+    if (video.error) {
+      console.log('[VIDEO_PREVIEW] Video has error:', video.error);
+      return false;
+    }
+    
+    return true;
+  }
+
+
 
   // Button hover effects
   onButtonHover(direction: 'forward' | 'back'): void {
@@ -358,15 +479,7 @@ export class EnhancedVideoPreviewComponent implements OnInit, OnDestroy {
     // Remove visual feedback
   }
 
-  // Check if video is ready for seeking
-  isVideoReadyForSeeking(): boolean {
-    if (!this.videoPlayer?.nativeElement) {
-      return false;
-    }
-    
-    const video = this.videoPlayer.nativeElement;
-    return video.readyState >= 1 && !this.isSeeking;
-  }
+
 
 
 
