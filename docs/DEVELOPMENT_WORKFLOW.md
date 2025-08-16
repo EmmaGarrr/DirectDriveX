@@ -1,4 +1,4 @@
-# DirectDriveX Development Workflow
+# mfcnextgen Development Workflow
 
 ## 🚀 Getting Started
 
@@ -13,7 +13,7 @@
 1. **Clone the repository**
    ```bash
    git clone <your-repo-url>
-   cd DirectDriveX
+   cd mfcnextgen
    ```
 
 2. **Backend Setup**
@@ -172,7 +172,7 @@ npm update
 
 **Backend** (`.env` file in backend directory):
 ```bash
-DATABASE_URL=mongodb://localhost:27017/directdrive
+DATABASE_URL=mongodb://localhost:27017/mfcnextgen
 REDIS_URL=redis://localhost:6379
 SECRET_KEY=your-secret-key
 DEBUG=True
@@ -219,10 +219,10 @@ npx prettier --write src/
 ```bash
 cd backend
 # Build Docker image
-docker build -t directdrive-backend .
+docker build -t mfcnextgen-backend .
 
 # Run in production
-docker run -d -p 8000:8000 directdrive-backend
+docker run -d -p 8000:8000 mfcnextgen-backend
 ```
 
 ### Frontend Deployment

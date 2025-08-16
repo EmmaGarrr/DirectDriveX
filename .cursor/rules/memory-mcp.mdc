@@ -1,0 +1,14 @@
+---
+alwaysApply: false
+---
+
+Before doing any code analysis or proposing fixes, ALWAYS CALL the MCP tool named "error_lookup" with this payload:
+
+{
+  "project_id": "your-actual-project-name",
+  "error_text": "<paste the error line(s)>",
+  "stack_trace": "<paste stack trace>",
+  "top_k": 5
+}
+
+Use the returned top matches (if any) as explicit evidence in your reasoning and include them verbatim when proposing a fix. Do not proceed until the lookup returns results or confirms no match.

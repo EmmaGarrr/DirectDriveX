@@ -1,13 +1,13 @@
-# DirectDriveX Project Structure
+# mfcnextgen Project Structure
 
 ## Overview
-DirectDriveX is a monorepo containing both the backend (Python/FastAPI) and frontend (Angular) components of the cloud storage management platform.
+mfcnextgen is a monorepo containing both the backend (Python/FastAPI) and frontend (Angular) components of the cloud storage management platform.
 
 ## Directory Structure
 
 ### Root Level
 ```
-DirectDriveX/
+mfcnextgen/
 ├── README.md              # Main project documentation
 ├── .gitignore            # Git ignore patterns
 ├── backend/              # Backend application

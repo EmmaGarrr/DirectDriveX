@@ -75,7 +75,7 @@ class GoogleDriveAccountService:
                     continue
                 
                 # Try to get actual email from Google Drive API
-                actual_email = f"account_{i}@directdrive.service.com"  # Default email
+                actual_email = f"account_{i}@mfcnextgen.service.com"  # Default email
                 try:
                     # Create temporary credentials to get account info
                     creds = Credentials.from_authorized_user_info(

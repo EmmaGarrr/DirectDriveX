@@ -1,672 +1,517 @@
-<div class="bg-gradient-to-br from-slate-50 to-white" style="margin-top: 80px;">
-  <!-- Premium Hero Section -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-16">
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start lg:items-center">
-      
-      <!-- Left Side - 60% Main Content -->
-      <div class="lg:col-span-3 space-y-8">
+<!-- Enhanced Home Component with Modern Design -->
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+  <!-- Hero Section -->
+  <section class="relative pt-32 pb-20 overflow-hidden">
+    <div class="container mx-auto px-4">
+      <div class="text-center max-w-4xl mx-auto">
+        <!-- Enhanced Logo and Branding -->
+        <div class="flex items-center justify-center space-x-3 mb-8">
+          <div class="w-16 h-16 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 rounded-2xl flex items-center justify-center shadow-xl">
+            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8Z"/>
+            </svg>
+          </div>
+          <div class="text-left">
+            <h1 class="text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-500 bg-clip-text text-transparent">mfcnextgen</h1>
+            <p class="text-slate-600 text-lg">Next Generation Storage Platform</p>
+          </div>
+        </div>
+
+        <h2 class="text-5xl md:text-6xl font-bold text-slate-900 mb-6 leading-tight">
+          Secure, Fast & 
+          <span class="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-500 bg-clip-text text-transparent">Reliable</span>
+          <br>File Storage
+        </h2>
         
-        <!-- Live Transfer Counter - Moved to Top -->
-        <div class="inline-flex items-center bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium">
-          <div class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-          <span class="font-semibold">12,847 users</span> joined this week
+        <p class="text-xl text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+          Experience the future of cloud storage with mfcnextgen. Advanced encryption, lightning-fast speeds, and enterprise-grade security for your most important files.
+        </p>
+
+        <!-- Enhanced CTA Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <a routerLink="/register" class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 transform hover:-translate-y-1 shadow-lg hover:shadow-xl">
+            Start Free Trial
+          </a>
+          <a href="#how-it-works" class="border-2 border-slate-300 text-slate-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-200">
+            Learn More
+          </a>
         </div>
 
-        <!-- Premium Headlines -->
-        <div class="space-y-4">
-          <h1 class="hero-headline text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight">
-            Transfer Files Up to <span class="text-primary">30GB</span><br/>
-            with Military-Grade Encryption
-          </h1>
-          
-          <p class="hero-subheadline text-xl md:text-2xl font-medium text-slate-600 leading-relaxed">
-            Join <span class="font-bold text-slate-800">20K+ professionals</span> who trust DirectDrive for secure file sharing
-          </p>
-        </div>
-
-        <!-- Trust Badges in Two Rows for Better Organization -->
-        <div class="space-y-3">
-          <!-- First Row - Security Features -->
-          <div class="flex flex-wrap items-center gap-6">
-            <div class="flex items-center space-x-2">
-              <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
-                </svg>
-              </div>
-              <span class="trust-text">256-bit Encryption</span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
-                </svg>
-              </div>
-              <span class="trust-text">SOC2 Compliant</span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <div class="w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
-                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
-                </svg>
-              </div>
-              <span class="trust-text">Zero-Knowledge</span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <div class="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
-                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
-                </svg>
-              </div>
-              <span class="trust-text">99.9% Uptime</span>
-            </div>
+        <!-- Trust Indicators -->
+        <div class="mt-12">
+          <p class="text-slate-600 mb-4">Join <span class="font-bold text-slate-800">20K+ professionals</span> who trust mfcnextgen for secure file sharing</p>
+          <div class="flex justify-center items-center space-x-8 opacity-60">
+            <div class="w-24 h-12 bg-slate-200 rounded"></div>
+            <div class="w-24 h-12 bg-slate-200 rounded"></div>
+            <div class="w-24 h-12 bg-slate-200 rounded"></div>
           </div>
-          
-          <!-- Second Row - Live Stats -->
-          <div class="flex items-center space-x-6 text-sm text-slate-500">
-            <div class="flex items-center space-x-2">
-              <div class="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-              <span class="font-medium">1,247 files transferred in the last hour</span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              <span class="font-medium">Bank-level encryption on every transfer</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Primary CTA with Urgency -->
-        <div class="space-y-4">
-          <button class="premium-button bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 text-lg">
-            Claim Your 50GB Now - Free Forever
-          </button>
-          <!-- Urgency Element -->
-          <div class="space-y-3">
-            <div class="bg-orange-50 border border-orange-200 rounded-lg p-3">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-orange-800">🔥 Free 50GB Accounts Claimed</span>
-                <span class="text-sm font-bold text-orange-900">78%</span>
-              </div>
-              <div class="w-full bg-orange-200 rounded-full h-2">
-                <div class="progress-fill bg-gradient-to-r from-orange-500 to-red-500 h-2 rounded-full" style="width: 78%"></div>
-              </div>
-            </div>
-            
-            <p class="text-sm text-slate-500 flex items-center">
-              <svg class="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
-              </svg>
-              No credit card required • Your privacy protected: Files auto-delete after 30 days
-            </p>
-          </div>
-        </div>
-
-        <!-- Company Logos with Enhanced Social Proof -->
-        <div class="space-y-3">
-          <div class="space-y-1">
-            <p class="text-sm text-slate-500 font-medium">Trusted by teams at</p>
-            <p class="text-xs text-slate-400">Join 500,000+ professionals worldwide</p>
-          </div>
-          <div class="flex items-center space-x-8 opacity-60">
-            <!-- Microsoft Logo -->
-            <div class="flex items-center space-x-2">
-              <div class="w-6 h-6 bg-blue-600 rounded-sm flex items-center justify-center">
-                <span class="text-white text-xs font-bold">M</span>
-              </div>
-              <span class="text-sm font-semibold text-slate-600">Microsoft</span>
-            </div>
-            <!-- Adobe Logo -->
-            <div class="flex items-center space-x-2">
-              <div class="w-6 h-6 bg-red-600 rounded-sm flex items-center justify-center">
-                <span class="text-white text-xs font-bold">A</span>
-              </div>
-              <span class="text-sm font-semibold text-slate-600">Adobe</span>
-            </div>
-            <!-- Netflix Logo -->
-            <div class="flex items-center space-x-2">
-              <div class="w-6 h-6 bg-red-500 rounded-sm flex items-center justify-center">
-                <span class="text-white text-xs font-bold">N</span>
-              </div>
-              <span class="text-sm font-semibold text-slate-600">Netflix</span>
-            </div>
-          </div>
-          
-          <!-- Testimonial Quote -->
-          <div class="testimonial bg-slate-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
-            <div class="flex items-start space-x-3">
-              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%234F46E5'/%3E%3Ctext x='20' y='26' text-anchor='middle' fill='white' font-family='Arial' font-size='16' font-weight='bold'%3ESM%3C/text%3E%3C/svg%3E" 
-                   alt="Sarah M." class="w-8 h-8 rounded-full">
-              <div class="flex-1">
-                <div class="relative">
-                  <svg class="absolute -top-2 -left-2 w-4 h-4 text-slate-300" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h4v10h-10z"/>
-                  </svg>
-                  <p class="text-sm text-slate-700 italic leading-relaxed">"Finally, a file sharing service that prioritizes security without sacrificing speed. Our compliance team loves the SOC2 certification."</p>
-                </div>
-                <p class="text-xs text-slate-500 mt-1 font-medium">Sarah Mitchell, IT Director &#64; TechFlow</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Side - 40% Upload Widget -->
-      <div class="lg:col-span-2">
-        <div class="premium-card bg-white rounded-2xl shadow-lg border border-slate-200 p-8 h-full">
-          <!-- Quick Upload Header -->
-          <div class="text-center mb-6">
-            <div class="inline-flex items-center space-x-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium mb-4">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"/>
-              </svg>
-              <span>Quick Upload</span>
-            </div>
-            <h3 class="section-headline mb-2">Try it now</h3>
-            <p class="body-large text-slate-500">2GB limit for guests</p>
-          </div>
-
-          <!-- Enhanced Upload Area -->
-          <div *ngIf="!selectedFile && batchFiles.length === 0 && currentState !== 'success' && batchState !== 'success' && currentState !== 'error' && batchState !== 'error'"
-               class="enhanced-drop-zone bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-6 transition-all duration-300 hover:border-primary hover:bg-primary/5 hover:shadow-lg"
-               [ngClass]="{
-                 'border-primary bg-primary/5 shadow-lg animate-pulse': isDragOver
-               }"
-               (dragover)="onDragOver($event)" 
-               (dragleave)="onDragLeave($event)" 
-               (drop)="onDrop($event)"
-               (click)="fileInput.click()">
-            <input type="file" #fileInput (change)="onFileSelect($event)" class="hidden" multiple>
-            
-            <div class="text-center">
-              <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary/10 to-primary/20 rounded-full flex items-center justify-center hover:scale-105 transition-transform animate-float">
-                <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                </svg>
-              </div>
-              
-              <h3 class="text-lg font-semibold text-slate-900 mb-2">
-                {{ isDragOver ? '✨ Drop files here' : 'Drag & Drop files here' }}
-              </h3>
-              
-              <p class="text-sm text-slate-500 mb-4">
-                or <button class="secondary-cta-button bg-transparent border-2 border-primary text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-lg font-medium transition-all duration-300">browse files</button>
-              </p>
-              
-              <!-- File Type Icons -->
-              <div class="file-type-icons flex justify-center items-center space-x-3 mb-4 opacity-60">
-                <div class="flex items-center space-x-1">
-                  <div class="file-type-icon w-6 h-6 bg-red-100 rounded flex items-center justify-center">
-                    <span class="text-xs font-bold text-red-600">PDF</span>
-                  </div>
-                </div>
-                <div class="flex items-center space-x-1">
-                  <div class="file-type-icon w-6 h-6 bg-purple-100 rounded flex items-center justify-center">
-                    <span class="text-xs font-bold text-purple-600">ZIP</span>
-                  </div>
-                </div>
-                <div class="flex items-center space-x-1">
-                  <div class="file-type-icon w-6 h-6 bg-green-100 rounded flex items-center justify-center">
-                    <span class="text-xs font-bold text-green-600">MP4</span>
-                  </div>
-                </div>
-                <div class="flex items-center space-x-1">
-                  <div class="file-type-icon w-6 h-6 bg-blue-100 rounded flex items-center justify-center">
-                    <span class="text-xs font-bold text-blue-600">DOC</span>
-                  </div>
-                </div>
-                <div class="text-slate-400 text-sm">+more</div>
-              </div>
-              
-              <div class="space-y-1">
-                <div class="text-xs text-slate-400">
-                  Try it now - no signup required for 2GB
-                </div>
-                <div class="text-xs text-slate-500 font-medium">
-                  Bank-level encryption • Up to 30GB with account
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- File Selected State -->
-          <div *ngIf="selectedFile && currentState === 'selected'" class="text-center space-y-4">
-            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6">
-              <div class="flex items-center space-x-4">
-                <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z"/>
-                  </svg>
-                </div>
-                <div class="flex-1 text-left">
-                  <h4 class="font-semibold text-slate-900">{{ selectedFile.name }}</h4>
-                  <p class="text-sm text-slate-500">{{ getFileSize(selectedFile.size || 0) }} • Ready to upload</p>
-                </div>
-                <div class="text-green-500">
-                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-            <button (click)="uploadFile()" class="premium-button bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full">
-              Upload File
-            </button>
-          </div>
-
-          <!-- Batch Files Selected State -->
-          <div *ngIf="batchFiles.length > 0 && batchState === 'selected'" class="text-center space-y-4">
-            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6">
-              <h3 class="text-lg font-semibold text-slate-900 mb-4">Selected Files ({{ batchFiles.length }})</h3>
-              <div class="space-y-3 max-h-64 overflow-y-auto">
-                <div *ngFor="let f of batchFiles" class="bg-white border border-slate-200 rounded-xl p-4">
-                  <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <svg class="w-5 h-5 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z"/>
-                      </svg>
-                    </div>
-                    <div class="flex-1 text-left min-w-0">
-                      <p class="font-medium text-slate-900 truncate">{{ f.file.name }}</p>
-                      <p class="text-sm text-slate-500">{{ getFileSize(f.file.size) }}</p>
-                    </div>
-                    <div class="text-green-500">
-                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <button (click)="onUploadBatch()" class="premium-button bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full">
-              Upload {{ batchFiles.length }} Files
-            </button>
-          </div>
-
-          <!-- Batch Upload Progress State -->
-          <div *ngIf="batchState === 'processing'" class="text-center space-y-4">
-            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6"
-                 [class.opacity-60]="isCancelling"
-                 [class.pointer-events-none]="isCancelling">
-              <h3 class="text-lg font-semibold text-slate-900 mb-4"
-                  [class.text-orange-700]="isCancelling">
-                {{ isCancelling ? 'Cancelling uploads...' : 'Uploading Files...' }}
-              </h3>
-              <div class="space-y-3 max-h-64 overflow-y-auto">
-                <div *ngFor="let f of batchFiles" class="bg-white border border-slate-200 rounded-xl p-4"
-                     [class.opacity-70]="f.state === 'cancelling'">
-                  <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                         [class.bg-slate-100]="f.state === 'pending'"
-                         [class.bg-blue-500]="f.state === 'uploading'"
-                         [class.bg-orange-500]="f.state === 'cancelling'"
-                         [class.bg-orange-400]="f.state === 'cancelled'"
-                         [class.bg-green-500]="f.state === 'success'"
-                         [class.bg-red-500]="f.state === 'error'">
-                      <svg *ngIf="f.state === 'pending'" class="w-5 h-5 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm0 2h12v8H4V6z"/>
-                      </svg>
-                      <svg *ngIf="f.state === 'uploading'" class="w-5 h-5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <svg *ngIf="f.state === 'cancelling'" class="w-5 h-5 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 718-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <svg *ngIf="f.state === 'cancelled'" class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                      </svg>
-                      <svg *ngIf="f.state === 'success'" class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
-                      </svg>
-                      <svg *ngIf="f.state === 'error'" class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm4.707-7.293a1 1 0 00-1.414-1.414L11 11.586l-1.293-1.293a1 1 0 00-1.414 1.414L10 13.414l2.293-2.293a1 1 0 011.414 0z"/>
-                      </svg>
-                    </div>
-                    <div class="flex-1 text-left min-w-0">
-                      <p class="font-medium text-slate-900 truncate">{{ f.file.name }}</p>
-                      <p class="text-sm text-slate-500"
-                         [class.text-orange-600]="f.state === 'cancelling'"
-                         [class.text-orange-500]="f.state === 'cancelled'">
-                        {{ getFileSize(f.file.size) }}
-                        <span *ngIf="f.state === 'uploading'"> • {{ f.progress }}%</span>
-                        <span *ngIf="f.state === 'cancelling'"> • Cancelling...</span>
-                        <span *ngIf="f.state === 'cancelled'"> • Cancelled</span>
-                        <span *ngIf="f.state === 'success'"> • Complete</span>
-                        <span *ngIf="f.state === 'error'"> • Error</span>
-                      </p>
-                    </div>
-                    <!-- Individual Cancel Button for Each File -->
-                    <button *ngIf="f.state === 'uploading'" 
-                            (click)="onCancelSingleBatchFile(f)"
-                            class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                      </svg>
-                    </button>
-                  </div>
-                  
-                  <!-- Progress bar for uploading and cancelling files -->
-                  <div *ngIf="f.state === 'uploading' || f.state === 'cancelling'" class="mt-3">
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                      <div class="h-2 rounded-full transition-all duration-500"
-                           [class.bg-blue-500]="f.state === 'uploading'"
-                           [class.bg-orange-500]="f.state === 'cancelling'"
-                           [style.width.%]="f.progress"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!-- Enhanced Cancel All Button -->
-            <button (click)="onCancelAllBatch()" 
-                    [disabled]="isCancelling"
-                    [class.opacity-50]="isCancelling"
-                    [class.cursor-not-allowed]="isCancelling"
-                    class="premium-cancel-button bg-gradient-to-r from-gray-500 to-gray-600 text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 hover:from-red-500 hover:to-red-600 hover:transform hover:scale-105 disabled:hover:transform-none disabled:hover:scale-100">
-              <div class="flex items-center justify-center space-x-2">
-                <svg *ngIf="isCancelling" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 718-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <svg *ngIf="!isCancelling" class="cancel-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-                <span>{{ isCancelling ? 'Cancelling All...' : 'Cancel All Uploads' }}</span>
-              </div>
-            </button>
-          </div>
-
-          <!-- Batch Upload Cancelled State -->
-          <div *ngIf="batchState === 'cancelled'" class="text-center space-y-4">
-            <div class="bg-orange-50 border border-orange-200 rounded-2xl p-6 animate-fade-in">
-              <div class="flex items-center space-x-4 mb-4">
-                <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </div>
-                <div class="flex-1 text-left">
-                  <h4 class="font-semibold text-slate-900">Batch Upload Cancelled</h4>
-                  <p class="text-sm text-slate-500">All file uploads have been cancelled successfully</p>
-                </div>
-              </div>
-              
-              <!-- Show cancelled files summary -->
-              <div class="bg-white border border-orange-100 rounded-xl p-4 mb-4">
-                <div class="flex items-center justify-between">
-                  <span class="text-sm font-medium text-slate-700">Cancelled Files</span>
-                  <span class="text-sm text-orange-600">{{ batchFiles.length }} files</span>
-                </div>
-                <div class="mt-2 max-h-32 overflow-y-auto">
-                  <div *ngFor="let f of batchFiles" class="flex items-center justify-between py-1">
-                    <span class="text-xs text-slate-500 truncate">{{ f.file.name }}</span>
-                    <span class="text-xs text-orange-500">Cancelled</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="space-y-2">
-              <button (click)="resetBatchToIdle()" class="premium-button bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full">
-                Start New Batch Upload
-              </button>
-            </div>
-          </div>
-
-          <!-- Upload Progress State -->
-          <div *ngIf="currentState === 'uploading'" class="text-center space-y-4">
-            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-6" 
-                 [class.opacity-60]="isCancelling"
-                 [class.pointer-events-none]="isCancelling">
-              <div class="flex items-center space-x-4 mb-4">
-                <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center"
-                     [class.bg-orange-500]="isCancelling">
-                  <svg *ngIf="!isCancelling" class="w-6 h-6 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <svg *ngIf="isCancelling" class="w-6 h-6 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                </div>
-                <div class="flex-1 text-left">
-                  <h4 class="font-semibold text-slate-900">{{ selectedFile?.name }}</h4>
-                  <p class="text-sm text-slate-500" 
-                     [class.text-orange-600]="isCancelling">
-                    {{ isCancelling ? 'Cancelling upload...' : 'Uploading... ' + uploadProgress + '%' }}
-                  </p>
-                </div>
-              </div>
-              <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="h-2 rounded-full transition-all duration-500" 
-                     [class.bg-blue-500]="!isCancelling"
-                     [class.bg-orange-500]="isCancelling"
-                     [style.width.%]="uploadProgress"></div>
-              </div>
-            </div>
-            
-            <!-- Enhanced Cancel Button -->
-            <button (click)="cancelUpload()" 
-                    [disabled]="isCancelling"
-                    [class.opacity-50]="isCancelling"
-                    [class.cursor-not-allowed]="isCancelling"
-                    class="premium-cancel-button bg-gradient-to-r from-gray-500 to-gray-600 text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 hover:from-red-500 hover:to-red-600 hover:transform hover:scale-105 disabled:hover:transform-none disabled:hover:scale-100">
-              <div class="flex items-center justify-center space-x-2">
-                <svg *ngIf="isCancelling" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <svg *ngIf="!isCancelling" class="cancel-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-                <span>{{ isCancelling ? 'Cancelling...' : 'Cancel Upload' }}</span>
-              </div>
-            </button>
-          </div>
-
-          <!-- Upload Cancelled State -->
-          <div *ngIf="currentState === 'cancelled'" class="text-center space-y-4">
-            <div class="bg-orange-50 border border-orange-200 rounded-2xl p-6 animate-fade-in">
-              <div class="flex items-center space-x-4">
-                <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
-                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </div>
-                <div class="flex-1 text-left">
-                  <h4 class="font-semibold text-slate-900">Upload Cancelled</h4>
-                  <p class="text-sm text-slate-500">{{ selectedFile?.name }} upload was cancelled</p>
-                </div>
-              </div>
-            </div>
-            <div class="space-y-2">
-              <button (click)="resetUpload()" class="premium-button bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full">
-                Start New Upload
-              </button>
-            </div>
-          </div>
-
-          <!-- Upload Success State -->
-          <div *ngIf="currentState === 'success'" class="text-center space-y-4">
-            <div class="bg-green-50 border border-green-200 rounded-2xl p-6">
-              <div class="flex items-center space-x-4">
-                <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                  <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
-                  </svg>
-                </div>
-                <div class="flex-1 text-left">
-                  <h4 class="font-semibold text-slate-900">Upload Complete!</h4>
-                  <p class="text-sm text-slate-500">Your file has been uploaded successfully</p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Download Link Display -->
-            <div *ngIf="finalDownloadLink" class="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-3">
-              <div class="text-left">
-                <p class="text-sm font-medium text-slate-700 mb-2">Download Link:</p>
-                <div class="bg-white border border-slate-200 rounded-lg p-3 flex items-center space-x-2">
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm text-slate-600 truncate">{{ finalDownloadLink }}</p>
-                  </div>
-                  <button (click)="copyLink(finalDownloadLink || '')" 
-                          class="flex-shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-700 p-2 rounded-md transition-colors"
-                          title="Copy link">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
-                      <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <div class="space-y-2">
-              <button (click)="openDownloadLink(finalDownloadLink)" 
-                      class="premium-button bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full">
-                Open Download Page
-              </button>
-              <button (click)="resetUpload()" class="bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors w-full">
-                Upload Another File
-              </button>
-            </div>
-          </div>
-
-          <!-- Batch Upload Success State -->
-          <div *ngIf="batchState === 'success'" class="text-center space-y-4">
-            <div class="bg-green-50 border border-green-200 rounded-2xl p-6">
-              <div class="flex items-center space-x-4">
-                <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                  <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
-                  </svg>
-                </div>
-                <div class="flex-1 text-left">
-                  <h4 class="font-semibold text-slate-900">Batch Upload Complete!</h4>
-                  <p class="text-sm text-slate-500">{{ batchFiles.length }} files uploaded successfully</p>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Download Link Display -->
-            <div *ngIf="finalBatchLink" class="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-3">
-              <div class="text-left">
-                <p class="text-sm font-medium text-slate-700 mb-2">Batch Download Link:</p>
-                <div class="bg-white border border-slate-200 rounded-lg p-3 flex items-center space-x-2">
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm text-slate-600 truncate">{{ finalBatchLink }}</p>
-                  </div>
-                  <button (click)="copyLink(finalBatchLink || '')" 
-                          class="flex-shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-700 p-2 rounded-md transition-colors"
-                          title="Copy link">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
-                      <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <div class="space-y-2">
-              <button (click)="openDownloadLink(finalBatchLink)" 
-                      class="premium-button bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full">
-                Open Download Page
-              </button>
-              <button (click)="resetUpload()" class="bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors w-full">
-                Upload Another Batch
-              </button>
-            </div>
-          </div>
-          
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Enhanced Comparison Section -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-    <div class="premium-card bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-      <h2 class="section-headline text-3xl font-bold text-slate-900 text-center mb-8">Why professionals choose DirectDrive</h2>
-      
-      <!-- Enhanced Comparison Table -->
-      <div class="comparison-table grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <!-- Feature Column -->
-        <div class="space-y-4">
-          <div class="font-semibold text-slate-500 text-sm uppercase tracking-wide">Features</div>
-          <div class="space-y-3 text-sm">
-            <div class="py-3 border-b border-slate-100">Free Storage</div>
-            <div class="py-3 border-b border-slate-100">Max File Size</div>
-            <div class="py-3 border-b border-slate-100">Transfer Speed</div>
-            <div class="py-3 border-b border-slate-100">No Signup Required</div>
-            <div class="py-3 border-b border-slate-100">Encryption</div>
-            <div class="py-3 border-b border-slate-100">Support</div>
-            <div class="py-3 border-b border-slate-100">File Retention</div>
+    <!-- Background Elements -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+      <div class="absolute top-20 left-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+      <div class="absolute top-40 right-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div class="absolute -bottom-8 left-20 w-72 h-72 bg-cyan-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="py-20 bg-white">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-slate-900 mb-4">Why choose mfcnextgen?</h2>
+        <p class="text-xl text-slate-600 max-w-2xl mx-auto">
+          Built for modern businesses and professionals who demand the best in security, speed, and reliability.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="text-center p-6 rounded-2xl hover:bg-slate-50 transition-all duration-300">
+          <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Enterprise Security</h3>
+          <p class="text-slate-600">Bank-level encryption and advanced security protocols keep your files safe from threats.</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="text-center p-6 rounded-2xl hover:bg-slate-50 transition-all duration-300">
+          <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Lightning Fast</h3>
+          <p class="text-slate-600">Optimized infrastructure ensures your files upload and download at maximum speed.</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="text-center p-6 rounded-2xl hover:bg-slate-50 transition-all duration-300">
+          <div class="w-16 h-16 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">99.9% Uptime</h3>
+          <p class="text-slate-600">Built on redundant infrastructure to ensure your files are always accessible when you need them.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section id="how-it-works" class="py-20 bg-slate-50">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-slate-900 mb-4">How mfcnextgen works</h2>
+        <p class="text-xl text-slate-600 max-w-2xl mx-auto">
+          Simple, secure, and seamless file management in just three easy steps.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        <!-- Step 1 -->
+        <div class="text-center">
+          <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold text-white">
+            1
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Upload Your Files</h3>
+          <p class="text-slate-600">Drag and drop or select files from your device. We support all major file types.</p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="text-center">
+          <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold text-white">
+            2
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Secure Storage</h3>
+          <p class="text-slate-600">Your files are encrypted and stored securely across multiple redundant servers.</p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="text-center">
+          <div class="w-20 h-20 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-bold text-white">
+            3
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Access Anywhere</h3>
+          <p class="text-slate-600">Download, share, or access your files from any device, anywhere in the world.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section id="pricing" class="py-20 bg-white">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-slate-900 mb-4">Simple, transparent pricing</h2>
+        <p class="text-xl text-slate-600 max-w-2xl mx-auto">
+          Choose the plan that fits your needs. All plans include our core security features.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <!-- Free Plan -->
+        <div class="bg-white border-2 border-slate-200 rounded-2xl p-8 hover:border-purple-300 transition-all duration-300">
+          <h3 class="text-2xl font-bold text-slate-900 mb-4">Free</h3>
+          <div class="text-4xl font-bold text-slate-900 mb-6">
+            $0<span class="text-lg text-slate-600 font-normal">/month</span>
+          </div>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              5GB Storage
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Basic Security
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              File Sharing
+            </li>
+          </ul>
+          <a routerLink="/register" class="block w-full bg-slate-100 text-slate-700 py-3 rounded-xl text-center font-semibold hover:bg-slate-200 transition-colors">
+            Get Started
+          </a>
+        </div>
+
+        <!-- Pro Plan -->
+        <div class="bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-2xl p-8 transform scale-105 shadow-xl">
+          <h3 class="text-2xl font-bold mb-4">Pro</h3>
+          <div class="text-4xl font-bold mb-6">
+            $9<span class="text-lg opacity-80 font-normal">/month</span>
+          </div>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              100GB Storage
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Advanced Security
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-white mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Priority Support
+            </li>
+          </ul>
+          <a routerLink="/register" class="block w-full bg-white text-purple-600 py-3 rounded-xl text-center font-semibold hover:bg-slate-50 transition-colors">
+            Start Pro Trial
+          </a>
+        </div>
+
+        <!-- Enterprise Plan -->
+        <div class="bg-white border-2 border-slate-200 rounded-2xl p-8 hover:border-purple-300 transition-all duration-300">
+          <h3 class="text-2xl font-bold text-slate-900 mb-4">Enterprise</h3>
+          <div class="text-4xl font-bold text-slate-900 mb-6">
+            $29<span class="text-lg text-slate-600 font-normal">/month</span>
+          </div>
+          <ul class="space-y-3 mb-8">
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Unlimited Storage
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Enterprise Security
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              24/7 Support
+            </li>
+          </ul>
+          <a routerLink="/register" class="block w-full bg-slate-100 text-slate-700 py-3 rounded-xl text-center font-semibold hover:bg-slate-200 transition-colors">
+            Contact Sales
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security Section -->
+  <section id="security" class="py-20 bg-slate-50">
+    <div class="container mx-auto px-4">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="text-4xl font-bold text-slate-900 mb-6">Bank-level security for your files</h2>
+          <p class="text-xl text-slate-600 mb-8">
+            Your data security is our top priority. We use industry-leading encryption and security protocols to protect your files.
+          </p>
+          
+          <div class="space-y-6">
+            <div class="flex items-start space-x-4">
+              <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">End-to-End Encryption</h3>
+                <p class="text-slate-600">Your files are encrypted before they leave your device and remain encrypted in transit and at rest.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-4">
+              <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">SOC 2 Compliance</h3>
+                <p class="text-slate-600">We maintain the highest security standards and are regularly audited for compliance.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-4">
+              <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">Advanced Access Controls</h3>
+                <p class="text-slate-600">Granular permissions and access controls ensure only authorized users can access your files.</p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Dropbox Column -->
-        <div class="space-y-4">
-          <div class="font-semibold text-slate-600 text-center">Dropbox</div>
-          <div class="space-y-3 text-sm text-center">
-            <div class="py-3 border-b border-slate-100 text-slate-600">2GB</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">2GB</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">500MB/s</div>
-            <div class="py-3 border-b border-slate-100 text-red-500">✗ Required</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">Basic</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">Business hrs</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">30 days</div>
-          </div>
-        </div>
-
-        <!-- Google Drive Column -->
-        <div class="space-y-4">
-          <div class="font-semibold text-slate-600 text-center">Google Drive</div>
-          <div class="space-y-3 text-sm text-center">
-            <div class="py-3 border-b border-slate-100 text-slate-600">15GB</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">15GB</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">1GB/s</div>
-            <div class="py-3 border-b border-slate-100 text-red-500">✗ Required</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">Basic</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">Business hrs</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">Forever</div>
-          </div>
-        </div>
-
-        <!-- DirectDrive Column -->
-        <div class="space-y-4 relative">
-          <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">BEST</div>
-          <div class="font-bold text-primary text-center">DirectDrive</div>
-          <div class="space-y-3 text-sm text-center">
-            <div class="py-3 border-b border-slate-100 text-primary font-bold">50GB</div>
-            <div class="py-3 border-b border-slate-100 text-primary font-bold">30GB</div>
-            <div class="py-3 border-b border-slate-100 text-primary font-bold">2GB/s</div>
-            <div class="py-3 border-b border-slate-100 text-green-500 font-bold">✓ Optional</div>
-            <div class="py-3 border-b border-slate-100 text-primary font-bold">E2E</div>
-            <div class="py-3 border-b border-slate-100 text-green-500 font-bold">24/7</div>
-            <div class="py-3 border-b border-slate-100 text-primary font-bold">30 days</div>
+        <div class="relative">
+          <div class="bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl p-8 text-white">
+            <h3 class="text-2xl font-bold mb-4">Security Features</h3>
+            <ul class="space-y-3">
+              <li class="flex items-center">
+                <svg class="w-5 h-5 text-green-300 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                AES-256 Encryption
+              </li>
+              <li class="flex items-center">
+                <svg class="w-5 h-5 text-green-300 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Two-Factor Authentication
+              </li>
+              <li class="flex items-center">
+                <svg class="w-5 h-5 text-green-300 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Regular Security Audits
+              </li>
+              <li class="flex items-center">
+                <svg class="w-5 h-5 text-green-300 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                GDPR Compliance
+              </li>
+            </ul>
           </div>
         </div>
       </div>
+    </div>
+  </section>
 
-      <!-- Bottom CTA -->
-      <div class="text-center">
-        <button class="premium-button bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 text-lg mb-4">
-          Get Started - 50GB Free Forever
-        </button>
-        <p class="text-sm text-slate-500">
-          <span class="inline-flex items-center">
-            <svg class="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+  <!-- Enterprise Section -->
+  <section id="enterprise" class="py-20 bg-white">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-slate-900 mb-4">Built for enterprise teams</h2>
+        <p class="text-xl text-slate-600 max-w-2xl mx-auto">
+          Scale your file storage and collaboration with enterprise-grade features designed for teams of any size.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <!-- Enterprise Feature 1 -->
+        <div class="text-center p-6">
+          <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
             </svg>
-            1,247 files securely transferred in the last hour
-          </span>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-3">Team Management</h3>
+          <p class="text-slate-600">Manage user roles, permissions, and access controls for your entire organization.</p>
+        </div>
+
+        <!-- Enterprise Feature 2 -->
+        <div class="text-center p-6">
+          <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-3">Advanced Analytics</h3>
+          <p class="text-slate-600">Track usage, monitor performance, and gain insights into your team's file management.</p>
+        </div>
+
+        <!-- Enterprise Feature 3 -->
+        <div class="text-center p-6">
+          <div class="w-16 h-16 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-3">Audit Logs</h3>
+          <p class="text-slate-600">Comprehensive logging and audit trails for compliance and security monitoring.</p>
+        </div>
+
+        <!-- Enterprise Feature 4 -->
+        <div class="text-center p-6">
+          <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5zM12 15a3 3 0 100-6 3 3 0 000 6z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-slate-900 mb-3">Custom Integrations</h3>
+          <p class="text-slate-600">Connect mfcnextgen with your existing tools and workflows via our robust API.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="py-20 bg-gradient-to-r from-purple-600 to-blue-600">
+    <div class="container mx-auto px-4 text-center">
+      <h2 class="text-4xl font-bold text-white mb-6">Ready to get started?</h2>
+      <p class="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">
+        Join thousands of professionals who trust mfcnextgen for their file storage needs. Start your free trial today.
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <a routerLink="/register" class="bg-white text-purple-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-200 transform hover:-translate-y-1 shadow-lg">
+          Start Free Trial
+        </a>
+        <a href="#contact" class="border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-purple-600 transition-all duration-200">
+          Contact Sales
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-white py-16">
+    <div class="container mx-auto px-4">
+      <div class="grid md:grid-cols-4 gap-8">
+        <!-- Brand -->
+        <div class="col-span-2">
+          <div class="flex items-center space-x-3 mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,6A6,6 0 0,1 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8Z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">mfcnextgen</h3>
+              <p class="text-slate-400 text-sm">Next Generation Storage</p>
+            </div>
+          </div>
+          <p class="text-slate-400 mb-6 max-w-md">
+            Secure, fast, and reliable file storage for modern businesses and professionals.
+          </p>
+          <div class="flex space-x-4">
+            <a href="#" class="text-slate-400 hover:text-white transition-colors">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+              </svg>
+            </a>
+            <a href="#" class="text-slate-400 hover:text-white transition-colors">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/>
+              </svg>
+            </a>
+            <a href="#" class="text-slate-400 hover:text-white transition-colors">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Product -->
+        <div>
+          <h4 class="text-lg font-semibold mb-4">Product</h4>
+          <ul class="space-y-2 text-slate-400">
+            <li><a href="#" class="hover:text-white transition-colors">Features</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Pricing</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Security</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">API</a></li>
+          </ul>
+        </div>
+
+        <!-- Company -->
+        <div>
+          <h4 class="text-lg font-semibold mb-4">Company</h4>
+          <ul class="space-y-2 text-slate-400">
+            <li><a href="#" class="hover:text-white transition-colors">About</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Blog</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-800 mt-12 pt-8 text-center">
+        <p class="text-slate-400">
+          © 2024 mfcnextgen. All rights reserved. | 
+          <a href="#" class="hover:text-white transition-colors">Privacy Policy</a> | 
+          <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
         </p>
       </div>
     </div>
-  </div>
+  </footer>
 </div>
+
+<!-- Animation CSS -->
+<style>
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+</style>

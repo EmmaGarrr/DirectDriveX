@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+      "chat-context-server": {
+        "command": "node",
+        "args": ["dist/server/main.js"],
+        "cwd": "/Users/niravramani/Projects/Cursor-mcp",
+        "env": {
+          "NODE_ENV": "production"
+        }
+      }
+    }
+  }

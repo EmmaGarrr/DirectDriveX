@@ -3,7 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Enhanced Modern Design System Variables - DirectDrive */
+/* Enhanced Modern Design System Variables - mfcnextgen */
 :root {
   --font-size: 16px;
   --background: #ffffff;
@@ -1268,7 +1268,7 @@ p {
   opacity: 0.6;
 }
 
-/* Loading States - DirectDrive Design System */
+/* Loading States - mfcnextgen Design System */
 .loading-spinner {
   width: 1.25rem;
   height: 1.25rem;
@@ -1355,7 +1355,7 @@ p {
   50% { opacity: 0.5; }
 }
 
-/* Error States - DirectDrive Design System */
+/* Error States - mfcnextgen Design System */
 .error-state {
   border: 1px solid var(--destructive);
   background-color: rgba(212, 24, 61, 0.05);

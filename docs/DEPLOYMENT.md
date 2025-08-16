@@ -1,10 +1,10 @@
-# DirectDriveX Deployment Guide
+# mfcnextgen Deployment Guide
 
 ## 🚀 Overview
 
-This guide covers deploying DirectDriveX to various environments including development, staging, and production.
+This guide covers deploying mfcnextgen to various environments including development, staging, and production.
 
-## 🏗️ Architecture
+## ��️ Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -47,12 +47,12 @@ version: '3.8'
 services:
   backend:
     build: .
-    container_name: directdrive-backend
+    container_name: mfcnextgen-backend
     restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=mongodb://mongo:27017/directdrive
+      - DATABASE_URL=mongodb://mongo:27017/mfcnextgen
       - REDIS_URL=redis://redis:6379
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=False
@@ -65,7 +65,7 @@ services:
 
   frontend:
     build: ../frontend
-    container_name: directdrive-frontend
+    container_name: mfcnextgen-frontend
     restart: unless-stopped
     ports:
       - "80:80"
@@ -74,7 +74,7 @@ services:
 
   mongo:
     image: mongo:6.0
-    container_name: directdrive-mongo
+    container_name: mfcnextgen-mongo
     restart: unless-stopped
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
@@ -85,7 +85,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: directdrive-redis
+    container_name: mfcnextgen-redis
     restart: unless-stopped
     command: redis-server --appendonly yes
     volumes:
@@ -93,7 +93,7 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: directdrive-nginx
+    container_name: mfcnextgen-nginx
     restart: unless-stopped
     ports:
       - "443:443"
@@ -128,7 +128,7 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 
-COPY --from=builder /app/dist/directdrive-frontend /usr/share/nginx/html
+COPY --from=builder /app/dist/mfcnextgen-frontend /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
@@ -208,7 +208,7 @@ Create `backend/.env.prod`:
 # Database
 MONGO_USER=admin
 MONGO_PASSWORD=secure_password_here
-DATABASE_URL=mongodb://admin:secure_password_here@mongo:27017/directdrive
+DATABASE_URL=mongodb://admin:secure_password_here@mongo:27017/mfcnextgen
 
 # Redis
 REDIS_URL=redis://redis:6379
@@ -231,7 +231,7 @@ TELEGRAM_BOT_TOKEN=your_telegram_token
 ```bash
 # Clone the repository
 git clone <your-repo-url>
-cd DirectDriveX
+cd mfcnextgen
 
 # Create production environment file
 cp backend/.env.prod backend/.env
@@ -283,7 +283,7 @@ newgrp docker
 ```bash
 # Clone repository
 git clone <your-repo-url>
-cd DirectDriveX/backend
+cd mfcnextgen/backend
 
 # Start services
 docker-compose -f docker-compose.prod.yml up -d
@@ -300,14 +300,14 @@ docker-compose -f docker-compose.prod.yml up -d
 #### 1. Compute Engine Setup
 ```bash
 # Create VM instance
-gcloud compute instances create directdrive \
+gcloud compute instances create mfcnextgen \
     --zone=us-central1-a \
     --machine-type=e2-medium \
     --image-family=ubuntu-2004-lts \
     --image-project=ubuntu-os-cloud
 
 # Connect via SSH
-gcloud compute ssh directdrive --zone=us-central1-a
+gcloud compute ssh mfcnextgen --zone=us-central1-a
 ```
 
 #### 2. Deploy to GCP
@@ -320,7 +320,7 @@ newgrp docker
 
 # Clone and deploy
 git clone <your-repo-url>
-cd DirectDriveX/backend
+cd mfcnextgen/backend
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
@@ -330,8 +330,8 @@ docker-compose -f docker-compose.prod.yml up -d
 ```bash
 # Create VM via Azure Portal or CLI
 az vm create \
-    --resource-group DirectDriveRG \
-    --name DirectDriveVM \
+    --resource-group mfcnextgenRG \
+    --name mfcnextgenVM \
     --image UbuntuLTS \
     --size Standard_D2s_v3 \
     --admin-username azureuser
@@ -350,7 +350,7 @@ newgrp docker
 
 # Clone and deploy
 git clone <your-repo-url>
-cd DirectDriveX/backend
+cd mfcnextgen/backend
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
@@ -381,7 +381,7 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
         script: |
-          cd DirectDriveX/backend
+          cd mfcnextgen/backend
           git pull origin main
           docker-compose -f docker-compose.prod.yml down
           docker-compose -f docker-compose.prod.yml up -d --build
@@ -402,13 +402,13 @@ build:
   services:
     - docker:dind
   script:
-    - docker build -t directdrive-backend ./backend
-    - docker build -t directdrive-frontend ./frontend
+    - docker build -t mfcnextgen-backend ./backend
+    - docker build -t mfcnextgen-frontend ./frontend
 
 deploy:
   stage: deploy
   script:
-    - ssh user@server "cd DirectDriveX/backend && git pull && docker-compose -f docker-compose.prod.yml up -d --build"
+    - ssh user@server "cd mfcnextgen/backend && git pull && docker-compose -f docker-compose.prod.yml up -d --build"
   only:
     - main
 ```
@@ -432,7 +432,7 @@ docker stats
 
 ```bash
 # Database backup
-docker exec directdrive-mongo mongodump --out /backup/$(date +%Y%m%d)
+docker exec mfcnextgen-mongo mongodump --out /backup/$(date +%Y%m%d)
 
 # File backup
 tar -czf uploads_backup_$(date +%Y%m%d).tar.gz uploads/
@@ -474,11 +474,11 @@ docker-compose -f docker-compose.prod.yml restart service-name
 **Database connection issues:**
 ```bash
 # Check MongoDB status
-docker exec directdrive-mongo mongosh --eval "db.adminCommand('ping')"
+docker exec mfcnextgen-mongo mongosh --eval "db.adminCommand('ping')"
 
 # Check network connectivity
 docker network ls
-docker network inspect directdrivex_default
+docker network inspect mfcnextgen_default
 ```
 
 **SSL certificate issues:**
@@ -487,7 +487,7 @@ docker network inspect directdrivex_default
 ls -la ssl/
 
 # Check nginx configuration
-docker exec directdrive-nginx nginx -t
+docker exec mfcnextgen-nginx nginx -t
 ```
 
 ### Performance Optimization
@@ -534,4 +534,4 @@ services:
       - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
 ```
 
-This deployment guide provides comprehensive coverage for deploying DirectDriveX in various environments. Choose the approach that best fits your infrastructure and requirements.
+This deployment guide provides comprehensive coverage for deploying mfcnextgen in various environments. Choose the approach that best fits your infrastructure and requirements.

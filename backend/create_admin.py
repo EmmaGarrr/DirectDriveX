@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Simple script to create an admin user for DirectDrive
+Simple script to create an admin user for mfcnextgen
 Run this on the VPS after deploying the admin authentication system
 """
 
@@ -20,7 +20,7 @@ async def create_admin():
     """Create a superadmin user"""
     
     # Default admin credentials (you can change these)
-    email = "admin@directdrive.com"
+    email = "admin@mfcnextgen.com"
     password = "admin123"
     
     admin_data = AdminUserCreate(

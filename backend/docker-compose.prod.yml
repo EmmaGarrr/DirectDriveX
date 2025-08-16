@@ -3,12 +3,12 @@ version: '3.8'
 services:
   backend:
     build: .
-    container_name: directdrive-backend
+    container_name: mfcnextgen-backend
     restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=mongodb://mongo:27017/directdrive
+      - DATABASE_URL=mongodb://mongo:27017/mfcnextgen
       - REDIS_URL=redis://redis:6379
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=False
@@ -23,39 +23,39 @@ services:
       - ./uploads:/app/uploads
       - ./logs:/app/logs
     networks:
-      - directdrive-network
+      - mfcnextgen-network
 
   frontend:
     build: ../frontend
-    container_name: directdrive-frontend
+    container_name: mfcnextgen-frontend
     restart: unless-stopped
     ports:
       - "80:80"
     depends_on:
       - backend
     networks:
-      - directdrive-network
+      - mfcnextgen-network
 
   mongo:
     image: mongo:6.0
-    container_name: directdrive-mongo
+    container_name: mfcnextgen-mongo
     restart: unless-stopped
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
-      - MONGO_INITDB_DATABASE=directdrive
+      - MONGO_INITDB_DATABASE=mfcnextgen
     volumes:
       - mongo_data:/data/db
       - ./mongo-init:/docker-entrypoint-initdb.d
     ports:
       - "27017:27017"
     networks:
-      - directdrive-network
+      - mfcnextgen-network
     command: mongod --wiredTigerCacheSizeGB 1 --auth
 
   redis:
     image: redis:7-alpine
-    container_name: directdrive-redis
+    container_name: mfcnextgen-redis
     restart: unless-stopped
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
@@ -63,11 +63,11 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - directdrive-network
+      - mfcnextgen-network
 
   nginx:
     image: nginx:alpine
-    container_name: directdrive-nginx
+    container_name: mfcnextgen-nginx
     restart: unless-stopped
     ports:
       - "443:443"
@@ -80,15 +80,15 @@ services:
       - backend
       - frontend
     networks:
-      - directdrive-network
+      - mfcnextgen-network
 
   celery-worker:
     build: .
-    container_name: directdrive-celery
+    container_name: mfcnextgen-celery
     restart: unless-stopped
     command: celery -A app.celery_worker worker --loglevel=info
     environment:
-      - DATABASE_URL=mongodb://mongo:27017/directdrive
+      - DATABASE_URL=mongodb://mongo:27017/mfcnextgen
       - REDIS_URL=redis://redis:6379
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=False
@@ -99,15 +99,15 @@ services:
       - ./uploads:/app/uploads
       - ./logs:/app/logs
     networks:
-      - directdrive-network
+      - mfcnextgen-network
 
   celery-beat:
     build: .
-    container_name: directdrive-celery-beat
+    container_name: mfcnextgen-celery-beat
     restart: unless-stopped
     command: celery -A app.celery_worker beat --loglevel=info
     environment:
-      - DATABASE_URL=mongodb://mongo:27017/directdrive
+      - DATABASE_URL=mongodb://mongo:27017/mfcnextgen
       - REDIS_URL=redis://redis:6379
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=False
@@ -117,7 +117,7 @@ services:
     volumes:
       - ./logs:/app/logs
     networks:
-      - directdrive-network
+      - mfcnextgen-network
 
 volumes:
   mongo_data:
@@ -126,7 +126,7 @@ volumes:
     driver: local
 
 networks:
-  directdrive-network:
+  mfcnextgen-network:
     driver: bridge
     ipam:
       config:
