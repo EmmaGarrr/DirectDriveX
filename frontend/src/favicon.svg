@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Cloud -->
+  <ellipse cx="16" cy="20" rx="12" ry="8" fill="#3B82F6"/>
+  <ellipse cx="16" cy="18" rx="10" ry="6" fill="#60A5FA"/>
+  
+  <!-- Upload arrow -->
+  <path d="M16 6 L16 18 M12 12 L16 6 L20 12" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+  
+  <!-- File -->
+  <rect x="12" y="22" width="8" height="6" rx="1" fill="white"/>
+  <line x1="14" y1="24" x2="18" y2="24" stroke="#3B82F6" stroke-width="1"/>
+  <line x1="14" y1="26" x2="18" y2="26" stroke="#3B82F6" stroke-width="1"/>
+</svg>
