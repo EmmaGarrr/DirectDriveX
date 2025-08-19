@@ -41,15 +41,12 @@ class GDPlayerService:
                         data.get("data", {}).get("url")
                     )
                     
-                    # If no direct streaming URL, try to construct from embed_url
+                    # If no direct streaming URL, use the embed_url directly
                     if not streaming_url and data.get("data", {}).get("embed_url"):
                         embed_url = data["data"]["embed_url"]
-                        # Convert embed URL to streaming URL format
-                        if "gdplayer.vip" in embed_url:
-                            # Extract slug and construct streaming URL
-                            slug = embed_url.split("/")[-1]
-                            streaming_url = f"https://gdplayer.vip/stream/{slug}"
-                            logger.info(f"Constructed streaming URL from embed_url: {streaming_url}")
+                        # Use embed_url directly as it's the correct streaming URL
+                        streaming_url = embed_url
+                        logger.info(f"Using embed_url as streaming URL: {streaming_url}")
                     
                     if streaming_url:
                         logger.info(f"Successfully got streaming URL from gdplayer.vip for {gdrive_id}: {streaming_url}")
