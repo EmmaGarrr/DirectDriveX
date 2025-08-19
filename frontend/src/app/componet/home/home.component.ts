@@ -1,4 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import { UploadService, UploadEvent } from '../../shared/services/upload.service';
 import { Subscription, forkJoin, Observable, Observer, Subject } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -54,7 +55,8 @@ export class HomeComponent implements OnDestroy {
   constructor(
     private uploadService: UploadService,
     private snackBar: MatSnackBar,
-    private batchUploadService: BatchUploadService
+    private batchUploadService: BatchUploadService,
+    private router: Router
   ) {
     // Note: AuthService integration removed due to missing implementation
     // this.authService.isAuthenticated$.pipe(takeUntil(this.destroy$)).subscribe(...)
@@ -94,6 +96,11 @@ export class HomeComponent implements OnDestroy {
       }));
       this.batchState = 'selected';
     }
+  }
+
+  // CTA Button handlers
+  onClaimStorage(): void {
+    this.router.navigate(['/register']);
   }
 
   // Single file upload methods
@@ -628,6 +635,130 @@ export class HomeComponent implements OnDestroy {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // Get file type icon and color based on file extension
+  getFileTypeInfo(filename: string): { iconType: string, color: string, bgColor: string } {
+    const extension = filename.split('.').pop()?.toLowerCase() || '';
+    
+    // Check if it's a folder (no extension)
+    if (!extension || filename.includes('/') || filename.includes('\\')) {
+      return {
+        iconType: 'folder',
+        color: 'text-amber-600',
+        bgColor: 'bg-amber-50'
+      };
+    }
+    
+    switch (extension) {
+      case 'pdf':
+        return {
+          iconType: 'pdf',
+          color: 'text-amber-600',
+          bgColor: 'bg-amber-50'
+        };
+      case 'doc':
+      case 'docx':
+        return {
+          iconType: 'document',
+          color: 'text-blue-600',
+          bgColor: 'bg-blue-50'
+        };
+      case 'xls':
+      case 'xlsx':
+        return {
+          iconType: 'document',
+          color: 'text-emerald-600',
+          bgColor: 'bg-emerald-50'
+        };
+      case 'ppt':
+      case 'pptx':
+        return {
+          iconType: 'document',
+          color: 'text-orange-600',
+          bgColor: 'bg-orange-50'
+        };
+      case 'zip':
+      case 'rar':
+      case '7z':
+      case 'tar':
+      case 'gz':
+        return {
+          iconType: 'archive',
+          color: 'text-indigo-600',
+          bgColor: 'bg-indigo-50'
+        };
+      case 'mp4':
+      case 'avi':
+      case 'mov':
+      case 'wmv':
+      case 'flv':
+      case 'mkv':
+      case 'webm':
+        return {
+          iconType: 'video',
+          color: 'text-rose-600',
+          bgColor: 'bg-rose-50'
+        };
+      case 'mp3':
+      case 'wav':
+      case 'flac':
+      case 'aac':
+      case 'ogg':
+      case 'm4a':
+        return {
+          iconType: 'audio',
+          color: 'text-emerald-600',
+          bgColor: 'bg-emerald-50'
+        };
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'bmp':
+      case 'svg':
+      case 'webp':
+      case 'tiff':
+        return {
+          iconType: 'image',
+          color: 'text-fuchsia-600',
+          bgColor: 'bg-fuchsia-50'
+        };
+      case 'txt':
+      case 'md':
+      case 'rtf':
+        return {
+          iconType: 'document',
+          color: 'text-slate-600',
+          bgColor: 'bg-slate-50'
+        };
+      case 'html':
+      case 'htm':
+      case 'css':
+      case 'js':
+      case 'ts':
+      case 'jsx':
+      case 'tsx':
+        return {
+          iconType: 'code',
+          color: 'text-cyan-600',
+          bgColor: 'bg-cyan-50'
+        };
+      case 'json':
+      case 'xml':
+      case 'csv':
+        return {
+          iconType: 'document',
+          color: 'text-violet-600',
+          bgColor: 'bg-violet-50'
+        };
+      default:
+        return {
+          iconType: 'document',
+          color: 'text-slate-600',
+          bgColor: 'bg-slate-50'
+        };
+    }
   }
 
   uploadFile(): void {
