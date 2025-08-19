@@ -198,6 +198,35 @@ async def async_stream_gdrive_file(gdrive_id: str, account: GoogleAccountConfig)
     except Exception as e:
         print(f"!!! [{account.id}] Unexpected error during Google Drive stream: {e}"); raise e
 
+async def make_file_public(gdrive_id: str, account: GoogleAccountConfig) -> bool:
+    """
+    Make a Google Drive file publicly accessible for streaming.
+    Returns True if successful, raises exception for errors.
+    """
+    try:
+        gdrive_pool_manager.tracker.increment_request_count(account.id)
+        service = _get_gdrive_service(account)
+        
+        # Use asyncio.to_thread to run the blocking API call
+        def execute_permission_create():
+            return service.permissions().create(
+                fileId=gdrive_id,
+                body={'type': 'anyone', 'role': 'reader'},
+                fields='id'
+            ).execute()
+        
+        await asyncio.to_thread(execute_permission_create)
+        
+        print(f"[MAKE_PUBLIC] [{account.id}] Successfully made file {gdrive_id} public")
+        return True
+        
+    except HttpError as e:
+        print(f"!!! [{account.id}] Google API error during permission creation: {e.content}")
+        raise e
+    except Exception as e:
+        print(f"!!! [{account.id}] Unexpected error during permission creation: {e}")
+        raise e
+
 async def delete_gdrive_file(gdrive_id: str, account: GoogleAccountConfig) -> bool:
     """
     Delete a file from Google Drive using the API.

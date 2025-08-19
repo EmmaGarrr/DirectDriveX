@@ -299,6 +299,25 @@ async def websocket_upload_proxy(websocket: WebSocket, file_id: str, gdrive_url:
             raise Exception("Upload to GDrive succeeded, but no file ID was returned.")
 
         db.files.update_one({"_id": file_id}, {"$set": {"gdrive_id": gdrive_id, "status": UploadStatus.COMPLETED, "storage_location": StorageLocation.GDRIVE }})
+        
+        # Make file public for streaming
+        try:
+            print(f"[DEBUG] 🔓 Making file public for streaming...")
+            updated_doc = db.files.find_one({"_id": file_id})
+            if updated_doc and updated_doc.get("gdrive_account_id"):
+                from app.services.google_drive_service import make_file_public
+                account = gdrive_pool_manager.get_account_by_id(updated_doc.get("gdrive_account_id"))
+                if account:
+                    await make_file_public(gdrive_id, account)
+                    print(f"[DEBUG] ✅ File {gdrive_id} made public successfully")
+                else:
+                    print(f"[DEBUG] ⚠️ Could not find account for making file public")
+            else:
+                print(f"[DEBUG] ⚠️ No account ID found for making file public")
+        except Exception as e:
+            print(f"[DEBUG] ⚠️ Failed to make file public: {e}")
+            # Don't fail the upload if making public fails
+        
         await websocket.send_json({"type": "success", "value": f"/api/v1/download/stream/{file_id}"})
 
         # Update Google Drive account stats promptly after successful upload
@@ -407,6 +426,24 @@ async def websocket_upload_proxy_parallel(websocket: WebSocket, file_id: str, gd
             }
         )
         print(f"[DEBUG] ✅ Database updated successfully")
+        
+        # Make file public for streaming
+        try:
+            print(f"[DEBUG] 🔓 Making file public for streaming...")
+            updated_doc = db.files.find_one({"_id": file_id})
+            if updated_doc and updated_doc.get("gdrive_account_id"):
+                from app.services.google_drive_service import make_file_public
+                account = gdrive_pool_manager.get_account_by_id(updated_doc.get("gdrive_account_id"))
+                if account:
+                    await make_file_public(gdrive_id, account)
+                    print(f"[DEBUG] ✅ File {gdrive_id} made public successfully")
+                else:
+                    print(f"[DEBUG] ⚠️ Could not find account for making file public")
+            else:
+                print(f"[DEBUG] ⚠️ No account ID found for making file public")
+        except Exception as e:
+            print(f"[DEBUG] ⚠️ Failed to make file public: {e}")
+            # Don't fail the upload if making public fails
         
         # Send success response
         print(f"[DEBUG] 📤 Sending success response to frontend...")
