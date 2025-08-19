@@ -1,0 +1,33 @@
+<div class="toast-container" [class.visible]="isVisible">
+  <div [class]="getToastClass()">
+    <!-- Toast Icon -->
+    <div class="toast-icon">
+      <span class="icon-text">{{ getIcon() }}</span>
+    </div>
+    
+    <!-- Toast Content -->
+    <div class="toast-content">
+      <div class="toast-message">{{ config.message }}</div>
+      
+      <!-- Progress Bar -->
+      <div class="toast-progress" *ngIf="config.duration && config.duration > 0">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="progress"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Close Button -->
+    <button 
+      *ngIf="config.showCloseButton" 
+      class="toast-close" 
+      (click)="onClose()"
+      aria-label="Close notification"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+</div>

@@ -97,21 +97,22 @@ body {
 
 /* Main content spacing */
 main {
-  padding-top: 80px; /* Add top padding to account for fixed header */
+  padding-top: 60px; /* Add top padding to account for fixed header */
   min-height: calc(100vh - 80px); /* Ensure full height minus header */
 }
 
 /* Responsive main content spacing */
 @media (max-width: 768px) {
   main {
-    padding-top: 70px;
+    padding-top: 40px;
     min-height: calc(100vh - 70px);
   }
 }
 
 @media (max-width: 480px) {
   main {
-    padding-top: 60px;
+    padding-top: 20px;
+
     min-height: calc(100vh - 60px);
   }
 }
@@ -472,6 +473,26 @@ p {
   color: var(--foreground);
 }
 
+/* Add autofill styling to maintain consistent font size */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus,
+.input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--foreground) !important;
+  -webkit-box-shadow: 0 0 0 30px var(--input-background) inset !important;
+  font-size: 0.875rem !important;
+  font-weight: var(--font-weight-normal) !important;
+  line-height: 1.5 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Ensure autofilled inputs maintain consistent styling */
+.input:autofill {
+  font-size: 0.875rem !important;
+  font-weight: var(--font-weight-normal) !important;
+  line-height: 1.5 !important;
+}
+
 .input:focus {
   outline: none;
   border-color: var(--primary);
@@ -772,12 +793,12 @@ p {
 }
 
 /* Improved Focus States */
-.btn-primary:focus,
+/* .btn-primary:focus,
 .btn-outline:focus,
 .btn-ghost:focus {
   outline: none;
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent);
-}
+} */
 
 .input:focus {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
@@ -883,7 +904,6 @@ p {
 }
 
 .section-headline {
-  font-size: 2rem !important;
   font-weight: 700 !important;
   line-height: 1.2 !important;
   color: #2d3748 !important;
@@ -1584,3 +1604,4 @@ p {
 .cancel-spinner {
   animation: cancelSpin 1s linear infinite;
 }
+

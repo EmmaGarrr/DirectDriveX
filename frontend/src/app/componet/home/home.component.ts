@@ -1,7 +1,8 @@
 import { Component, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import { UploadService, UploadEvent } from '../../shared/services/upload.service';
 import { Subscription, forkJoin, Observable, Observer, Subject } from 'rxjs';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastService } from '../../shared/services/toast.service';
 import { BatchUploadService, IBatchFileInfo } from '../../shared/services/batch-upload.service';
 import { environment } from '../../../environments/environment';
 
@@ -48,12 +49,16 @@ export class HomeComponent implements OnDestroy {
   // UI state for modern interface
   public isDragOver = false;
   
+  // Tab management for mobile comparison
+  public activeTab: 'dropbox' | 'google-drive' | 'mfcnextgen' = 'dropbox';
+  
   // Math reference for template
   public Math = Math;
 
   constructor(
+    private router: Router,
     private uploadService: UploadService,
-    private snackBar: MatSnackBar,
+    private toastService: ToastService,
     private batchUploadService: BatchUploadService
   ) {
     // Note: AuthService integration removed due to missing implementation
@@ -115,7 +120,7 @@ export class HomeComponent implements OnDestroy {
           if (this.isCancelling || (typeof event.value === 'string' && event.value.includes('cancelled'))) {
             // Handle cancellation success
             this.currentState = 'cancelled';
-            this.snackBar.open('Upload cancelled successfully', 'Close', { duration: 3000 });
+            this.toastService.success('Upload cancelled successfully', 3000);
             this.resetToIdle();
           } else {
             // Handle regular upload success
@@ -124,7 +129,7 @@ export class HomeComponent implements OnDestroy {
             const fileId = event.value.split('/').pop();
             // Generate frontend route URL like batch downloads (not direct API URL)
             this.finalDownloadLink = `${window.location.origin}/download/${fileId}`;
-            this.snackBar.open('File uploaded successfully!', 'Close', { duration: 3000 });
+            this.toastService.success('File uploaded successfully!', 3000);
           }
         }
       },
@@ -132,7 +137,7 @@ export class HomeComponent implements OnDestroy {
         if (!this.isCancelling) {
           this.currentState = 'error';
           this.errorMessage = err.message || 'Upload failed';
-          this.snackBar.open('Upload failed: ' + this.errorMessage, 'Close', { duration: 5000 });
+          this.toastService.error('Upload failed: ' + this.errorMessage, 5000);
         }
       },
       complete: () => {
@@ -176,7 +181,7 @@ export class HomeComponent implements OnDestroy {
     this.isCancelling = true;
     
     // Show user-friendly message immediately
-    this.snackBar.open('Cancelling upload...', 'Close', { duration: 2000 });
+    this.toastService.info('Cancelling upload...', 2000);
     
     // Simulate realistic cancellation time for better UX
     setTimeout(() => {
@@ -189,7 +194,7 @@ export class HomeComponent implements OnDestroy {
         
         // Show success message after slight delay
         setTimeout(() => {
-          this.snackBar.open('Upload cancelled successfully', 'Close', { duration: 3000 });
+          this.toastService.success('Upload cancelled successfully', 3000);
           // Reset to idle after showing cancelled state briefly
           setTimeout(() => {
             this.resetToIdle();
@@ -197,7 +202,7 @@ export class HomeComponent implements OnDestroy {
         }, 500);
       } else {
         console.log('[HomeComponent] No active upload to cancel');
-        this.snackBar.open('Upload cancelled', 'Close', { duration: 2000 });
+        this.toastService.info('Upload cancelled', 2000);
         this.resetToIdle();
       }
     }, 300); // Small delay for better perceived performance
@@ -253,7 +258,7 @@ export class HomeComponent implements OnDestroy {
       error: (err) => {
         console.error(`[HOME_BATCH] Batch upload initiation failed:`, err);
         this.batchState = 'error';
-        this.snackBar.open(`Batch upload initiation failed: ${err.error?.detail || err.message || 'Unknown error'}`, 'Close', { duration: 5000 });
+        this.toastService.error(`Batch upload initiation failed: ${err.error?.detail || err.message || 'Unknown error'}`, 5000);
       },
       complete: () => {}
     };
@@ -429,12 +434,12 @@ export class HomeComponent implements OnDestroy {
       
       if (hasErrors) {
         this.batchState = 'error';
-        this.snackBar.open(`Upload completed with errors: ${successCount}/${totalCount} files succeeded`, 'Close', { duration: 5000 });
+        this.toastService.warning(`Upload completed with errors: ${successCount}/${totalCount} files succeeded`, 5000);
       } else {
         this.batchState = 'success';
         // Generate proper batch download page link (not direct download)
         this.finalBatchLink = `${window.location.origin}/batch-download/${batchId}`;
-        this.snackBar.open(`All ${totalCount} files uploaded successfully!`, 'Close', { duration: 3000 });
+        this.toastService.success(`All ${totalCount} files uploaded successfully!`, 3000);
       }
       
       console.log(`[HOME_BATCH] Upload batch completed: ${successCount}/${totalCount} files succeeded, batch_id: ${batchId}`);
@@ -474,7 +479,7 @@ export class HomeComponent implements OnDestroy {
 
   copyLink(link: string): void {
     navigator.clipboard.writeText(link).then(() => {
-      this.snackBar.open('Link copied to clipboard!', 'Close', { duration: 2000 });
+      this.toastService.success('Link copied to clipboard!', 2000);
     });
   }
 
@@ -491,7 +496,7 @@ export class HomeComponent implements OnDestroy {
       fileState.state = 'cancelling';
       
       // Show user-friendly message immediately
-      this.snackBar.open(`Cancelling ${fileState.file.name}...`, 'Close', { duration: 2000 });
+      this.toastService.info(`Cancelling ${fileState.file.name}...`, 2000);
       
       setTimeout(() => {
         // Close WebSocket connection
@@ -512,7 +517,7 @@ export class HomeComponent implements OnDestroy {
         
         // Success notification after delay
         setTimeout(() => {
-          this.snackBar.open(`${fileState.file.name} upload cancelled successfully`, 'Close', { duration: 3000 });
+          this.toastService.success(`${fileState.file.name} upload cancelled successfully`, 3000);
         }, 500);
       }, 300);
     }
@@ -525,7 +530,7 @@ export class HomeComponent implements OnDestroy {
     this.isCancelling = true;
     
     // Show user-friendly message immediately
-    this.snackBar.open('Cancelling all uploads...', 'Close', { duration: 2000 });
+    this.toastService.info('Cancelling all uploads...', 2000);
     
     // Simulate realistic cancellation time for better UX
     setTimeout(() => {
@@ -550,7 +555,7 @@ export class HomeComponent implements OnDestroy {
       
       // Show success message after slight delay
       setTimeout(() => {
-        this.snackBar.open('All uploads cancelled successfully', 'Close', { duration: 3000 });
+        this.toastService.success('All uploads cancelled successfully', 3000);
         
         // Reset after showing cancelled state briefly
         setTimeout(() => {
@@ -585,17 +590,32 @@ export class HomeComponent implements OnDestroy {
     this.isDragOver = false;
   }
 
+  // CTA Button Handler
+  onGetStartedClick(): void {
+    try {
+      // Navigate directly to register page
+      this.router.navigate(['/register']);
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
+  }
+
+  // Tab switching for mobile comparison
+  switchTab(tab: 'dropbox' | 'google-drive' | 'mfcnextgen'): void {
+    this.activeTab = tab;
+  }
+
   // Authentication placeholders (to be implemented when AuthService is available)
   navigateToLogin(): void {
-    // this.router.navigate(['/login']);
+    this.router.navigate(['/login']);
   }
 
   navigateToRegister(): void {
-    // this.router.navigate(['/register']);
+    this.router.navigate(['/register']);
   }
 
   navigateToProfile(): void {
-    // this.router.navigate(['/profile']);
+    this.router.navigate(['/profile']);
   }
 
   onLogout(): void {

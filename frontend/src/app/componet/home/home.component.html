@@ -589,73 +589,199 @@
   </div>
 
   <!-- Enhanced Comparison Section -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-    <div class="premium-card bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-      <h2 class="section-headline text-3xl font-bold text-slate-900 text-center mb-8">Why professionals choose mfcnextgen</h2>
+  <div class="max-w-7xl mx-auto px-4 lg:py-16 py-10">
+    <div class="premium-card bg-white rounded-2xl shadow-lg border border-slate-200 sm:p-6 p-4">
+      <div class="text-center mb-12">
+        <h2 class="section-headline lg:text-4xl md:text-3xl text-xl font-bold text-slate-900 mb-4">Why professionals choose mfcnextgen</h2>
+        <p class="lg:text-lg text-sm text-slate-600 max-w-2xl mx-auto">Compare the leading file transfer solutions and see why thousands of professionals trust mfcnextgen for their secure file sharing needs.</p>
+      </div>
       
-      <!-- Enhanced Comparison Table -->
-      <div class="comparison-table grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <!-- Mobile Tabs (hidden on desktop) -->
+      <div class="md:hidden mb-6">
+        <div class="flex space-x-1 bg-slate-100 p-1 rounded-lg">
+          <button 
+            (click)="switchTab('dropbox')" 
+            [class.active]="activeTab === 'dropbox'"
+            class="tab-button flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all duration-200 flex items-center justify-center">
+            Dropbox
+            <svg *ngIf="activeTab === 'dropbox'" class="w-4 h-4 ml-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+            </svg>
+          </button>
+          <button 
+            (click)="switchTab('google-drive')" 
+            [class.active]="activeTab === 'google-drive'"
+            class="tab-button flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all duration-200 flex items-center justify-center">
+            Google Drive
+            <svg *ngIf="activeTab === 'google-drive'" class="w-4 h-4 flex-shrink-0 ml-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+            </svg>
+          </button>
+          <button 
+            (click)="switchTab('mfcnextgen')" 
+            [class.active]="activeTab === 'mfcnextgen'"
+            class="tab-button flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all duration-200 flex items-center justify-center">
+            mfcnextgen
+            <svg *ngIf="activeTab === 'mfcnextgen'" class="w-4 h-4 ml-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Desktop Comparison Table (hidden on mobile) -->
+      <div class="comparison-table hidden md:grid grid-cols-4 gap-6 mb-8">
         <!-- Feature Column -->
         <div class="space-y-4">
-          <div class="font-semibold text-slate-500 text-sm uppercase tracking-wide">Features</div>
-          <div class="space-y-3 text-sm">
-            <div class="py-3 border-b border-slate-100">Free Storage</div>
-            <div class="py-3 border-b border-slate-100">Max File Size</div>
-            <div class="py-3 border-b border-slate-100">Transfer Speed</div>
-            <div class="py-3 border-b border-slate-100">No Signup Required</div>
-            <div class="py-3 border-b border-slate-100">Encryption</div>
-            <div class="py-3 border-b border-slate-100">Support</div>
-            <div class="py-3 border-b border-slate-100">File Retention</div>
+          <div class="font-semibold text-slate-700 text-base uppercase tracking-wide py-4">Features</div>
+          <div class="space-y-3 text-base">
+            <div class="py-4 border-b border-slate-200 hover:bg-slate-50 transition-colors duration-200">Free Storage</div>
+            <div class="py-4 border-b border-slate-200 hover:bg-slate-50 transition-colors duration-200">Max File Size</div>
+            <div class="py-4 border-b border-slate-200 hover:bg-slate-50 transition-colors duration-200">Transfer Speed</div>
+            <div class="py-4 border-b border-slate-200 hover:bg-slate-50 transition-colors duration-200">No Signup Required</div>
+            <div class="py-4 border-b border-slate-200 hover:bg-slate-50 transition-colors duration-200">Encryption</div>
+            <div class="py-4 border-b border-slate-200 hover:bg-slate-50 transition-colors duration-200">Support</div>
+            <div class="py-4 border-b border-slate-200 hover:bg-slate-50 transition-colors duration-200">File Retention</div>
           </div>
         </div>
 
         <!-- Dropbox Column -->
         <div class="space-y-4">
-          <div class="font-semibold text-slate-600 text-center">Dropbox</div>
-          <div class="space-y-3 text-sm text-center">
-            <div class="py-3 border-b border-slate-100 text-slate-600">2GB</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">2GB</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">500MB/s</div>
-            <div class="py-3 border-b border-slate-100 text-red-500">✗ Required</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">Basic</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">Business hrs</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">30 days</div>
+          <div class="font-semibold text-slate-700 text-base text-center py-4">Dropbox</div>
+          <div class="space-y-3 text-base text-center">
+            <div class="py-4 border-b border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors duration-200">2GB</div>
+            <div class="py-4 border-b border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors duration-200">2GB</div>
+            <div class="py-4 border-b border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors duration-200">500MB/s</div>
+            <div class="py-4 border-b border-slate-200 text-red-500 hover:bg-slate-50 transition-colors duration-200 flex items-center justify-center">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+              </svg>
+              Required
+            </div>
+            <div class="py-4 border-b border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors duration-200">Basic</div>
+            <div class="py-4 border-b border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors duration-200">Business hrs</div>
+            <div class="py-4 border-b border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors duration-200">30 days</div>
           </div>
         </div>
 
         <!-- Google Drive Column -->
         <div class="space-y-4">
-          <div class="font-semibold text-slate-600 text-center">Google Drive</div>
-          <div class="space-y-3 text-sm text-center">
-            <div class="py-3 border-b border-slate-100 text-slate-600">15GB</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">15GB</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">1GB/s</div>
-            <div class="py-3 border-b border-slate-100 text-red-500">✗ Required</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">Basic</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">Business hrs</div>
-            <div class="py-3 border-b border-slate-100 text-slate-600">Forever</div>
+          <div class="font-semibold text-slate-700 text-base text-center py-4">Google Drive</div>
+          <div class="space-y-3 text-base text-center">
+            <div class="py-4 border-b border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors duration-200">15GB</div>
+            <div class="py-4 border-b border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors duration-200">15GB</div>
+            <div class="py-4 border-b border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors duration-200">1GB/s</div>
+            <div class="py-4 border-b border-slate-200 text-red-500 hover:bg-slate-50 transition-colors duration-200 flex items-center justify-center">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+              </svg>
+              Required
+            </div>
+            <div class="py-4 border-b border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors duration-200">Basic</div>
+            <div class="py-4 border-b border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors duration-200">Business hrs</div>
+            <div class="py-4 border-b border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors duration-200">Forever</div>
           </div>
         </div>
 
-        <!-- mfcnextgen Column -->
-        <div class="space-y-4 relative">
-          <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-bold">BEST</div>
-          <div class="font-bold text-primary text-center">mfcnextgen</div>
-          <div class="space-y-3 text-sm text-center">
-            <div class="py-3 border-b border-slate-100 text-primary font-bold">50GB</div>
-            <div class="py-3 border-b border-slate-100 text-primary font-bold">30GB</div>
-            <div class="py-3 border-b border-slate-100 text-primary font-bold">2GB/s</div>
-            <div class="py-3 border-b border-slate-100 text-green-500 font-bold">✓ Optional</div>
-            <div class="py-3 border-b border-slate-100 text-primary font-bold">E2E</div>
-            <div class="py-3 border-b border-slate-100 text-green-500 font-bold">24/7</div>
-            <div class="py-3 border-b border-slate-100 text-primary font-bold">30 days</div>
+        <!-- mfcnextgen Column - Enhanced -->
+        <div class="space-y-4 relative bg-gradient-to-b from-blue-50 to-blue-100 border-2 border-blue-300 rounded-xl p-6 shadow-lg transform scale-105">
+          <div class="absolute text-nowrap -top-5 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-blue-500 to-blue-300 text-white text-sm px-4 py-2 rounded-full font-bold shadow-lg">
+            ⭐ BEST CHOICE
+          </div>
+          <div class="font-bold text-primary text-center text-lg">mfcnextgen</div>
+          <div class="space-y-3 text-base text-center">
+            <div class="py-3 border-b border-blue-200 text-primary font-bold">50GB</div>
+            <div class="py-3 border-b border-blue-200 text-primary font-bold">30GB</div>
+            <div class="py-3 border-b border-blue-200 text-primary font-bold">2GB/s</div>
+            <div class="py-3 border-b border-blue-200 text-green-600 font-bold flex items-center justify-center">
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+              </svg>
+              Optional
+            </div>
+            <div class="py-3 border-b border-blue-200 text-primary font-bold">E2E</div>
+            <div class="py-3 border-b border-blue-200 text-green-600 font-bold">24/7</div>
+            <div class="py-3 border-b border-blue-200 text-primary font-bold">30 days</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Tabbed Layout -->
+      <div class="md:hidden mb-8">
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Features Column -->
+          <div class="space-y-3">
+            <div class="font-semibold text-slate-700 text-sm uppercase tracking-wide py-3 border-b border-slate-200">Features</div>
+            <div class="space-y-2 text-sm">
+              <div class="py-3 border-b border-slate-200">Free Storage</div>
+              <div class="py-3 border-b border-slate-200">Max File Size</div>
+              <div class="py-3 border-b border-slate-200">Transfer Speed</div>
+              <div class="py-3 border-b border-slate-200">No Signup Required</div>
+              <div class="py-3 border-b border-slate-200">Encryption</div>
+              <div class="py-3 border-b border-slate-200">Support</div>
+              <div class="py-3 border-b border-slate-200">File Retention</div>
+            </div>
+          </div>
+          
+          <!-- Active Platform Data -->
+          <div class="space-y-3">
+            <!-- Dropbox Data -->
+            <div *ngIf="activeTab === 'dropbox'" class="space-y-2 text-sm text-center">
+              <div class="font-semibold text-slate-700 py-3 border-b border-slate-200">Dropbox</div>
+              <div class="py-3 border-b border-slate-200 text-slate-600">2GB</div>
+              <div class="py-3 border-b border-slate-200 text-slate-600">2GB</div>
+              <div class="py-3 border-b border-slate-200 text-slate-600">500MB/s</div>
+              <div class="py-3 border-b border-slate-200 text-red-500 flex items-center justify-center">
+                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+                </svg>
+                Required
+              </div>
+              <div class="py-3 border-b border-slate-200 text-slate-600">Basic</div>
+              <div class="py-3 border-b border-slate-200 text-slate-600">Business hrs</div>
+              <div class="py-3 border-b border-slate-200 text-slate-600">30 days</div>
+            </div>
+
+            <!-- Google Drive Data -->
+            <div *ngIf="activeTab === 'google-drive'" class="space-y-2 text-sm text-center">
+              <div class="font-semibold text-slate-700 py-3 border-b border-slate-200">Google Drive</div>
+              <div class="py-3 border-b border-slate-200 text-slate-600">15GB</div>
+              <div class="py-3 border-b border-slate-200 text-slate-600">15GB</div>
+              <div class="py-3 border-b border-slate-200 text-slate-600">1GB/s</div>
+              <div class="py-3 border-b border-slate-200 text-red-500 flex items-center justify-center">
+                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+                </svg>
+                Required
+              </div>
+              <div class="py-3 border-b border-slate-200 text-slate-600">Basic</div>
+              <div class="py-3 border-b border-slate-200 text-slate-600">Business hrs</div>
+              <div class="py-3 border-b border-slate-200 text-slate-600">Forever</div>
+            </div>
+
+            <!-- mfcnextgen Data -->
+            <div *ngIf="activeTab === 'mfcnextgen'" class="space-y-2 text-sm text-center bg-gradient-to-b from-blue-50 to-blue-100 border-2 border-blue-300 rounded-lg sm:p-4 p-0">
+              <div class="font-bold text-primary py-3 border-b border-blue-200">mfcnextgen</div>
+              <div class="py-3 border-b border-blue-200 text-primary font-bold">50GB</div>
+              <div class="py-3 border-b border-blue-200 text-primary font-bold">30GB</div>
+              <div class="py-3 border-b border-blue-200 text-primary font-bold">2GB/s</div>
+              <div class="py-3 border-b border-blue-200 text-green-600 font-bold flex items-center justify-center">
+                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                </svg>
+                Optional
+              </div>
+              <div class="py-3 border-b border-blue-200 text-primary font-bold">E2E</div>
+              <div class="py-3 border-b border-blue-200 text-green-600 font-bold">24/7</div>
+              <div class="py-3 border-b border-blue-200 text-primary font-bold">30 days</div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Bottom CTA -->
       <div class="text-center">
-        <button class="premium-button bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 text-lg mb-4">
+        <button (click)="onGetStartedClick()" class="premium-button bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold px-8 rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 text-lg mb-5">
           Get Started - 50GB Free Forever
         </button>
         <p class="text-sm text-slate-500">
