@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from app.core.config import settings
 
 # Synchronous client for existing code
