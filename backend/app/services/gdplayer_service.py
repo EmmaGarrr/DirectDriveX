@@ -32,7 +32,24 @@ class GDPlayerService:
                 
                 if response.status_code == 200:
                     data = response.json()
-                    streaming_url = data.get("stream_url") or data.get("url")
+                    
+                    # Check for streaming URL in various possible fields
+                    streaming_url = (
+                        data.get("stream_url") or 
+                        data.get("url") or 
+                        data.get("data", {}).get("stream_url") or
+                        data.get("data", {}).get("url")
+                    )
+                    
+                    # If no direct streaming URL, try to construct from embed_url
+                    if not streaming_url and data.get("data", {}).get("embed_url"):
+                        embed_url = data["data"]["embed_url"]
+                        # Convert embed URL to streaming URL format
+                        if "gdplayer.vip" in embed_url:
+                            # Extract slug and construct streaming URL
+                            slug = embed_url.split("/")[-1]
+                            streaming_url = f"https://gdplayer.vip/stream/{slug}"
+                            logger.info(f"Constructed streaming URL from embed_url: {streaming_url}")
                     
                     if streaming_url:
                         logger.info(f"Successfully got streaming URL from gdplayer.vip for {gdrive_id}: {streaming_url}")
@@ -57,7 +74,9 @@ class GDPlayerService:
         except Exception as e:
             logger.warning(f"gdplayer.vip failed for {gdrive_id}: {e}")
             
-            # Fallback: Direct Google Drive URL (for debugging)
-            fallback_url = f"https://drive.google.com/file/d/{gdrive_id}/preview"
+            # Fallback: Try different Google Drive URL formats
+            # The /preview format doesn't work in HTML5 video tags due to CORS
+            # Try the /view format which might be more compatible
+            fallback_url = f"https://drive.google.com/file/d/{gdrive_id}/view"
             logger.info(f"Using fallback URL: {fallback_url}")
             return fallback_url
