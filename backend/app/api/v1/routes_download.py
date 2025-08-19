@@ -1,17 +1,21 @@
 # In file: Backend/app/api/v1/routes_download.py
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import StreamingResponse
 from urllib.parse import quote
 import httpx # --- NEW: Import httpx for Hetzner downloads ---
 import re
+import logging
 from typing import Tuple, Optional
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
-from app.db.mongodb import db
+from app.db.mongodb import db, get_database
 from app.core.config import settings # --- NEW: Import settings for credentials ---
 from app.services.google_drive_service import gdrive_pool_manager, async_stream_gdrive_file
 from app.services.video_cache_service import video_cache_service
 from app.models.file import FileMetadataInDB
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -245,97 +249,38 @@ def get_file_preview_metadata(file_id: str):
     }
 
 # --- NEW: Range request support for video streaming ---
-@router.get(
-    "/preview/stream/{file_id}",
-    summary="Stream File for Preview with Range Support"
-)
-async def stream_preview(file_id: str, request: Request):
-    """Stream file content for preview with enhanced range request support"""
-    file_doc = db.files.find_one({"_id": file_id})
-    if not file_doc:
-        raise HTTPException(status_code=404, detail="File not found")
-    
-    content_type = file_doc.get("content_type", "")
-    
-    # Check if file is previewable
-    if not is_previewable(content_type):
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Preview not supported for {content_type} files. Please download instead."
-        )
-
-    filename = file_doc.get("filename", "preview")
-    filesize = file_doc.get("size_bytes", 0)
-    
-    # --- NEW: Handle Range requests for video/audio files ---
-    range_header = request.headers.get("range")
-    is_video_or_audio = content_type.startswith(("video/", "audio/"))
-    
-    # Temporarily disable range requests to fix Content-Length mismatch
-    # TODO: Implement proper range request handling later
-    if range_header and is_video_or_audio:
-        print(f"[PREVIEW] Range request received but disabled for now: {range_header}")
-        # Continue to full streaming below
-    
-    # --- FALLBACK: Full file streaming for non-range requests ---
-    async def content_streamer():
-        try:
-            print(f"[PREVIEW] Attempting to stream preview for '{filename}'...")
-            gdrive_id = file_doc.get("gdrive_id")
-            account_id = file_doc.get("gdrive_account_id")
-
-            if not gdrive_id or not account_id:
-                raise ValueError("Primary storage info (GDrive) is missing from metadata.")
-            
-            storage_account = gdrive_pool_manager.get_account_by_id(account_id)
-            if not storage_account:
-                raise ValueError(f"Configuration for GDrive account '{account_id}' not found.")
-
-            async for chunk in async_stream_gdrive_file(gdrive_id, account=storage_account):
-                yield chunk
-            
-            print(f"[PREVIEW] Successfully streamed preview for '{filename}' from Google Drive.")
-            return
-
-        except Exception as e:
-            print(f"!!! [PREVIEW] Primary preview from Google Drive failed: {e}. Attempting backup from Hetzner...")
-
-        try:
-            print(f"[PREVIEW] Attempting fallback preview from Hetzner for '{filename}'...")
-            hetzner_path = file_doc.get("hetzner_remote_path")
-            if not hetzner_path:
-                raise ValueError("Backup storage info (Hetzner) is missing from metadata.")
-            
-            hetzner_url = f"{settings.HETZNER_WEBDAV_URL}/{hetzner_path}"
-            auth = (settings.HETZNER_USERNAME, settings.HETZNER_PASSWORD)
-            timeout = httpx.Timeout(10.0, read=3600.0)
-
-            async with httpx.AsyncClient(auth=auth, timeout=timeout) as client:
-                async with client.stream("GET", hetzner_url) as response:
-                    response.raise_for_status()
-                    async for chunk in response.aiter_bytes():
-                        yield chunk
-            
-            print(f"[PREVIEW] Successfully streamed preview for '{filename}' from Hetzner backup.")
-
-        except Exception as e:
-            print(f"!!! [PREVIEW] Fallback preview from Hetzner also failed for '{filename}': {e}")
-    
-        # Set appropriate headers for preview (inline instead of attachment)
-    headers = {
-        "Content-Type": content_type,
-        "Accept-Ranges": "bytes" if is_video_or_audio else "none",
-        "Content-Disposition": f"inline; filename*=UTF-8''{quote(filename)}"
-    }
-    
-    # Don't set Content-Length for streaming responses to avoid mismatch
-    # The browser will handle the streaming properly without Content-Length
-    
-    return StreamingResponse(
-        content=content_streamer(),
-        media_type=content_type,
-        headers=headers
-    )
+@router.get("/preview/stream/{file_id}")
+async def stream_preview(
+    file_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """Return direct Google Drive URL instead of streaming through server"""
+    try:
+        # Get file document from MongoDB
+        file_doc = await db.files.find_one({"_id": file_id})
+        if not file_doc:
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        # Extract Google Drive ID
+        gdrive_id = file_doc.get("gdrive_id")
+        if not gdrive_id:
+            raise HTTPException(status_code=400, detail="File not available for streaming")
+        
+        # Generate direct Google Drive URL
+        direct_url = f"https://drive.google.com/uc?id={gdrive_id}&export=download"
+        
+        # Return JSON response with direct URL
+        return {
+            "stream_url": direct_url,
+            "content_type": file_doc.get("content_type", "video/mp4"),
+            "filename": file_doc.get("filename", "video")
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting direct stream URL: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 # --- NEW: Video thumbnail endpoint ---
 @router.get(

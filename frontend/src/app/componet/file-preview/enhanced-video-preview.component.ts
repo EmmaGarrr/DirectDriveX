@@ -140,13 +140,23 @@ export class EnhancedVideoPreviewComponent implements OnInit, OnDestroy {
   }
 
   private async initializeVideoLoading(): Promise<void> {
-    // For now, use direct streaming instead of chunked loading
-    // This avoids the range request issues with the backend
-    console.log('[VIDEO_PREVIEW] Using direct streaming for video preview');
+    // Use direct Google Drive URLs instead of server streaming
+    console.log('[VIDEO_PREVIEW] Getting direct Google Drive URL for video preview');
     
-    this.mediaUrl = this.fileService.getPreviewStreamUrl(this.fileId);
-    this.videoReady = true;
-    this.videoLoading = false;
+    this.fileService.getPreviewStreamUrl(this.fileId).subscribe({
+      next: (streamUrl: string) => {
+        this.mediaUrl = streamUrl;
+        this.videoReady = true;
+        this.videoLoading = false;
+        console.log('[VIDEO_PREVIEW] Direct stream URL loaded:', streamUrl);
+      },
+      error: (error) => {
+        console.error('[VIDEO_PREVIEW] Error loading stream URL:', error);
+        this.error = true;
+        this.errorMessage = 'Failed to get video stream URL. Please try again.';
+        this.snackBar.open(this.errorMessage, 'Close', { duration: 5000 });
+      }
+    });
     
     // Skip chunked loading for now
     this.totalChunks = 0;

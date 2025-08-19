@@ -85,7 +85,10 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
     // Handle image types (support both "image" and "thumbnail" from backend)
     if (previewType === 'image' || previewType === 'thumbnail' || contentType.startsWith('image/')) {
       this.previewType = 'image'; // Normalize to 'image'
-      this.imageUrl = this.fileService.getPreviewStreamUrl(this.fileId);
+      this.fileService.getPreviewStreamUrl(this.fileId).subscribe({
+        next: (url: string) => this.imageUrl = url,
+        error: (error) => console.error('Error getting image URL:', error)
+      });
       return;
     }
 
@@ -96,10 +99,16 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
       if (contentType.startsWith('video/')) {
         this.previewType = 'video';
         // The enhanced component will handle the streaming
-        this.mediaUrl = this.fileService.getPreviewStreamUrl(this.fileId);
+        this.fileService.getPreviewStreamUrl(this.fileId).subscribe({
+          next: (url: string) => this.mediaUrl = url,
+          error: (error) => console.error('Error getting video URL:', error)
+        });
       } else {
         this.previewType = 'audio';
-        this.mediaUrl = this.fileService.getPreviewStreamUrl(this.fileId);
+        this.fileService.getPreviewStreamUrl(this.fileId).subscribe({
+          next: (url: string) => this.mediaUrl = url,
+          error: (error) => console.error('Error getting audio URL:', error)
+        });
       }
       return;
     }
@@ -107,7 +116,10 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
     // Handle document types (PDF)
     if (previewType === 'document' || previewType === 'viewer' || contentType === 'application/pdf') {
       this.previewType = 'document'; // Normalize to 'document'
-      this.pdfUrl = this.fileService.getPreviewStreamUrl(this.fileId);
+      this.fileService.getPreviewStreamUrl(this.fileId).subscribe({
+        next: (url: string) => this.pdfUrl = url,
+        error: (error) => console.error('Error getting PDF URL:', error)
+      });
       return;
     }
 
@@ -128,18 +140,34 @@ export class FilePreviewComponent implements OnInit, OnDestroy {
       this.textLoading = true;
       
       // For text files, we'll fetch the content directly
-      const response = await fetch(this.fileService.getPreviewStreamUrl(this.fileId));
-      if (!response.ok) {
-        throw new Error('Failed to load text content');
-      }
-      
-      this.textContent = await response.text();
+      this.fileService.getPreviewStreamUrl(this.fileId).subscribe({
+        next: async (url: string) => {
+          try {
+            const response = await fetch(url);
+            if (!response.ok) {
+              throw new Error('Failed to load text content');
+            }
+            this.textContent = await response.text();
+          } catch (error) {
+            console.error('Error loading text content:', error);
+            this.error = true;
+            this.errorMessage = 'Failed to load text content.';
+          } finally {
+            this.textLoading = false;
+          }
+        },
+        error: (error) => {
+          console.error('Error getting text URL:', error);
+          this.error = true;
+          this.errorMessage = 'Failed to get text file URL.';
+          this.textLoading = false;
+        }
+      });
       
     } catch (error) {
       console.error('Error loading text content:', error);
       this.error = true;
       this.errorMessage = 'Failed to load text content.';
-    } finally {
       this.textLoading = false;
     }
   }
