@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FileService, PreviewMetadata } from '../../shared/services/file.service';
 import { Observable } from 'rxjs';
+import { AppComponent } from '../../app.component';
 
 @Component({
   selector: 'app-download',
@@ -21,13 +22,19 @@ export class DownloadComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private fileService: FileService
+    private fileService: FileService,
+    private appComponent: AppComponent
   ) {}
 
   ngOnInit(): void {
     this.fileId = this.route.snapshot.paramMap.get('id');
 
     if (this.fileId) {
+      // Track download page view
+      this.appComponent.trackHotjarEvent('download_page_viewed', {
+        file_id: this.fileId
+      });
+
       this.fileMeta$ = this.fileService.getFileMeta(this.fileId);
       this.downloadUrl = this.fileService.getStreamUrl(this.fileId);
       
@@ -39,6 +46,14 @@ export class DownloadComponent implements OnInit {
         this.previewAvailable = metadata.preview_available;
         this.previewType = metadata.preview_type;
         this.previewMessage = metadata.message || '';
+        
+        // Track preview availability
+        this.appComponent.trackHotjarEvent('preview_metadata_loaded', {
+          file_id: this.fileId,
+          preview_available: this.previewAvailable,
+          preview_type: this.previewType
+        });
+        
         console.log('[DOWNLOAD_COMPONENT] Preview available:', this.previewAvailable);
         console.log('[DOWNLOAD_COMPONENT] Preview type:', this.previewType);
         if (!this.previewAvailable && metadata.message) {
@@ -53,6 +68,13 @@ export class DownloadComponent implements OnInit {
 
   togglePreview(): void {
     this.showPreview = !this.showPreview;
+    
+    // Track preview toggle
+    this.appComponent.trackHotjarEvent('preview_toggled', {
+      file_id: this.fileId,
+      preview_shown: this.showPreview,
+      preview_type: this.previewType
+    });
   }
 
   isPreviewable(contentType: string): boolean {
@@ -61,5 +83,14 @@ export class DownloadComponent implements OnInit {
 
   getFormattedFileSize(bytes: number): string {
     return this.fileService.formatFileSize(bytes);
+  }
+
+  // Method to track download initiation
+  onDownloadClick(): void {
+    this.appComponent.trackHotjarEvent('download_initiated', {
+      file_id: this.fileId,
+      preview_available: this.previewAvailable,
+      preview_type: this.previewType
+    });
   }
 }

@@ -34,6 +34,11 @@ export class AppComponent implements OnInit {
     if (typeof window !== 'undefined' && (window as any).va) {
       (window as any).va('pageview');
     }
+    
+    // Track page view with Hotjar
+    if (typeof window !== 'undefined' && (window as any).hj) {
+      (window as any).hj('stateChange', window.location.pathname);
+    }
   }
 
   // Method to track custom events
@@ -41,5 +46,21 @@ export class AppComponent implements OnInit {
     if (typeof window !== 'undefined' && (window as any).va) {
       (window as any).va('event', eventName, properties);
     }
+  }
+
+  // Method specifically for Hotjar events
+  trackHotjarEvent(eventName: string, properties?: any) {
+    if (typeof window !== 'undefined' && (window as any).hj) {
+      (window as any).hj('event', eventName, properties);
+    }
+  }
+
+  // Method to track both Vercel and Hotjar events
+  trackBothEvents(eventName: string, properties?: any) {
+    // Track with Vercel Analytics
+    this.trackEvent(eventName, properties);
+    
+    // Track with Hotjar
+    this.trackHotjarEvent(eventName, properties);
   }
 }

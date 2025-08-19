@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/fo
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService, RegisterData } from '../../services/auth.service';
+import { AppComponent } from '../../app.component';
 
 @Component({
   selector: 'app-register',
@@ -19,7 +20,8 @@ export class RegisterComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private appComponent: AppComponent
   ) {}
 
   ngOnInit(): void {
@@ -28,6 +30,9 @@ export class RegisterComponent implements OnInit {
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
+
+    // Track registration page view
+    this.appComponent.trackHotjarEvent('registration_page_viewed');
   }
 
   // Custom validator to check if passwords match
@@ -45,6 +50,13 @@ export class RegisterComponent implements OnInit {
     if (this.registerForm.valid && !this.loading) {
       this.loading = true;
       
+      // Track registration attempt
+      this.appComponent.trackHotjarEvent('registration_attempted', {
+        email_provided: !!this.registerForm.value.email,
+        password_provided: !!this.registerForm.value.password,
+        confirm_password_provided: !!this.registerForm.value.confirmPassword
+      });
+      
       const registerData: RegisterData = {
         email: this.registerForm.value.email,
         password: this.registerForm.value.password
@@ -53,6 +65,13 @@ export class RegisterComponent implements OnInit {
       this.authService.register(registerData).subscribe({
         next: (response) => {
           console.log('Registration successful:', response);
+          
+          // Track successful registration
+          this.appComponent.trackHotjarEvent('registration_success', {
+            user_type: 'new_user',
+            registration_method: 'email'
+          });
+          
           this.snackBar.open('Registration successful! Please log in.', 'Close', {
             duration: 5000,
             panelClass: ['success-snackbar']
@@ -61,6 +80,13 @@ export class RegisterComponent implements OnInit {
         },
         error: (error) => {
           console.error('Registration error:', error);
+          
+          // Track failed registration
+          this.appComponent.trackHotjarEvent('registration_failed', {
+            error_type: error.message || 'unknown_error',
+            error_code: error.status || 'unknown'
+          });
+          
           this.snackBar.open(error.message || 'Registration failed. Please try again.', 'Close', {
             duration: 5000,
             panelClass: ['error-snackbar']
@@ -70,6 +96,15 @@ export class RegisterComponent implements OnInit {
         complete: () => {
           this.loading = false;
         }
+      });
+    } else {
+      // Track form validation errors
+      this.appComponent.trackHotjarEvent('registration_form_validation_error', {
+        email_valid: this.registerForm.get('email')?.valid,
+        password_valid: this.registerForm.get('password')?.valid,
+        confirm_password_valid: this.registerForm.get('confirmPassword')?.valid,
+        passwords_match: !this.registerForm.hasError('passwordMismatch'),
+        form_valid: this.registerForm.valid
       });
     }
   }

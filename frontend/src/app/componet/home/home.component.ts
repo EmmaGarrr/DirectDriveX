@@ -2,9 +2,10 @@ import { Component, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { UploadService, UploadEvent } from '../../shared/services/upload.service';
 import { Subscription, forkJoin, Observable, Observer, Subject } from 'rxjs';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastService } from '../../shared/services/toast.service';
 import { BatchUploadService, IBatchFileInfo } from '../../shared/services/batch-upload.service';
 import { environment } from '../../../environments/environment';
+import { AppComponent } from '../../app.component';
 
 // Interfaces and Types
 interface IFileState {
@@ -49,15 +50,22 @@ export class HomeComponent implements OnDestroy {
   // UI state for modern interface
   public isDragOver = false;
   
+  // Tab management for mobile comparison
+  public activeTab: 'dropbox' | 'google-drive' | 'mfcnextgen' = 'dropbox';
+  
   // Math reference for template
   public Math = Math;
 
   constructor(
+    private router: Router,
     private uploadService: UploadService,
-    private snackBar: MatSnackBar,
+    private toastService: ToastService,
     private batchUploadService: BatchUploadService,
-    private router: Router
+    private appComponent: AppComponent
   ) {
+    // Track homepage view
+    this.appComponent.trackHotjarEvent('homepage_viewed');
+    
     // Note: AuthService integration removed due to missing implementation
     // this.authService.isAuthenticated$.pipe(takeUntil(this.destroy$)).subscribe(...)
   }
@@ -85,6 +93,14 @@ export class HomeComponent implements OnDestroy {
       this.currentState = 'selected';
       this.batchFiles = []; // Clear batch files
       this.batchState = 'idle';
+      
+      // Track single file selection
+      this.appComponent.trackHotjarEvent('single_file_selected', {
+        file_name: this.selectedFile.name,
+        file_size: this.selectedFile.size,
+        file_type: this.selectedFile.type,
+        upload_type: 'single'
+      });
     } else {
       // Multiple files - batch upload mode
       this.selectedFile = null; // Clear single file
@@ -95,17 +111,39 @@ export class HomeComponent implements OnDestroy {
         progress: 0
       }));
       this.batchState = 'selected';
+      
+      // Track batch file selection
+      this.appComponent.trackHotjarEvent('batch_files_selected', {
+        file_count: this.batchFiles.length,
+        total_size: this.getTotalFileSize(),
+        file_types: this.getFileTypes(),
+        upload_type: 'batch'
+      });
     }
   }
 
   // CTA Button handlers
   onClaimStorage(): void {
+    // Track CTA button click
+    this.appComponent.trackHotjarEvent('cta_button_clicked', {
+      button_type: 'claim_storage',
+      location: 'homepage'
+    });
+    
     this.router.navigate(['/register']);
   }
 
   // Single file upload methods
   onUploadSingle(): void {
     if (!this.selectedFile || this.currentState === 'uploading') return;
+
+    // Track single file upload initiation
+    this.appComponent.trackHotjarEvent('single_upload_initiated', {
+      file_name: this.selectedFile.name,
+      file_size: this.selectedFile.size,
+      file_type: this.selectedFile.type,
+      upload_type: 'single'
+    });
 
     this.currentState = 'uploading';
     this.uploadProgress = 0;
@@ -122,7 +160,14 @@ export class HomeComponent implements OnDestroy {
           if (this.isCancelling || (typeof event.value === 'string' && event.value.includes('cancelled'))) {
             // Handle cancellation success
             this.currentState = 'cancelled';
-            this.snackBar.open('Upload cancelled successfully', 'Close', { duration: 3000 });
+            
+            // Track upload cancellation
+            this.appComponent.trackHotjarEvent('single_upload_cancelled', {
+              file_name: this.selectedFile?.name,
+              progress_at_cancellation: this.uploadProgress
+            });
+            
+            this.toastService.success('Upload cancelled successfully', 3000);
             this.resetToIdle();
           } else {
             // Handle regular upload success
@@ -131,7 +176,16 @@ export class HomeComponent implements OnDestroy {
             const fileId = event.value.split('/').pop();
             // Generate frontend route URL like batch downloads (not direct API URL)
             this.finalDownloadLink = `${window.location.origin}/download/${fileId}`;
-            this.snackBar.open('File uploaded successfully!', 'Close', { duration: 3000 });
+            
+            // Track successful upload
+            this.appComponent.trackHotjarEvent('single_upload_success', {
+              file_name: this.selectedFile?.name,
+              file_size: this.selectedFile?.size,
+              file_type: this.selectedFile?.type,
+              file_id: fileId
+            });
+            
+            this.toastService.success('File uploaded successfully!', 3000);
           }
         }
       },
@@ -139,7 +193,16 @@ export class HomeComponent implements OnDestroy {
         if (!this.isCancelling) {
           this.currentState = 'error';
           this.errorMessage = err.message || 'Upload failed';
-          this.snackBar.open('Upload failed: ' + this.errorMessage, 'Close', { duration: 5000 });
+          
+          // Track upload failure
+          this.appComponent.trackHotjarEvent('single_upload_failed', {
+            file_name: this.selectedFile?.name,
+            file_size: this.selectedFile?.size,
+            error_message: this.errorMessage,
+            progress_at_failure: this.uploadProgress
+          });
+          
+          this.toastService.error('Upload failed: ' + this.errorMessage, 5000);
         }
       },
       complete: () => {
@@ -183,7 +246,7 @@ export class HomeComponent implements OnDestroy {
     this.isCancelling = true;
     
     // Show user-friendly message immediately
-    this.snackBar.open('Cancelling upload...', 'Close', { duration: 2000 });
+    this.toastService.info('Cancelling upload...', 2000);
     
     // Simulate realistic cancellation time for better UX
     setTimeout(() => {
@@ -196,7 +259,7 @@ export class HomeComponent implements OnDestroy {
         
         // Show success message after slight delay
         setTimeout(() => {
-          this.snackBar.open('Upload cancelled successfully', 'Close', { duration: 3000 });
+          this.toastService.success('Upload cancelled successfully', 3000);
           // Reset to idle after showing cancelled state briefly
           setTimeout(() => {
             this.resetToIdle();
@@ -204,7 +267,7 @@ export class HomeComponent implements OnDestroy {
         }, 500);
       } else {
         console.log('[HomeComponent] No active upload to cancel');
-        this.snackBar.open('Upload cancelled', 'Close', { duration: 2000 });
+        this.toastService.info('Upload cancelled', 2000);
         this.resetToIdle();
       }
     }, 300); // Small delay for better perceived performance
@@ -260,7 +323,7 @@ export class HomeComponent implements OnDestroy {
       error: (err) => {
         console.error(`[HOME_BATCH] Batch upload initiation failed:`, err);
         this.batchState = 'error';
-        this.snackBar.open(`Batch upload initiation failed: ${err.error?.detail || err.message || 'Unknown error'}`, 'Close', { duration: 5000 });
+        this.toastService.error(`Batch upload initiation failed: ${err.error?.detail || err.message || 'Unknown error'}`, 5000);
       },
       complete: () => {}
     };
@@ -436,12 +499,12 @@ export class HomeComponent implements OnDestroy {
       
       if (hasErrors) {
         this.batchState = 'error';
-        this.snackBar.open(`Upload completed with errors: ${successCount}/${totalCount} files succeeded`, 'Close', { duration: 5000 });
+        this.toastService.warning(`Upload completed with errors: ${successCount}/${totalCount} files succeeded`, 5000);
       } else {
         this.batchState = 'success';
         // Generate proper batch download page link (not direct download)
         this.finalBatchLink = `${window.location.origin}/batch-download/${batchId}`;
-        this.snackBar.open(`All ${totalCount} files uploaded successfully!`, 'Close', { duration: 3000 });
+        this.toastService.success(`All ${totalCount} files uploaded successfully!`, 3000);
       }
       
       console.log(`[HOME_BATCH] Upload batch completed: ${successCount}/${totalCount} files succeeded, batch_id: ${batchId}`);
@@ -481,7 +544,7 @@ export class HomeComponent implements OnDestroy {
 
   copyLink(link: string): void {
     navigator.clipboard.writeText(link).then(() => {
-      this.snackBar.open('Link copied to clipboard!', 'Close', { duration: 2000 });
+      this.toastService.success('Link copied to clipboard!', 2000);
     });
   }
 
@@ -498,7 +561,7 @@ export class HomeComponent implements OnDestroy {
       fileState.state = 'cancelling';
       
       // Show user-friendly message immediately
-      this.snackBar.open(`Cancelling ${fileState.file.name}...`, 'Close', { duration: 2000 });
+      this.toastService.info(`Cancelling ${fileState.file.name}...`, 2000);
       
       setTimeout(() => {
         // Close WebSocket connection
@@ -519,7 +582,7 @@ export class HomeComponent implements OnDestroy {
         
         // Success notification after delay
         setTimeout(() => {
-          this.snackBar.open(`${fileState.file.name} upload cancelled successfully`, 'Close', { duration: 3000 });
+          this.toastService.success(`${fileState.file.name} upload cancelled successfully`, 3000);
         }, 500);
       }, 300);
     }
@@ -532,7 +595,7 @@ export class HomeComponent implements OnDestroy {
     this.isCancelling = true;
     
     // Show user-friendly message immediately
-    this.snackBar.open('Cancelling all uploads...', 'Close', { duration: 2000 });
+    this.toastService.info('Cancelling all uploads...', 2000);
     
     // Simulate realistic cancellation time for better UX
     setTimeout(() => {
@@ -557,7 +620,7 @@ export class HomeComponent implements OnDestroy {
       
       // Show success message after slight delay
       setTimeout(() => {
-        this.snackBar.open('All uploads cancelled successfully', 'Close', { duration: 3000 });
+        this.toastService.success('All uploads cancelled successfully', 3000);
         
         // Reset after showing cancelled state briefly
         setTimeout(() => {
@@ -592,17 +655,32 @@ export class HomeComponent implements OnDestroy {
     this.isDragOver = false;
   }
 
+  // CTA Button Handler
+  onGetStartedClick(): void {
+    try {
+      // Navigate directly to register page
+      this.router.navigate(['/register']);
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
+  }
+
+  // Tab switching for mobile comparison
+  switchTab(tab: 'dropbox' | 'google-drive' | 'mfcnextgen'): void {
+    this.activeTab = tab;
+  }
+
   // Authentication placeholders (to be implemented when AuthService is available)
   navigateToLogin(): void {
-    // this.router.navigate(['/login']);
+    this.router.navigate(['/login']);
   }
 
   navigateToRegister(): void {
-    // this.router.navigate(['/register']);
+    this.router.navigate(['/register']);
   }
 
   navigateToProfile(): void {
-    // this.router.navigate(['/profile']);
+    this.router.navigate(['/profile']);
   }
 
   onLogout(): void {
@@ -779,5 +857,16 @@ export class HomeComponent implements OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.resetState();
+  }
+
+  // Helper method to get total file size
+  private getTotalFileSize(): number {
+    return this.batchFiles.reduce((total, fileState) => total + fileState.file.size, 0);
+  }
+
+  // Helper method to get file types
+  private getFileTypes(): string[] {
+    const types = this.batchFiles.map(fileState => fileState.file.type || 'unknown');
+    return [...new Set(types)]; // Remove duplicates
   }
 }

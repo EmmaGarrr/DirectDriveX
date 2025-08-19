@@ -98,6 +98,35 @@
 }
 
 /* Password strength indicator */
+
+/* Enhanced autofill handling for register form */
+.card .input:-webkit-autofill,
+.card .input:-webkit-autofill:hover,
+.card .input:-webkit-autofill:focus,
+.card .input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--foreground) !important;
+  -webkit-box-shadow: 0 0 0 30px var(--input-background) inset !important;
+  font-size: 0.875rem !important;
+  font-weight: var(--font-weight-normal) !important;
+  line-height: 1.5 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.card .input:autofill {
+  font-size: 0.875rem !important;
+  font-weight: var(--font-weight-normal) !important;
+  line-height: 1.5 !important;
+}
+
+/* Ensure consistent styling for autofilled password fields in register form */
+.card .input-with-icon input[type="password"]:-webkit-autofill,
+.card .input-with-icon input[type="text"]:-webkit-autofill {
+  -webkit-text-fill-color: var(--foreground) !important;
+  -webkit-box-shadow: 0 0 0 30px var(--input-background) inset !important;
+  font-size: 0.875rem !important;
+  font-weight: var(--font-weight-normal) !important;
+  line-height: 1.5 !important;
+}
 .password-strength {
   display: flex;
   gap: 4px;
