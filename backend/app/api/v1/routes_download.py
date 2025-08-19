@@ -13,6 +13,7 @@ from app.db.mongodb import db, get_database
 from app.core.config import settings # --- NEW: Import settings for credentials ---
 from app.services.google_drive_service import gdrive_pool_manager, async_stream_gdrive_file
 from app.services.video_cache_service import video_cache_service
+from app.services.gdplayer_service import GDPlayerService
 from app.models.file import FileMetadataInDB
 
 logger = logging.getLogger(__name__)
@@ -254,7 +255,7 @@ async def stream_preview(
     file_id: str,
     db: AsyncIOMotorDatabase = Depends(get_database)
 ):
-    """Return direct Google Drive URL instead of streaming through server"""
+    """Get streaming URL from gdplayer.vip for Google Drive files"""
     try:
         # Get file document from MongoDB
         file_doc = await db.files.find_one({"_id": file_id})
@@ -266,20 +267,21 @@ async def stream_preview(
         if not gdrive_id:
             raise HTTPException(status_code=400, detail="File not available for streaming")
         
-        # Generate direct Google Drive URL
-        direct_url = f"https://drive.google.com/uc?id={gdrive_id}&export=download"
+        # Call gdplayer.vip API to get streaming URL
+        streaming_url = await GDPlayerService.get_streaming_url_with_fallback(gdrive_id)
         
-        # Return JSON response with direct URL
+        # Return JSON response with streaming URL
         return {
-            "stream_url": direct_url,
+            "stream_url": streaming_url,
             "content_type": file_doc.get("content_type", "video/mp4"),
-            "filename": file_doc.get("filename", "video")
+            "filename": file_doc.get("filename", "video"),
+            "streaming_service": "gdplayer.vip"
         }
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error getting direct stream URL: {str(e)}")
+        logger.error(f"Error getting streaming URL: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 # --- NEW: Video thumbnail endpoint ---
