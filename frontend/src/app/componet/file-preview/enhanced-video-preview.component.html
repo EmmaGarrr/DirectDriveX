@@ -55,15 +55,15 @@
        </div>
     </div>
 
-         <!-- Simple Loading Progress -->
-     <div *ngIf="videoLoading && !videoReady" class="loading-progress">
+         <!-- iframe Loading Progress -->
+     <div *ngIf="iframeLoading && !videoReady" class="loading-progress">
        <div class="progress-container">
          <mat-progress-bar 
            mode="indeterminate" 
            class="progress-bar">
          </mat-progress-bar>
          <div class="progress-text">
-           <span>Loading video preview...</span>
+           <span>Loading video player...</span>
          </div>
        </div>
      </div>
@@ -71,82 +71,46 @@
     <!-- Video Player -->
     <div *ngIf="videoReady" class="video-player-container">
       <div class="video-wrapper">
-                 <video 
-           #videoPlayer
-           [src]="mediaUrl" 
-           controls 
-           preload="metadata"
-           class="video-player"
-           (loadedmetadata)="onVideoLoaded()"
-           (canplay)="onVideoCanPlay()"
-           (timeupdate)="onVideoTimeUpdate()"
-           (error)="onVideoError($event)"
-           (progress)="onVideoProgress()">
-           Your browser does not support the video tag.
-         </video>
+        <iframe 
+          [src]="mediaUrl | safe" 
+          class="video-iframe"
+          frameborder="0"
+          allowfullscreen
+          allow="autoplay; encrypted-media; picture-in-picture"
+          title="Video Preview"
+          (load)="onIframeLoaded()">
+          Your browser does not support iframes.
+        </iframe>
         
-                 <!-- Custom Video Controls Overlay -->
-         <div class="custom-video-controls">
-           <div class="control-group">
-             <button 
-               mat-mini-fab 
-               color="primary" 
-               class="skip-button skip-back"
-               [disabled]="!isVideoReadyForSeeking()"
-               (click)="skipBackward()"
-               (mouseenter)="onButtonHover('back')"
-               (mouseleave)="onButtonLeave()"
-               title="Skip back 10 seconds">
-               <mat-icon>{{ isSeeking ? 'hourglass_empty' : 'replay_10' }}</mat-icon>
-             </button>
-             <span class="control-label">-10s</span>
-           </div>
-           
-           <div class="control-group">
-             <button 
-               mat-mini-fab 
-               color="primary" 
-               class="skip-button skip-forward"
-               [disabled]="!isVideoReadyForSeeking()"
-               (click)="skipForward()"
-               (mouseenter)="onButtonHover('forward')"
-               (mouseleave)="onButtonLeave()"
-               title="Skip forward 10 seconds">
-               <mat-icon>{{ isSeeking ? 'hourglass_empty' : 'forward_10' }}</mat-icon>
-             </button>
-             <span class="control-label">+10s</span>
-           </div>
-         </div>
-         
-         <!-- Seeking Indicator -->
-         <div *ngIf="isSeeking" class="seeking-indicator">
-           <div class="seeking-spinner">
-             <mat-spinner diameter="24"></mat-spinner>
-           </div>
-           <span class="seeking-text">Seeking...</span>
-         </div>
+        <!-- iframe Loading Indicator -->
+        <div *ngIf="iframeLoading" class="iframe-loading">
+          <div class="loading-spinner">
+            <mat-spinner diameter="24"></mat-spinner>
+          </div>
+          <span class="loading-text">Loading video player...</span>
+        </div>
       </div>
       
       
     </div>
 
-    <!-- Video Error State -->
+    <!-- iframe Error State -->
     <div *ngIf="videoError" class="video-error">
       <div class="error-content">
         <mat-icon class="error-icon">video_library</mat-icon>
-        <h3>Video Loading Failed</h3>
+        <h3>Video Player Loading Failed</h3>
         <p>{{ errorMessage }}</p>
-                 <div class="error-actions">
-           <button mat-raised-button color="primary" (click)="retry()">
-             <mat-icon>refresh</mat-icon>
-             Retry Loading
-           </button>
+        <div class="error-actions">
+          <button mat-raised-button color="primary" (click)="retry()">
+            <mat-icon>refresh</mat-icon>
+            Retry Loading
+          </button>
 
-           <button mat-raised-button color="accent" (click)="downloadFile()">
-             <mat-icon>download</mat-icon>
-             Download Video
-           </button>
-         </div>
+          <button mat-raised-button color="accent" (click)="downloadFile()">
+            <mat-icon>download</mat-icon>
+            Download Video
+          </button>
+        </div>
       </div>
     </div>
 
