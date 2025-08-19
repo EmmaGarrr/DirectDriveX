@@ -16,8 +16,8 @@ class GDPlayerService:
             # Prepare request payload
             payload = {
                 "file_id": gdrive_id,
-                # Optional: Add domain restrictions for security
-                "domains": "mfcnextgen.com,api.mfcnextgen.com"
+                # Required: Add your domains to allow iframe embedding
+                "domains": "mfcnextgen.com,api.mfcnextgen.com,localhost,127.0.0.1"
             }
             
             logger.info(f"Calling gdplayer.vip API for file {gdrive_id}")
