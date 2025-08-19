@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-how-it-works',
   templateUrl: './how-it-works.component.html',
-  styleUrl: './how-it-works.component.css'
+  styleUrl: './how-it-works.component.css',
+  encapsulation: ViewEncapsulation.None
 })
 export class HowItWorksComponent implements OnInit {
 

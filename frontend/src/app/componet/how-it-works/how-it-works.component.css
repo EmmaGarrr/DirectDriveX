@@ -5,15 +5,6 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Consistent button height for responsive design */
-.btn-primary.h-14,
-.btn-outline.h-14,
-.bg-white.text-primary.h-14,
-.border-2.border-white.h-14 {
-  height: 3.5rem !important;
-  min-height: 3.5rem !important;
-}
-
 /* Step number animation */
 .step-card .step-number {
   transition: all 0.3s ease;
@@ -90,20 +81,99 @@ html {
   transition: all 0.3s ease !important;
   padding: 20px 24px !important;
   min-height: 80px !important;
+  gap: 6px !important;
 }
 
 .faq-panel mat-expansion-panel-header:hover {
   background-color: rgba(59, 130, 246, 0.05) !important;
 }
 
-/* FAQ indicator color - Black */
-.faq-panel mat-expansion-panel-header mat-icon {
+/* Enhanced FAQ Expansion Indicator Styling - Black Color */
+.faq-panel .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+}
+
+.faq-panel .mat-expansion-indicator {
   color: #000000 !important;
 }
 
+/* Additional specificity for expansion panels */
+mat-expansion-panel.faq-panel .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+}
+
+/* Override any Angular Material theme colors with maximum specificity */
 .faq-panel mat-expansion-panel-header .mat-expansion-indicator::after {
   color: #000000 !important;
   border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+}
+
+/* For the button arrow down icon */
+.btn-outline .fas.fa-arrow-down {
+  color: inherit;
+}
+
+/* Enhanced button arrow styling */
+.btn-outline:hover .fas.fa-arrow-down {
+  color: inherit;
+}
+
+/* Ensure button icons maintain proper color inheritance */
+.btn-outline i.fas {
+  color: inherit;
+}
+
+.faq-panel mat-expansion-panel-header .mat-expansion-panel-header-title {
+  margin-right: 0px;
+}
+
+/* Ensure expansion indicator is visible and properly styled */
+.faq-panel .mat-expansion-indicator {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Maximum specificity override for expansion indicators */
+.faq-panel mat-expansion-panel-header .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+  transform: rotate(45deg) !important;
+}
+
+/* Additional override for expanded state */
+.faq-panel.mat-expanded mat-expansion-panel-header .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+  transform: rotate(-135deg) !important;
+}
+
+/* Handle all possible expansion panel states */
+.faq-panel .mat-expansion-panel-header .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+}
+
+/* Override for hover states */
+.faq-panel .mat-expansion-panel-header:hover .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+}
+
+/* Override for focus states */
+.faq-panel .mat-expansion-panel-header:focus .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
 }
 
 .faq-panel mat-expansion-panel-content {
@@ -201,6 +271,12 @@ html {
   
   .faq-panel mat-expansion-panel-content {
     padding: 0 20px 16px 20px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .text-title {
+    font-size: 1.125rem !important;
   }
 }
 
