@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { firstValueFrom } from 'rxjs';
 import { AuthService, RegisterData } from '../../services/auth.service';
+import { ToastService } from '../../shared/services/toast.service';
 
 @Component({
   selector: 'app-register',
@@ -15,11 +16,14 @@ export class RegisterComponent implements OnInit {
   hidePassword = true;
   hideConfirmPassword = true;
 
+  // Increased toast duration for better readability
+  private readonly TOAST_DURATION = 2500;
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -41,7 +45,7 @@ export class RegisterComponent implements OnInit {
     return null;
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.registerForm.valid && !this.loading) {
       this.loading = true;
       
@@ -50,28 +54,56 @@ export class RegisterComponent implements OnInit {
         password: this.registerForm.value.password
       };
 
-      this.authService.register(registerData).subscribe({
-        next: (response) => {
-          console.log('Registration successful:', response);
-          this.snackBar.open('Registration successful! Please log in.', 'Close', {
-            duration: 5000,
-            panelClass: ['success-snackbar']
-          });
-          this.router.navigate(['/login']); // Navigate to login after successful registration
-        },
-        error: (error) => {
-          console.error('Registration error:', error);
-          this.snackBar.open(error.message || 'Registration failed. Please try again.', 'Close', {
-            duration: 5000,
-            panelClass: ['error-snackbar']
-          });
-          this.loading = false;
-        },
-        complete: () => {
-          this.loading = false;
-        }
-      });
+      try {
+        const response = await firstValueFrom(this.authService.register(registerData));
+        console.log('Registration successful:', response);
+        
+        // Show success toast with consistent duration
+        await this.showToastAndWait('success', 'Registration successful! Please log in.');
+        
+        // Navigate to login after successful registration
+        this.router.navigate(['/login']);
+        
+      } catch (error: any) {
+        console.error('Registration error:', error);
+        
+        // Show error toast with consistent duration and wait for completion
+        await this.showToastAndWait('error', error.message || 'Registration failed. Please try again.');
+        
+        // Reset loading state after error toast completes
+        this.loading = false;
+      }
     }
+  }
+
+  // Helper method to show toast and wait for completion
+  private async showToastAndWait(type: 'success' | 'error' | 'warning' | 'info', message: string): Promise<void> {
+    // Show toast with consistent duration
+    switch (type) {
+      case 'success':
+        this.toastService.success(message, this.TOAST_DURATION);
+        break;
+      case 'error':
+        this.toastService.error(message, this.TOAST_DURATION);
+        break;
+      case 'warning':
+        this.toastService.warning(message, this.TOAST_DURATION);
+        break;
+      case 'info':
+        this.toastService.info(message, this.TOAST_DURATION);
+        break;
+    }
+
+    // Wait a moment for the toast to appear and start progress
+    await this.delay(100);
+    
+    // Wait for toast completion
+    await this.toastService.ensureToastCompletion();
+  }
+
+  // Helper method to create delays
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   getEmailErrorMessage(): string {
