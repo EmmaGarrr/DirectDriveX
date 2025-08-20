@@ -55,6 +55,14 @@ class Settings(BaseSettings):
     PARALLEL_UPLOAD_MAX_CONCURRENT_USERS: int = 20  # Max 20 concurrent users
     PARALLEL_UPLOAD_MAX_MEMORY_PERCENT: float = 80.0  # Max 80% memory usage
 
+    # --- NEW: UPLOAD LIMITS CONFIGURATION ---
+    ANONYMOUS_DAILY_LIMIT_BYTES: int = 2 * 1024 * 1024 * 1024  # 2GB
+    ANONYMOUS_SINGLE_FILE_LIMIT_BYTES: int = 2 * 1024 * 1024 * 1024  # 2GB
+    AUTHENTICATED_DAILY_LIMIT_BYTES: int = 5 * 1024 * 1024 * 1024  # 5GB
+    AUTHENTICATED_SINGLE_FILE_LIMIT_BYTES: int = 5 * 1024 * 1024 * 1024  # 5GB
+    ENABLE_UPLOAD_LIMITS: bool = True  # Enable/disable upload limits
+    UPLOAD_LIMITS_CACHE_TTL_MINUTES: int = 5  # Cache TTL for quota tracking
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

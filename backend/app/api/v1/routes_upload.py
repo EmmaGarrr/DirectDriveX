@@ -4,13 +4,17 @@ import uuid
 from typing import Optional
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from app.models.file import FileMetadataCreate, FileMetadataInDB, InitiateUploadRequest, UploadStatus
 from app.models.user import UserInDB
 from app.db.mongodb import db
 from app.services.auth_service import get_current_user_optional, get_current_user
 # --- MODIFIED: Import the pool manager instead of the whole service ---
 from app.services.google_drive_service import gdrive_pool_manager, create_resumable_upload_session
+# --- NEW: Import upload limits service and IP extraction ---
+from app.services.upload_limits_service import upload_limits_service
+from app.services.admin_auth_service import get_client_ip
+from app.core.config import settings
 # from app.ws_manager import manager # Assuming you have a WebSocket manager for admin logs
 
 router = APIRouter()
@@ -18,8 +22,28 @@ router = APIRouter()
 @router.post("/upload/initiate", response_model=dict)
 async def initiate_upload(
     request: InitiateUploadRequest,
+    client_request: Request,
     current_user: Optional[UserInDB] = Depends(get_current_user_optional)
 ):
+    # --- NEW: Extract client IP address ---
+    client_ip = get_client_ip(client_request)
+    user_id = current_user.id if current_user else None
+    
+    # --- NEW: Check upload limits before proceeding ---
+    if settings.ENABLE_UPLOAD_LIMITS:
+        limits_check = await upload_limits_service.check_upload_limits(
+            user_id=user_id,
+            ip_address=client_ip,
+            file_sizes=[request.size],
+            is_batch=False
+        )
+        
+        if not limits_check['allowed']:
+            raise HTTPException(
+                status_code=400, 
+                detail=limits_check['reason']
+            )
+    
     file_id = str(uuid.uuid4())
     
     # --- NEW: Get an active account from the pool ---
@@ -44,15 +68,23 @@ async def initiate_upload(
     # timestamp = datetime.utcnow().isoformat()
     # await manager.broadcast(f"[{timestamp}] [API_REQUEST] Google Drive: Initiate Resumable Upload for '{request.filename}'") 
 
+    # --- NEW: Record upload for quota tracking ---
+    if settings.ENABLE_UPLOAD_LIMITS:
+        await upload_limits_service.record_upload(user_id, client_ip, [request.size])
+
     file_meta = FileMetadataCreate(
         _id=file_id,
         filename=request.filename,
         size_bytes=request.size,
         content_type=request.content_type,
-        owner_id=current_user.id if current_user else None,
+        owner_id=user_id,
         status=UploadStatus.PENDING,
         # --- NEW: Save which account was used ---
-        gdrive_account_id=active_account.id
+        gdrive_account_id=active_account.id,
+        # --- NEW: Add IP tracking and anonymous user info ---
+        ip_address=client_ip,
+        is_anonymous=user_id is None,
+        daily_quota_used=request.size
     )
     db.files.insert_one(file_meta.model_dump(by_alias=True))
     
@@ -115,6 +147,22 @@ async def cancel_upload(file_id: str):
         "filename": file_doc.get("filename"),
         "cancelled_at": datetime.utcnow().isoformat()
     }
+
+# --- NEW: Add quota info endpoint ---
+@router.get("/upload/quota-info")
+async def get_quota_info(
+    client_request: Request,
+    current_user: Optional[UserInDB] = Depends(get_current_user_optional)
+):
+    """Get quota information for current user or IP"""
+    if not settings.ENABLE_UPLOAD_LIMITS:
+        return {"message": "Upload limits are disabled"}
+    
+    client_ip = get_client_ip(client_request)
+    user_id = current_user.id if current_user else None
+    
+    quota_info = await upload_limits_service.get_quota_info(user_id, client_ip)
+    return quota_info
 
 # --- HTTP routes for metadata/history remain the same ---
 @router.get("/files/{file_id}", response_model=FileMetadataInDB)

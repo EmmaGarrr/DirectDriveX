@@ -3,7 +3,7 @@
 import uuid
 from typing import Optional, List
 from fastapi.responses import StreamingResponse
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from datetime import datetime
 
 from app.models.batch import BatchMetadata, InitiateBatchRequest, InitiateBatchResponse
@@ -14,14 +14,39 @@ from app.services.auth_service import get_current_user_optional
 # --- MODIFIED: Import the pool manager and helper functions ---
 from app.services.google_drive_service import gdrive_pool_manager, create_resumable_upload_session
 from app.services import zipping_service
+# --- NEW: Import upload limits service and IP extraction ---
+from app.services.upload_limits_service import upload_limits_service
+from app.services.admin_auth_service import get_client_ip
+from app.core.config import settings
 
 router = APIRouter()
 
 @router.post("/initiate", response_model=InitiateBatchResponse)
 async def initiate_batch_upload(
     request: InitiateBatchRequest,
+    client_request: Request,
     current_user: Optional[UserInDB] = Depends(get_current_user_optional)
 ):
+    # --- NEW: Extract client IP address ---
+    client_ip = get_client_ip(client_request)
+    user_id = current_user.id if current_user else None
+    
+    # --- NEW: Check upload limits before proceeding ---
+    if settings.ENABLE_UPLOAD_LIMITS:
+        file_sizes = [file_info.size for file_info in request.files]
+        limits_check = await upload_limits_service.check_upload_limits(
+            user_id=user_id,
+            ip_address=client_ip,
+            file_sizes=file_sizes,
+            is_batch=True
+        )
+        
+        if not limits_check['allowed']:
+            raise HTTPException(
+                status_code=400, 
+                detail=limits_check['reason']
+            )
+    
     # --- NEW: Get an active account from the pool for the entire batch ---
     active_account = await gdrive_pool_manager.get_active_account()
     if not active_account:
@@ -47,7 +72,7 @@ async def initiate_batch_upload(
             print(f"!!! FAILED to create Google Drive resumable session for {file_info.filename}: {e}")
             raise HTTPException(status_code=503, detail=f"Cloud storage service is currently unavailable for file: {file_info.filename}")
 
-        owner_id = current_user.id if current_user else None
+        owner_id = user_id
         file_meta = FileMetadataCreate(
             _id=file_id,
             filename=file_info.filename,
@@ -57,7 +82,11 @@ async def initiate_batch_upload(
             status=UploadStatus.PENDING,
             batch_id=batch_id,
             # --- NEW: Save which account was used ---
-            gdrive_account_id=active_account.id
+            gdrive_account_id=active_account.id,
+            # --- NEW: Add IP tracking and anonymous user info ---
+            ip_address=client_ip,
+            is_anonymous=user_id is None,
+            daily_quota_used=file_info.size
         )
         db.files.insert_one(file_meta.model_dump(by_alias=True))
 
@@ -73,7 +102,12 @@ async def initiate_batch_upload(
     # --- NEW: Increment upload volume once for the whole batch ---
     gdrive_pool_manager.tracker.increment_upload_volume(active_account.id, total_batch_size)
 
-    owner_id = current_user.id if current_user else None
+    # --- NEW: Record batch upload for quota tracking ---
+    if settings.ENABLE_UPLOAD_LIMITS:
+        file_sizes = [file_info.size for file_info in request.files]
+        await upload_limits_service.record_upload(user_id, client_ip, file_sizes)
+
+    owner_id = user_id
     batch_meta = BatchMetadata(
         _id=batch_id,
         file_ids=file_ids_for_batch,

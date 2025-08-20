@@ -44,7 +44,12 @@ class FileMetadataCreate(FileMetadataBase):
     backup_location: Optional[StorageLocation] = None
     hetzner_remote_path: Optional[str] = None
     
+    # --- NEW: Fields for upload limits tracking ---
     owner_id: Optional[str] = None
+    ip_address: Optional[str] = None  # Track upload IP for anonymous users
+    is_anonymous: bool = False  # Flag for anonymous uploads
+    daily_quota_used: int = 0  # Track quota usage for this upload
+    
     batch_id: Optional[str] = None
 
 class FileMetadataInDB(FileMetadataBase):
@@ -62,7 +67,12 @@ class FileMetadataInDB(FileMetadataBase):
     backup_location: Optional[StorageLocation] = None
     hetzner_remote_path: Optional[str] = None
 
+    # --- NEW: Fields for upload limits tracking ---
     owner_id: Optional[str] = None
+    ip_address: Optional[str] = None  # Track upload IP for anonymous users
+    is_anonymous: bool = False  # Flag for anonymous uploads
+    daily_quota_used: int = 0  # Track quota usage for this upload
+
     batch_id: Optional[str] = None
 
     class Config:
