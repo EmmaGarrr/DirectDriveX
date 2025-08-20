@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { UploadService, UploadEvent } from '../../shared/services/upload.service';
+import { UploadService, UploadEvent, QuotaInfo } from '../../shared/services/upload.service';
 import { Subscription, forkJoin, Observable, Observer, Subject } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BatchUploadService, IBatchFileInfo } from '../../shared/services/batch-upload.service';
@@ -51,6 +51,10 @@ export class HomeComponent implements OnDestroy {
   // Math reference for template
   public Math = Math;
 
+  // --- NEW: Quota tracking ---
+  public quotaInfo: QuotaInfo | null = null;
+  public quotaLoading = false;
+
   constructor(
     private uploadService: UploadService,
     private snackBar: MatSnackBar,
@@ -58,6 +62,77 @@ export class HomeComponent implements OnDestroy {
   ) {
     // Note: AuthService integration removed due to missing implementation
     // this.authService.isAuthenticated$.pipe(takeUntil(this.destroy$)).subscribe(...)
+    
+    // --- NEW: Check authentication status ---
+    this.checkAuthenticationStatus();
+    
+    // --- NEW: Load quota information ---
+    this.loadQuotaInfo();
+  }
+
+  // --- NEW: Check if user is authenticated ---
+  private checkAuthenticationStatus(): void {
+    const token = localStorage.getItem('access_token');
+    this.isAuthenticated = !!token;
+  }
+
+  // --- NEW: Load quota information ---
+  private loadQuotaInfo(): void {
+    this.quotaLoading = true;
+    this.uploadService.getQuotaInfo().subscribe({
+      next: (quota) => {
+        this.quotaInfo = quota;
+        this.quotaLoading = false;
+      },
+      error: (error) => {
+        console.error('Failed to load quota info:', error);
+        this.quotaLoading = false;
+      }
+    });
+  }
+
+  // --- NEW: Get file size limits based on authentication ---
+  private getFileSizeLimits(): { singleFile: number; daily: number } {
+    return {
+      singleFile: this.isAuthenticated ? 5 * 1024 * 1024 * 1024 : 2 * 1024 * 1024 * 1024, // 5GB or 2GB
+      daily: this.isAuthenticated ? 5 * 1024 * 1024 * 1024 : 2 * 1024 * 1024 * 1024 // 5GB or 2GB
+    };
+  }
+
+  // --- NEW: Validate single file size ---
+  private validateFileSize(file: File): boolean {
+    const limits = this.getFileSizeLimits();
+    const limitText = this.isAuthenticated ? '5GB' : '2GB';
+    
+    if (file.size > limits.singleFile) {
+      this.snackBar.open(`File size exceeds ${limitText} limit for ${this.isAuthenticated ? 'authenticated' : 'anonymous'} users`, 'Close', { duration: 5000 });
+      return false;
+    }
+    return true;
+  }
+
+  // --- NEW: Validate batch file sizes ---
+  private validateBatchFiles(files: File[]): boolean {
+    const limits = this.getFileSizeLimits();
+    const limitText = this.isAuthenticated ? '5GB' : '2GB';
+    
+    // Check individual file sizes
+    for (const file of files) {
+      if (file.size > limits.singleFile) {
+        this.snackBar.open(`File "${file.name}" exceeds ${limitText} single file limit`, 'Close', { duration: 5000 });
+        return false;
+      }
+    }
+    
+    // Check total batch size
+    const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+    if (totalSize > limits.daily) {
+      const totalSizeGB = (totalSize / (1024 * 1024 * 1024)).toFixed(2);
+      this.snackBar.open(`Total file size (${totalSizeGB}GB) exceeds ${limitText} daily limit`, 'Close', { duration: 5000 });
+      return false;
+    }
+    
+    return true;
   }
 
   // File selection handlers
@@ -66,10 +141,28 @@ export class HomeComponent implements OnDestroy {
     this._processFileList(target.files);
   }
 
+  // --- NEW: Add missing drag and drop methods ---
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+  }
+
   onDrop(event: DragEvent): void {
     event.preventDefault();
+    event.stopPropagation();
     this.isDragOver = false;
-    this._processFileList(event.dataTransfer?.files || null);
+    
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      this._processFileList(files);
+    }
   }
 
   private _processFileList(files: FileList | null): void {
@@ -79,15 +172,29 @@ export class HomeComponent implements OnDestroy {
     
     if (files.length === 1) {
       // Single file upload mode
-      this.selectedFile = files[0];
+      const file = files[0];
+      
+      // --- NEW: Validate file size before proceeding ---
+      if (!this.validateFileSize(file)) {
+        return;
+      }
+      
+      this.selectedFile = file;
       this.currentState = 'selected';
       this.batchFiles = []; // Clear batch files
       this.batchState = 'idle';
     } else {
       // Multiple files - batch upload mode
+      const fileArray = Array.from(files);
+      
+      // --- NEW: Validate batch files before proceeding ---
+      if (!this.validateBatchFiles(fileArray)) {
+        return;
+      }
+      
       this.selectedFile = null; // Clear single file
       this.currentState = 'idle';
-      this.batchFiles = Array.from(files).map(file => ({
+      this.batchFiles = fileArray.map(file => ({
         file,
         state: 'pending' as const,
         progress: 0
@@ -109,7 +216,7 @@ export class HomeComponent implements OnDestroy {
     this.uploadService.upload(this.selectedFile).subscribe({
       next: (event: UploadEvent) => {
         if (event.type === 'progress') {
-          this.uploadProgress = event.value;
+          this.uploadProgress = event.value as number;
         } else if (event.type === 'success') {
           // Check if this is a cancellation success message
           if (this.isCancelling || (typeof event.value === 'string' && event.value.includes('cancelled'))) {
@@ -121,10 +228,13 @@ export class HomeComponent implements OnDestroy {
             // Handle regular upload success
             this.currentState = 'success';
             // Extract file ID from the API path
-            const fileId = event.value.split('/').pop();
+            const fileId = typeof event.value === 'string' ? event.value.split('/').pop() : event.value;
             // Generate frontend route URL like batch downloads (not direct API URL)
             this.finalDownloadLink = `${window.location.origin}/download/${fileId}`;
             this.snackBar.open('File uploaded successfully!', 'Close', { duration: 3000 });
+            
+            // --- NEW: Refresh quota info after successful upload ---
+            this.loadQuotaInfo();
           }
         }
       },
@@ -307,23 +417,26 @@ export class HomeComponent implements OnDestroy {
         
         try {
           const message: any = JSON.parse(event.data);
-          if (message.type === 'progress') {
-            observer.next(message);
+          
+          if (message.type === 'progress' || message.type === 'success' || message.type === 'error') {
+            observer.next(message as UploadEvent);
           }
+          // Note: cancel_ack removed - now using superior HTTP cancel protocol
         } catch (e) {
-          console.error('[HOME] Failed to parse message:', event.data);
+          console.error('[HOME_BATCH] Failed to parse message from server:', event.data);
         }
       };
-      
+
       ws.onerror = (error) => {
-        clearTimeout(connectionTimeout); // Clear timeout on error
+        clearTimeout(connectionTimeout);
+        console.error('[HOME_BATCH] Error:', error);
         console.log(`[DEBUG] ❌ [HOME] WebSocket error occurred:`, error);
         console.log(`[DEBUG] ❌ [HOME] WebSocket readyState during error:`, ws.readyState);
-        observer.error({ type: 'error', value: 'Connection failed' });
+        observer.error({ type: 'error', value: 'Connection to server failed.' });
       };
-      
+
       ws.onclose = (event) => {
-        clearTimeout(connectionTimeout); // Clear timeout on close
+        clearTimeout(connectionTimeout);
         console.log(`[DEBUG] 🔌 [HOME] WebSocket closed:`, {
           code: event.code,
           reason: event.reason,
@@ -336,10 +449,19 @@ export class HomeComponent implements OnDestroy {
           console.log(`[DEBUG] ❌ [HOME] ABNORMAL_CLOSURE detected - connection was closed unexpectedly`);
         }
         
-        if (!event.wasClean) {
-          observer.error({ type: 'error', value: 'Connection lost' });
+        if (this.isCancelling) {
+          // User initiated cancellation - show success message
+          observer.next({ type: 'success', value: 'Upload cancelled successfully' });
+        } else if (!event.wasClean) {
+          observer.error({ type: 'error', value: 'Lost connection to server during upload.' });
         } else {
           observer.complete();
+        }
+      };
+
+      return () => {
+        if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+          ws.close();
         }
       };
     });
@@ -420,56 +542,61 @@ export class HomeComponent implements OnDestroy {
     reader.readAsArrayBuffer(chunk);
   }
 
-  private checkBatchCompletion(batchId: string): void {
-    const allFinished = this.batchFiles.every(f => f.state !== 'uploading');
-    if (allFinished) {
-      const hasErrors = this.batchFiles.some(f => f.state === 'error');
-      const successCount = this.batchFiles.filter(f => f.state === 'success').length;
-      const totalCount = this.batchFiles.length;
-      
-      if (hasErrors) {
-        this.batchState = 'error';
-        this.snackBar.open(`Upload completed with errors: ${successCount}/${totalCount} files succeeded`, 'Close', { duration: 5000 });
-      } else {
-        this.batchState = 'success';
-        // Generate proper batch download page link (not direct download)
-        this.finalBatchLink = `${window.location.origin}/batch-download/${batchId}`;
-        this.snackBar.open(`All ${totalCount} files uploaded successfully!`, 'Close', { duration: 3000 });
-      }
-      
-      console.log(`[HOME_BATCH] Upload batch completed: ${successCount}/${totalCount} files succeeded, batch_id: ${batchId}`);
+  // --- NEW: Get quota display text ---
+  getQuotaDisplayText(): string {
+    if (!this.quotaInfo) return '';
+    
+    const limit = this.quotaInfo.daily_limit_gb;
+    const used = this.quotaInfo.current_usage_gb;
+    const remaining = this.quotaInfo.remaining_gb;
+    const userType = this.quotaInfo.user_type;
+    
+    return `${used}GB / ${limit}GB used (${remaining}GB remaining)`;
+  }
+
+  // --- NEW: Get quota progress percentage ---
+  getQuotaProgressPercentage(): number {
+    if (!this.quotaInfo) return 0;
+    return this.quotaInfo.usage_percentage;
+  }
+
+  // --- NEW: Get quota status color ---
+  getQuotaStatusColor(): string {
+    if (!this.quotaInfo) return 'gray';
+    
+    const percentage = this.quotaInfo.usage_percentage;
+    if (percentage >= 90) return 'red';
+    if (percentage >= 75) return 'orange';
+    if (percentage >= 50) return 'yellow';
+    return 'green';
+  }
+
+  // --- NEW: Add missing methods referenced in template ---
+  uploadFile(): void {
+    if (this.selectedFile && this.currentState === 'selected') {
+      this.onUploadSingle();
     }
   }
 
-  // Utility methods
+  cancelUpload(): void {
+    this.onCancelUpload();
+  }
+
+  resetUpload(): void {
+    this.resetState();
+  }
+
+  // --- NEW: Add missing resetState method ---
   resetState(): void {
     this.currentState = 'idle';
+    this.batchState = 'idle';
     this.selectedFile = null;
+    this.batchFiles = [];
     this.uploadProgress = 0;
     this.finalDownloadLink = null;
+    this.finalBatchLink = null;
     this.errorMessage = null;
     this.isCancelling = false;
-    this.batchFiles = [];
-    this.batchState = 'idle';
-    this.finalBatchLink = null;
-    
-    // Clean up subscriptions
-    if (this.uploadSubscription) {
-      this.uploadSubscription.unsubscribe();
-      this.uploadSubscription = undefined;
-    }
-    
-    this.batchSubscriptions.forEach(sub => sub.unsubscribe());
-    this.batchSubscriptions = [];
-    
-    if (this.currentWebSocket) {
-      this.currentWebSocket.close();
-      this.currentWebSocket = undefined;
-    }
-  }
-
-  startNewUpload(): void {
-    this.resetState();
   }
 
   copyLink(link: string): void {
@@ -481,40 +608,6 @@ export class HomeComponent implements OnDestroy {
   openDownloadLink(link: string | null): void {
     if (link) {
       window.open(link, '_blank');
-    }
-  }
-
-  // Premium batch upload cancel methods with smooth UX
-  onCancelSingleBatchFile(fileState: IFileState): void {
-    if (fileState.state === 'uploading' && fileState.websocket) {
-      // Immediate visual feedback
-      fileState.state = 'cancelling';
-      
-      // Show user-friendly message immediately
-      this.snackBar.open(`Cancelling ${fileState.file.name}...`, 'Close', { duration: 2000 });
-      
-      setTimeout(() => {
-        // Close WebSocket connection
-        if (fileState.websocket) {
-          fileState.websocket.close();
-        }
-        fileState.state = 'cancelled';
-        fileState.error = 'Upload cancelled by user';
-        
-        // Remove the subscription for this file
-        const index = this.batchSubscriptions.findIndex(sub => {
-          return !sub.closed;
-        });
-        if (index !== -1) {
-          this.batchSubscriptions[index].unsubscribe();
-          this.batchSubscriptions.splice(index, 1);
-        }
-        
-        // Success notification after delay
-        setTimeout(() => {
-          this.snackBar.open(`${fileState.file.name} upload cancelled successfully`, 'Close', { duration: 3000 });
-        }, 500);
-      }, 300);
     }
   }
 
@@ -560,7 +653,6 @@ export class HomeComponent implements OnDestroy {
     }, 300);
   }
 
-  // Reset batch upload to idle state with smooth transition
   resetBatchToIdle(): void {
     setTimeout(() => {
       this.batchState = 'idle';
@@ -574,52 +666,20 @@ export class HomeComponent implements OnDestroy {
     }, 300);
   }
 
-  // Drag and drop handlers
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragOver = true;
-  }
-
-  onDragLeave(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragOver = false;
-  }
-
-  // Authentication placeholders (to be implemented when AuthService is available)
-  navigateToLogin(): void {
-    // this.router.navigate(['/login']);
-  }
-
-  navigateToRegister(): void {
-    // this.router.navigate(['/register']);
-  }
-
-  navigateToProfile(): void {
-    // this.router.navigate(['/profile']);
-  }
-
-  onLogout(): void {
-    // this.authService.logout();
-    // this.router.navigate(['/']);
-  }
-
-  // Upload restriction checks
-  canUploadBatch(): boolean {
-    return this.isAuthenticated;
-  }
-
-  canDownloadZip(): boolean {
-    return this.isAuthenticated;
-  }
-
-  getUploadLimitMessage(): string {
-    if (this.isAuthenticated) {
-      return 'Authenticated users can upload files up to 10GB';
+  // --- NEW: Add missing checkBatchCompletion method ---
+  checkBatchCompletion(batchId: string): void {
+    const allCompleted = this.batchFiles.every(f => f.state === 'success' || f.state === 'error');
+    if (allCompleted) {
+      this.batchState = 'success';
+      this.finalBatchLink = `${window.location.origin}/batch/${batchId}`;
+      this.snackBar.open('All files uploaded successfully!', 'Close', { duration: 3000 });
+      
+      // --- NEW: Refresh quota info after successful batch upload ---
+      this.loadQuotaInfo();
     }
-    return 'Anonymous users can upload files up to 2GB';
   }
 
-  // Utility methods for template
+  // --- NEW: Add missing getFileSize method ---
   getFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
     
@@ -630,23 +690,52 @@ export class HomeComponent implements OnDestroy {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  uploadFile(): void {
-    if (this.selectedFile && this.currentState === 'selected') {
-      this.onUploadSingle();
+  // --- NEW: Add missing onCancelSingleBatchFile method ---
+  onCancelSingleBatchFile(fileState: IFileState): void {
+    if (fileState.state !== 'uploading') return;
+
+    // Immediate visual feedback
+    fileState.state = 'cancelling';
+    
+    // Close WebSocket connection
+    if (fileState.websocket) {
+      fileState.websocket.close();
+      fileState.websocket = undefined;
     }
-  }
-
-  cancelUpload(): void {
-    this.onCancelUpload();
-  }
-
-  resetUpload(): void {
-    this.resetState();
+    
+    // Show user-friendly message
+    this.snackBar.open(`Cancelling upload: ${fileState.file.name}`, 'Close', { duration: 2000 });
+    
+    // Simulate realistic cancellation time for better UX
+    setTimeout(() => {
+      fileState.state = 'cancelled';
+      fileState.error = 'Upload cancelled by user';
+      
+      // Check if all files are now cancelled/completed
+      this.checkBatchCompletion('');
+    }, 500);
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    this.resetState();
+    
+    // Clean up subscriptions
+    if (this.uploadSubscription) {
+      this.uploadSubscription.unsubscribe();
+    }
+    
+    this.batchSubscriptions.forEach(sub => sub.unsubscribe());
+    
+    // Close WebSocket connections
+    if (this.currentWebSocket) {
+      this.currentWebSocket.close();
+    }
+    
+    this.batchFiles.forEach(f => {
+      if (f.websocket) {
+        f.websocket.close();
+      }
+    });
   }
 }

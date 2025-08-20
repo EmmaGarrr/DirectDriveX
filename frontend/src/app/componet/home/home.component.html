@@ -670,3 +670,181 @@
     </div>
   </div>
 </div>
+
+<!-- Styles for the new quota and limit features -->
+<style>
+.quota-section {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 20px 0;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.quota-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.quota-label {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.quota-value {
+  font-weight: 600;
+  color: #fff;
+}
+
+.quota-progress {
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.progress-green { background: #10b981; }
+.progress-yellow { background: #f59e0b; }
+.progress-orange { background: #f97316; }
+.progress-red { background: #ef4444; }
+
+.quota-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.user-type {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.limit-info {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.quota-loading {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 20px 0;
+}
+
+.upload-limits {
+  margin: 16px 0;
+}
+
+.limit-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.limit-badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.limit-badge.authenticated {
+  background: #10b981;
+  color: white;
+}
+
+.limit-badge.anonymous {
+  background: #6b7280;
+  color: white;
+}
+
+.limit-text {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+}
+
+.auth-section {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 24px;
+  margin-top: 32px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-info h3 {
+  color: #fff;
+  margin-bottom: 12px;
+  font-size: 1.25rem;
+}
+
+.auth-info p {
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 20px;
+}
+
+.auth-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.benefit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.benefit-icon {
+  font-size: 1.25rem;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.login-btn, .register-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.login-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.register-btn {
+  background: #10b981;
+  color: white;
+}
+
+.register-btn:hover {
+  background: #059669;
+}
+</style>
