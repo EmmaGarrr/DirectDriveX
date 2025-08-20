@@ -1534,6 +1534,34 @@ p {
   animation: fadeIn 0.5s ease-out;
 }
 
+/* Footer Integration Styles */
+main {
+  min-height: calc(100vh - 200px); /* Ensure main content takes up space before footer */
+}
+
+/* Footer Responsive Adjustments */
+@media (max-width: 768px) {
+  main {
+    min-height: calc(100vh - 300px);
+  }
+}
+
+/* Footer Animation Classes */
+.footer-fade-in {
+  animation: footerFadeIn 0.8s ease-out;
+}
+
+@keyframes footerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Upload Cancelling States */
 .upload-cancelling {
   transition: all 0.3s ease;
