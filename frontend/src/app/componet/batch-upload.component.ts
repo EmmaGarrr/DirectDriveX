@@ -8,6 +8,7 @@ import { catchError, tap } from 'rxjs/operators';
 import { BatchUploadService, IBatchFileInfo } from '../shared/services/batch-upload.service';
 import { UploadEvent } from '../shared/services/upload.service';
 import { environment } from '../../environments/environment';
+import { AppComponent } from '../app.component';
 
 interface IFileState {
   file: File;
@@ -59,8 +60,12 @@ export class BatchUploadComponent implements OnDestroy {
   constructor(
     private batchUploadService: BatchUploadService,
     private snackBar: MatSnackBar,
-    private http: HttpClient
-  ) {}
+    private http: HttpClient,
+    private appComponent: AppComponent
+  ) {
+    // Track batch upload page view
+    this.appComponent.trackHotjarEvent('batch_upload_page_viewed');
+  }
 
   onFilesSelected(event: any): void {
     const selectedFiles = (event.target as HTMLInputElement).files;
@@ -69,11 +74,28 @@ export class BatchUploadComponent implements OnDestroy {
       this.files = Array.from(selectedFiles).map(file => ({
         file, state: 'pending', progress: 0
       }));
+
+      // Track file selection
+      this.appComponent.trackHotjarEvent('files_selected', {
+        file_count: this.files.length,
+        total_size: this.getTotalFileSize(),
+        file_types: this.getFileTypes(),
+        upload_type: 'batch'
+      });
     }
   }
 
   onUploadBatch(): void {
     if (this.files.length === 0) return;
+    
+    // Track upload initiation
+    this.appComponent.trackHotjarEvent('batch_upload_initiated', {
+      file_count: this.files.length,
+      total_size: this.getTotalFileSize(),
+      file_types: this.getFileTypes(),
+      upload_type: 'batch'
+    });
+    
     this.batchState = 'processing';
     const batchFileInfos: IBatchFileInfo[] = this.files.map(fs => ({
       filename: fs.file.name,
@@ -99,6 +121,14 @@ export class BatchUploadComponent implements OnDestroy {
       },
       error: (err) => {
         this.batchState = 'error';
+        
+        // Track upload initiation failure
+        this.appComponent.trackHotjarEvent('batch_upload_initiation_failed', {
+          error_type: err.error?.detail || 'unknown_error',
+          file_count: this.files.length,
+          total_size: this.getTotalFileSize()
+        });
+        
         this.snackBar.open(err.error?.detail || 'Failed to initiate batch upload.', 'Close', { duration: 5000 });
       }
     });
@@ -107,6 +137,14 @@ export class BatchUploadComponent implements OnDestroy {
 
   onCancelUpload(): void {
     if (this.batchState !== 'processing' || this.isCancelling) return;
+    
+    // Track upload cancellation
+    this.appComponent.trackHotjarEvent('batch_upload_cancelled', {
+      file_count: this.files.length,
+      completed_files: this.files.filter(f => f.state === 'success').length,
+      failed_files: this.files.filter(f => f.state === 'error').length,
+      uploading_files: this.files.filter(f => f.state === 'uploading').length
+    });
     
     console.log('[FRONTEND_UPLOAD] User initiated batch upload cancellation');
     this.isCancelling = true;
@@ -457,5 +495,16 @@ export class BatchUploadComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.reset();
+  }
+
+  // Helper method to get total file size
+  private getTotalFileSize(): number {
+    return this.files.reduce((total, fileState) => total + fileState.file.size, 0);
+  }
+
+  // Helper method to get file types
+  private getFileTypes(): string[] {
+    const types = this.files.map(fileState => fileState.file.type || 'unknown');
+    return [...new Set(types)]; // Remove duplicates
   }
 }

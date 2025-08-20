@@ -1,3 +1,6 @@
+/* Font Awesome Import */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
 /* You can add global styles to this file, and also import other style files */
 @tailwind base;
 @tailwind components;
@@ -48,6 +51,8 @@
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --gradient-primary: linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 85%, #5582dc) 100%);
+  --gradient-hero: linear-gradient(135deg, var(--bolt-blue) 0%, var(--bolt-dark-purple) 50%, var(--bolt-purple) 100%);
+  --gradient-cta: linear-gradient(135deg, var(--bolt-blue) 0%, var(--bolt-dark-purple) 100%);
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -274,7 +279,7 @@ p {
   border: none;
   background: linear-gradient(135deg, var(--bolt-blue) 0%, var(--bolt-dark-purple) 100%);
   color: var(--bolt-white);
-  padding: 1rem 2rem;
+  padding: 1rem 1.5rem;
   box-shadow: 0 4px 16px rgba(19, 94, 227, 0.3);
   letter-spacing: -0.01em;
   text-decoration: none;
@@ -351,7 +356,7 @@ p {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.375rem;
+  border-radius: 0.75rem;
   font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.2s;
@@ -809,12 +814,12 @@ p {
     padding: 1rem;
   }
   
-  .btn-primary,
+  /* .btn-primary,
   .btn-outline,
   .btn-secondary {
     font-size: 0.75rem;
     padding: 0.375rem 0.75rem;
-  }
+  } */
 }
 
 /* Modern Backdrop Filter Support */

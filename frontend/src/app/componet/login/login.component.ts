@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService, LoginCredentials } from '../../services/auth.service';
 import { ToastService } from '../../shared/services/toast.service';
+import { AppComponent } from '../../app.component';
 
 @Component({
   selector: 'app-login',
@@ -22,7 +23,8 @@ export class LoginComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private appComponent: AppComponent
   ) {}
 
   ngOnInit(): void {
@@ -38,11 +40,20 @@ export class LoginComponent implements OnInit {
         Validators.maxLength(128)
       ]]
     });
+
+    // Track login page view
+    this.appComponent.trackHotjarEvent('login_page_viewed');
   }
 
   async onSubmit(): Promise<void> {
     if (this.loginForm.valid && !this.loading) {
       this.loading = true;
+      
+      // Track login attempt
+      this.appComponent.trackHotjarEvent('login_attempted', {
+        email_provided: !!this.loginForm.value.email,
+        password_provided: !!this.loginForm.value.password
+      });
       
       const credentials: LoginCredentials = {
         username: this.loginForm.value.email, // API expects username field
@@ -53,6 +64,12 @@ export class LoginComponent implements OnInit {
         const response = await firstValueFrom(this.authService.login(credentials));
         console.log('Login successful:', response);
         
+        // Track successful login
+        this.appComponent.trackHotjarEvent('login_success', {
+          user_type: 'returning_user',
+          login_method: 'email'
+        });
+        
         // Show success toast with consistent duration
         await this.showToastAndWait('success', 'Login successful! Redirecting...');
         
@@ -62,12 +79,25 @@ export class LoginComponent implements OnInit {
       } catch (error: any) {
         console.error('Login error:', error);
         
+        // Track failed login
+        this.appComponent.trackHotjarEvent('login_failed', {
+          error_type: error.message || 'unknown_error',
+          error_code: error.status || 'unknown'
+        });
+        
         // Show error toast with consistent duration and wait for completion
         await this.showToastAndWait('error', error.message || 'Login failed. Please try again.');
         
         // Reset loading state after error toast completes
         this.loading = false;
       }
+    } else {
+      // Track form validation errors
+      this.appComponent.trackHotjarEvent('login_form_validation_error', {
+        email_valid: this.loginForm.get('email')?.valid,
+        password_valid: this.loginForm.get('password')?.valid,
+        form_valid: this.loginForm.valid
+      });
     }
   }
 

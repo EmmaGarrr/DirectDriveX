@@ -51,3 +51,15 @@ class UserProfileResponse(UserBase):
     class Config:
         populate_by_name = True
         from_attributes = True
+
+# --- NEW: PASSWORD RESET MODELS ---
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    reset_token: str = Field(..., min_length=32, max_length=32)
+    new_password: str = Field(..., min_length=8)
+
+class PasswordResetResponse(BaseModel):
+    message: str
+    email: str

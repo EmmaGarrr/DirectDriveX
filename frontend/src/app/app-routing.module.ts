@@ -30,9 +30,11 @@ import { SecuritySettingsComponent } from './admin-panel/security-settings/secur
 import { StorageCleanupComponent } from './admin-panel/storage-cleanup/storage-cleanup.component';
 import { ForgotPasswordComponent } from './componet/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './componet/reset-password/reset-password.component';
+import { HowItWorksComponent } from './componet/how-it-works/how-it-works.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
+  { path: 'how-it-works', component: HowItWorksComponent },
   { path: 'batch-upload', component: BatchUploadComponent },
   { path: 'batch-download/:batchId', component: BatchDownloadComponent },
   { path: 'login', component: LoginComponent },

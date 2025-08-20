@@ -5,7 +5,11 @@ import { Subscription, forkJoin, Observable, Observer, Subject } from 'rxjs';
 import { ToastService } from '../../shared/services/toast.service';
 import { BatchUploadService, IBatchFileInfo } from '../../shared/services/batch-upload.service';
 import { environment } from '../../../environments/environment';
+<<<<<<< HEAD
 import { MatSnackBar } from '@angular/material/snack-bar';
+=======
+import { AppComponent } from '../../app.component';
+>>>>>>> 1c3d303d324059a9ee98721e479525b39d3692ef
 
 // Interfaces and Types
 interface IFileState {
@@ -63,10 +67,19 @@ export class HomeComponent implements OnDestroy {
   constructor(
     private router: Router,
     private uploadService: UploadService,
+<<<<<<< HEAD
     private snackBar: MatSnackBar,
     private batchUploadService: BatchUploadService,
     private toastService: ToastService
+=======
+    private toastService: ToastService,
+    private batchUploadService: BatchUploadService,
+    private appComponent: AppComponent
+>>>>>>> 1c3d303d324059a9ee98721e479525b39d3692ef
   ) {
+    // Track homepage view
+    this.appComponent.trackHotjarEvent('homepage_viewed');
+    
     // Note: AuthService integration removed due to missing implementation
     // this.authService.isAuthenticated$.pipe(takeUntil(this.destroy$)).subscribe(...)
     
@@ -190,6 +203,14 @@ export class HomeComponent implements OnDestroy {
       this.currentState = 'selected';
       this.batchFiles = []; // Clear batch files
       this.batchState = 'idle';
+      
+      // Track single file selection
+      this.appComponent.trackHotjarEvent('single_file_selected', {
+        file_name: this.selectedFile.name,
+        file_size: this.selectedFile.size,
+        file_type: this.selectedFile.type,
+        upload_type: 'single'
+      });
     } else {
       // Multiple files - batch upload mode
       const fileArray = Array.from(files);
@@ -207,17 +228,39 @@ export class HomeComponent implements OnDestroy {
         progress: 0
       }));
       this.batchState = 'selected';
+      
+      // Track batch file selection
+      this.appComponent.trackHotjarEvent('batch_files_selected', {
+        file_count: this.batchFiles.length,
+        total_size: this.getTotalFileSize(),
+        file_types: this.getFileTypes(),
+        upload_type: 'batch'
+      });
     }
   }
 
   // CTA Button handlers
   onClaimStorage(): void {
+    // Track CTA button click
+    this.appComponent.trackHotjarEvent('cta_button_clicked', {
+      button_type: 'claim_storage',
+      location: 'homepage'
+    });
+    
     this.router.navigate(['/register']);
   }
 
   // Single file upload methods
   onUploadSingle(): void {
     if (!this.selectedFile || this.currentState === 'uploading') return;
+
+    // Track single file upload initiation
+    this.appComponent.trackHotjarEvent('single_upload_initiated', {
+      file_name: this.selectedFile.name,
+      file_size: this.selectedFile.size,
+      file_type: this.selectedFile.type,
+      upload_type: 'single'
+    });
 
     this.currentState = 'uploading';
     this.uploadProgress = 0;
@@ -234,6 +277,13 @@ export class HomeComponent implements OnDestroy {
           if (this.isCancelling || (typeof event.value === 'string' && event.value.includes('cancelled'))) {
             // Handle cancellation success
             this.currentState = 'cancelled';
+            
+            // Track upload cancellation
+            this.appComponent.trackHotjarEvent('single_upload_cancelled', {
+              file_name: this.selectedFile?.name,
+              progress_at_cancellation: this.uploadProgress
+            });
+            
             this.toastService.success('Upload cancelled successfully', 3000);
             this.resetToIdle();
           } else {
@@ -243,10 +293,23 @@ export class HomeComponent implements OnDestroy {
             const fileId = typeof event.value === 'string' ? event.value.split('/').pop() : event.value;
             // Generate frontend route URL like batch downloads (not direct API URL)
             this.finalDownloadLink = `${window.location.origin}/download/${fileId}`;
+<<<<<<< HEAD
             this.snackBar.open('File uploaded successfully!', 'Close', { duration: 3000 });
             
             // --- NEW: Refresh quota info after successful upload ---
             this.loadQuotaInfo();
+=======
+            
+            // Track successful upload
+            this.appComponent.trackHotjarEvent('single_upload_success', {
+              file_name: this.selectedFile?.name,
+              file_size: this.selectedFile?.size,
+              file_type: this.selectedFile?.type,
+              file_id: fileId
+            });
+            
+            this.toastService.success('File uploaded successfully!', 3000);
+>>>>>>> 1c3d303d324059a9ee98721e479525b39d3692ef
           }
         }
       },
@@ -254,6 +317,15 @@ export class HomeComponent implements OnDestroy {
         if (!this.isCancelling) {
           this.currentState = 'error';
           this.errorMessage = err.message || 'Upload failed';
+          
+          // Track upload failure
+          this.appComponent.trackHotjarEvent('single_upload_failed', {
+            file_name: this.selectedFile?.name,
+            file_size: this.selectedFile?.size,
+            error_message: this.errorMessage,
+            progress_at_failure: this.uploadProgress
+          });
+          
           this.toastService.error('Upload failed: ' + this.errorMessage, 5000);
         }
       },
@@ -835,4 +907,19 @@ export class HomeComponent implements OnDestroy {
       }
     });
   }
+<<<<<<< HEAD
 }
+=======
+
+  // Helper method to get total file size
+  private getTotalFileSize(): number {
+    return this.batchFiles.reduce((total, fileState) => total + fileState.file.size, 0);
+  }
+
+  // Helper method to get file types
+  private getFileTypes(): string[] {
+    const types = this.batchFiles.map(fileState => fileState.file.type || 'unknown');
+    return [...new Set(types)]; // Remove duplicates
+  }
+}
+>>>>>>> 1c3d303d324059a9ee98721e479525b39d3692ef

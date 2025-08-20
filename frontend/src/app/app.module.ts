@@ -66,6 +66,7 @@ import { FilePreviewComponent } from './componet/file-preview/file-preview.compo
 import { EnhancedVideoPreviewComponent } from './componet/file-preview/enhanced-video-preview.component';
 import { SafePipe } from './shared/pipes/safe.pipe';
 import { FooterComponent } from './shared/component/footer/footer.component';
+import { HowItWorksComponent } from './componet/how-it-works/how-it-works.component';
 
 
 @NgModule({
@@ -102,7 +103,8 @@ import { FooterComponent } from './shared/component/footer/footer.component';
     FilePreviewComponent,
     EnhancedVideoPreviewComponent,
     SafePipe,
-    FooterComponent
+    FooterComponent,
+    HowItWorksComponent
   ],
   imports: [
     BrowserModule,

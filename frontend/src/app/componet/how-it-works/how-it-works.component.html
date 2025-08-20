@@ -1,0 +1,423 @@
+<!-- How It Works Page - DirectDriveX -->
+<div class="bg-white">
+
+  <!-- Section 1: Hero Section -->
+  <section class="lg:py-14 py-10 premium-header">
+    <div class="container mx-auto px-4">
+      <div class=" text-center">
+        <h1 class="text-display-1 text-white mb-6">
+          Send Big Files. <span class="text-primary">Fast, Secure, Easy.</span>
+        </h1>
+        <p class="text-body-large text-slate-400 mb-8 max-w-2xl mx-auto">
+          Upload your file, share a link, done. No signup required.
+        </p>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+        <button class="btn-primary text-lg px-8 py-4 hover:scale-105 transition-all duration-300 h-14"
+          (click)="onTryItNow()">
+          <i class="fas fa-rocket mr-2"></i>
+          Try It Now
+        </button>
+        <button
+          class="btn-outline text-lg px-8 py-4 hover:scale-105 transition-all duration-300 hover:bg-primary hover:text-white h-14"
+          (click)="scrollToSection('step-guide')">
+          <i class="fas fa-arrow-down mr-2"></i>
+          See How It Works
+        </button>
+      </div>
+      <div class="flex justify-center flex-wrap gap-6">
+        <div class="flex items-center space-x-2 trust-badge">
+          <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center p-4">
+            <i class="fas fa-shield-alt text-white text-lg"></i>
+          </div>
+          <span class="text-caption text-white">Secure</span>
+        </div>
+        <div class="flex items-center space-x-2 trust-badge">
+          <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center p-4">
+            <i class="fas fa-bolt text-white text-lg"></i>
+          </div>
+          <span class="text-caption text-white">Fast</span>
+        </div>
+        <div class="flex items-center space-x-2 trust-badge">
+          <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center p-4">
+            <i class="fas fa-cloud-upload-alt text-white text-lg"></i>
+          </div>
+          <span class="text-caption text-white">Large Files</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Step-by-Step Visual Guide -->
+  <section id="step-guide" class="lg:py-14 py-10">
+    <div class="container mx-auto px-4">
+      <h2 class="text-headline text-center text-slate-900 lg:mb-16 mb-8">
+        How It Works in 4 Simple Steps
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 lg:gap-8 gap-6">
+        <!-- Step 1 -->
+        <div class="card card-elevated text-center sm:p-6 p-4 step-card">
+          <div
+            class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 step-number">
+            <span class="text-white font-bold text-xl">1</span>
+          </div>
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4 step-icon">
+            <i class="fas fa-cloud-upload-alt text-blue-600 text-xl"></i>
+          </div>
+          <h3 class="text-title mb-2">Upload</h3>
+          <p class="text-body-small text-slate-600">
+            Drag & drop or click to select files up to 30GB
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="card card-elevated text-center sm:p-6 p-4 step-card">
+          <div
+            class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 step-number">
+            <span class="text-white font-bold text-xl">2</span>
+          </div>
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4 step-icon">
+            <i class="fas fa-lock text-green-600 text-xl"></i>
+          </div>
+          <h3 class="text-title mb-2">Secure & Customize</h3>
+          <p class="text-body-small text-slate-600">
+            Add password, expiry date, or download limits
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="card card-elevated text-center sm:p-6 p-4 step-card">
+          <div
+            class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 step-number">
+            <span class="text-white font-bold text-xl">3</span>
+          </div>
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4 step-icon">
+            <i class="fas fa-share-alt text-purple-600 text-xl"></i>
+          </div>
+          <h3 class="text-title mb-2">Share</h3>
+          <p class="text-body-small text-slate-600">
+            Copy your link or email it directly
+          </p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="card card-elevated text-center sm:p-6 p-4 step-card">
+          <div
+            class="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 step-number">
+            <span class="text-white font-bold text-xl">4</span>
+          </div>
+          <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4 step-icon">
+            <i class="fas fa-download text-orange-600 text-xl"></i>
+          </div>
+          <h3 class="text-title mb-2">Download</h3>
+          <p class="text-body-small text-slate-600">
+            Recipient clicks link & downloads securely
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Key Features Showcase -->
+  <section class="lg:py-14 py-10">
+    <div class="container mx-auto px-4">
+      <h2 class="text-headline text-center text-slate-900 lg:mb-16 mb-8">
+        Why Choose DirectDriveX?
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 lg:gap-8 gap-6">
+        <!-- Feature 1: Security -->
+        <div class="card card-elevated sm:p-6 p-4 hover:scale-105 transition-transform feature-card">
+          <div
+            class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center mb-4 feature-icon">
+            <i class="fas fa-shield-alt text-white text-lg"></i>
+          </div>
+          <h3 class="text-title mb-2">Military-Grade Security</h3>
+          <p class="text-body-small text-slate-600">
+            Files are encrypted in transit and at rest with 256-bit AES encryption
+          </p>
+        </div>
+
+        <!-- Feature 2: Speed -->
+        <div class="card card-elevated sm:p-6 p-4 hover:scale-105 transition-transform feature-card">
+          <div
+            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mb-4 feature-icon">
+            <i class="fas fa-tachometer-alt text-white text-lg"></i>
+          </div>
+          <h3 class="text-title mb-2">Lightning Fast</h3>
+          <p class="text-body-small text-slate-600">
+            Resumable uploads and optimized transfer speeds for large files
+          </p>
+        </div>
+
+        <!-- Feature 3: Large Files -->
+        <div class="card card-elevated sm:p-6 p-4 hover:scale-105 transition-transform feature-card">
+          <div
+            class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 feature-icon">
+            <i class="fas fa-hdd text-white text-lg"></i>
+          </div>
+          <h3 class="text-title mb-2">Massive File Support</h3>
+          <p class="text-body-small text-slate-600">
+            Send files up to 30GB with no compression or quality loss
+          </p>
+        </div>
+
+        <!-- Feature 4: Link Expiry -->
+        <div class="card card-elevated sm:p-6 p-4 hover:scale-105 transition-transform feature-card">
+          <div
+            class="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mb-4 feature-icon">
+            <i class="fas fa-clock text-white text-lg"></i>
+          </div>
+          <h3 class="text-title mb-2">Auto-Expiry</h3>
+          <p class="text-body-small text-slate-600">
+            Files automatically delete after 30 days for enhanced security
+          </p>
+        </div>
+
+        <!-- Feature 5: Tracking -->
+        <div class="card card-elevated sm:p-6 p-4 hover:scale-105 transition-transform feature-card">
+          <div
+            class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center mb-4 feature-icon">
+            <i class="fas fa-chart-line text-white text-lg"></i>
+          </div>
+          <h3 class="text-title mb-2">Download Tracking</h3>
+          <p class="text-body-small text-slate-600">
+            Know when your files are downloaded with real-time notifications
+          </p>
+        </div>
+
+        <!-- Feature 6: Mobile Friendly -->
+        <div class="card card-elevated sm:p-6 p-4 hover:scale-105 transition-transform feature-card">
+          <div
+            class="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center mb-4 feature-icon">
+            <i class="fas fa-mobile-alt text-white text-lg"></i>
+          </div>
+          <h3 class="text-title mb-2">Mobile Optimized</h3>
+          <p class="text-body-small text-slate-600">
+            Works perfectly on phones, tablets, and desktop devices
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Technical Diagram -->
+  <section class="lg:py-14 py-10">
+    <div class="container mx-auto px-4">
+      <h2 class="text-headline text-center text-slate-900 lg:mb-16 mb-8">
+        How Your Files Stay Secure
+      </h2>
+      <div class="max-w-4xl mx-auto">
+        <div class="flex flex-col lg:flex-row items-center justify-between lg:gap-4 gap-8">
+          <!-- Step 1 -->
+          <div class="text-center flex-1 tech-step">
+            <div
+              class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 p-4">
+              <i class="fas fa-user text-white text-3xl"></i>
+            </div>
+            <h3 class="text-title mb-2">Upload</h3>
+            <p class="text-body-small text-slate-600">Files encrypted during transfer</p>
+          </div>
+
+          <!-- Arrow -->
+          <div class="hidden lg:block tech-arrow">
+            <i class="fas fa-arrow-right text-blue-500 text-3xl"></i>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="text-center flex-1 tech-step">
+            <div
+              class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 p-4">
+              <i class="fas fa-server text-white text-3xl"></i>
+            </div>
+            <h3 class="text-title mb-2">Secure Storage</h3>
+            <p class="text-body-small text-slate-600">Encrypted at rest on our servers</p>
+          </div>
+
+          <!-- Arrow -->
+          <div class="hidden lg:block tech-arrow">
+            <i class="fas fa-arrow-right text-green-500 text-3xl"></i>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="text-center flex-1 tech-step">
+            <div
+              class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 p-4">
+              <i class="fas fa-download text-white text-3xl"></i>
+            </div>
+            <h3 class="text-title mb-2">Download</h3>
+            <p class="text-body-small text-slate-600">Secure download via encrypted link</p>
+          </div>
+        </div>
+
+        <div class="mt-12 flex justify-center">
+          <div
+            class="relative bg-white/70 backdrop-blur-md border border-blue-100 shadow-md rounded-2xl p-6 max-w-2xl w-full">
+            <!-- Icon -->
+            <div class="flex justify-center">
+              <div
+                class="bg-blue-100 text-blue-600 w-12 h-12 flex items-center justify-center rounded-full shadow-sm mb-4">
+                <i class="fas fa-shield-alt text-xl"></i>
+              </div>
+            </div>
+
+            <!-- Content -->
+            <div class="text-center">
+              <h3 class="text-lg font-semibold text-slate-800 mb-2">
+                Privacy First
+              </h3>
+              <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
+                We never keep files forever. They automatically expire after
+                <span class="font-semibold text-blue-600">30 days</span> and are
+                permanently deleted from our servers.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: FAQ Section -->
+  <section class="lg:py-14 py-10">
+    <div class="container mx-auto px-4">
+      <h2 class="text-headline text-center text-slate-900 lg:mb-16 mb-8">
+        Frequently Asked Questions
+      </h2>
+      <div class="max-w-3xl mx-auto">
+        <mat-accordion class="faq-accordion">
+          <!-- FAQ 1 -->
+          <mat-expansion-panel class="mb-4 faq-panel">
+            <mat-expansion-panel-header>
+              <mat-panel-title class="text-title">
+                <i class="fas fa-question-circle text-blue-500 mr-3"></i>
+                How big can my file be?
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <p class="text-body text-slate-600">
+              You can upload files up to 30GB per transfer. For larger files, you can split them into multiple uploads.
+            </p>
+          </mat-expansion-panel>
+
+          <!-- FAQ 2 -->
+          <mat-expansion-panel class="mb-4 faq-panel">
+            <mat-expansion-panel-header>
+              <mat-panel-title class="text-title">
+                <i class="fas fa-shield-alt text-green-500 mr-3"></i>
+                Is it secure?
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <p class="text-body text-slate-600">
+              Yes! Files are encrypted with 256-bit AES encryption both during transfer and while stored on our servers.
+              We use bank-level security protocols.
+            </p>
+          </mat-expansion-panel>
+
+          <!-- FAQ 3 -->
+          <mat-expansion-panel class="mb-4 faq-panel">
+            <mat-expansion-panel-header>
+              <mat-panel-title class="text-title">
+                <i class="fas fa-clock text-orange-500 mr-3"></i>
+                How long are files stored?
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <p class="text-body text-slate-600">
+              Files are automatically deleted after 30 days. You can also set custom expiry dates when uploading.
+            </p>
+          </mat-expansion-panel>
+
+          <!-- FAQ 4 -->
+          <mat-expansion-panel class="mb-4 faq-panel">
+            <mat-expansion-panel-header>
+              <mat-panel-title class="text-title">
+                <i class="fas fa-user-plus text-purple-500 mr-3"></i>
+                Do recipients need an account?
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <p class="text-body text-slate-600">
+              No! Recipients only need the download link. No registration or account creation required.
+            </p>
+          </mat-expansion-panel>
+
+          <!-- FAQ 5 -->
+          <mat-expansion-panel class="mb-4 faq-panel">
+            <mat-expansion-panel-header>
+              <mat-panel-title class="text-title">
+                <i class="fas fa-key text-indigo-500 mr-3"></i>
+                Can I protect my file with a password?
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <p class="text-body text-slate-600">
+              Yes! You can add an optional password when uploading. Recipients will need this password to download the
+              file.
+            </p>
+          </mat-expansion-panel>
+
+          <!-- FAQ 6 -->
+          <mat-expansion-panel class="mb-4 faq-panel">
+            <mat-expansion-panel-header>
+              <mat-panel-title class="text-title">
+                <i class="fas fa-pause-circle text-pink-500 mr-3"></i>
+                Can I pause/resume uploads?
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <p class="text-body text-slate-600">
+              Yes! Our upload system supports resumable uploads. If your connection drops, you can continue from where
+              you left off.
+            </p>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 6: Final CTA -->
+  <section
+    class="lg:py-14 py-10 bg-gradient-to-r from-bolt-blue via-bolt-dark-purple to-bolt-purple relative overflow-hidden">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 opacity-10">
+      <div class="absolute top-0 left-0 w-full h-full bg-pattern"></div>
+    </div>
+
+    <div class="container mx-auto px-4 text-center relative z-10">
+      <h2 class="text-headline text-white mb-6">
+        Ready to send your first file?
+      </h2>
+      <p class="text-body-large text-white/90 mb-8 max-w-2xl mx-auto">
+        Join thousands of users who trust DirectDriveX for secure file sharing
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+        <button
+          class="bg-white text-primary px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-100 transition-all hover:scale-105 duration-300 shadow-lg h-14 flex items-center justify-center"
+          (click)="onStartUploading()">
+          <i class="fas fa-rocket mr-2"></i>
+          Start Uploading Now
+        </button>
+        <button
+          class="border-2 border-white text-white px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105 duration-300 h-14 flex items-center justify-center"
+          (click)="onSeePricing()">
+          <i class="fas fa-tags mr-2"></i>
+          See Pricing
+        </button>
+      </div>
+
+      <div class="flex justify-center items-center flex-wrap gap-4 text-white/80">
+        <span class="text-sm flex items-center gap-2">
+          <i class="fas fa-check-circle mr-1 text-lg"></i>
+          No signup required
+        </span>
+        <span class="text-sm">•</span>
+        <span class="text-sm flex items-center gap-2">
+          <i class="fas fa-shield-alt mr-1 text-lg"></i>
+          Secure
+        </span>
+        <span class="text-sm">•</span>
+        <span class="text-sm flex items-center gap-2">
+          <i class="fas fa-gift mr-1 text-lg"></i>
+          Free
+        </span>
+      </div>
+    </div>
+  </section>
+
+</div>

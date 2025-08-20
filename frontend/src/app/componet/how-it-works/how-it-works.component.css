@@ -1,0 +1,360 @@
+/* How It Works Page Custom Styles */
+
+/* Smooth scroll behavior for the entire page */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Step number animation */
+.step-card .step-number {
+  transition: all 0.3s ease;
+}
+
+.step-card:hover .step-number {
+  transform: scale(1.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Step icon animation */
+.step-card .step-icon {
+  transition: all 0.3s ease;
+}
+
+.step-card:hover .step-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Feature icon animation */
+.feature-card .feature-icon {
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* Technical diagram arrow animation */
+.tech-arrow {
+  transition: all 0.3s ease;
+}
+
+.tech-arrow:hover {
+  transform: scale(1.2);
+}
+
+/* Tech step animation */
+.tech-step {
+  transition: all 0.3s ease;
+}
+
+/* Trust badge hover effects */
+.trust-badge {
+  transition: all 0.3s ease;
+}
+
+/* .trust-badge:hover {
+  transform: scale(1.05);
+} */
+
+/* FAQ panel styling with smooth animations */
+.faq-accordion {
+  transition: all 0.3s ease;
+}
+
+.faq-panel {
+  border-radius: 12px !important;
+  margin-bottom: 16px !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+  transition: all 0.3s ease !important;
+  overflow: hidden;
+  border: 1px solid #e2e8f0 !important;
+  min-height: 80px !important;
+}
+
+.faq-panel:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  transform: translateY(-1px);
+  border-color: #cbd5e1 !important;
+}
+
+.faq-panel mat-expansion-panel-header {
+  transition: all 0.3s ease !important;
+  padding: 20px 24px !important;
+  min-height: 80px !important;
+  gap: 6px !important;
+}
+
+.faq-panel mat-expansion-panel-header:hover {
+  background-color: rgba(59, 130, 246, 0.05) !important;
+}
+
+/* Enhanced FAQ Expansion Indicator Styling - Black Color */
+.faq-panel .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+}
+
+.faq-panel .mat-expansion-indicator {
+  color: #000000 !important;
+}
+
+/* Additional specificity for expansion panels */
+mat-expansion-panel.faq-panel .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+}
+
+/* Override any Angular Material theme colors with maximum specificity */
+.faq-panel mat-expansion-panel-header .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+}
+
+/* For the button arrow down icon */
+.btn-outline .fas.fa-arrow-down {
+  color: inherit;
+}
+
+/* Enhanced button arrow styling */
+.btn-outline:hover .fas.fa-arrow-down {
+  color: inherit;
+}
+
+/* Ensure button icons maintain proper color inheritance */
+.btn-outline i.fas {
+  color: inherit;
+}
+
+.faq-panel mat-expansion-panel-header .mat-expansion-panel-header-title {
+  margin-right: 0px;
+}
+
+/* Ensure expansion indicator is visible and properly styled */
+.faq-panel .mat-expansion-indicator {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Maximum specificity override for expansion indicators */
+.faq-panel mat-expansion-panel-header .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+  transform: rotate(45deg) !important;
+}
+
+/* Additional override for expanded state */
+.faq-panel.mat-expanded mat-expansion-panel-header .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+  transform: rotate(-135deg) !important;
+}
+
+/* Handle all possible expansion panel states */
+.faq-panel .mat-expansion-panel-header .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+}
+
+/* Override for hover states */
+.faq-panel .mat-expansion-panel-header:hover .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+}
+
+/* Override for focus states */
+.faq-panel .mat-expansion-panel-header:focus .mat-expansion-indicator::after {
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-width: 0 2px 2px 0 !important;
+}
+
+.faq-panel mat-expansion-panel-content {
+  animation: slideDown 0.3s ease-out;
+  padding: 0 24px 20px 24px !important;
+}
+
+.faq-panel mat-expansion-panel-content p {
+  margin: 0 !important;
+  padding: 16px 0 !important;
+  line-height: 1.6 !important;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Background pattern for section 6 */
+.bg-pattern {
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 30%, rgba(255, 255, 255, 0.05) 70%, transparent 70%);
+  background-size: 100px 100px, 150px 150px, 50px 50px;
+  animation: patternMove 20s linear infinite;
+}
+
+@keyframes patternMove {
+  0% {
+    background-position: 0 0, 0 0, 0 0;
+  }
+  100% {
+    background-position: 100px 100px, 150px 150px, 50px 50px;
+  }
+
+}
+
+/* Icon animations */
+/* .fas {
+  transition: all 0.3s ease;
+}
+
+.trust-badge:hover .fas {
+  transform: scale(1.1);
+} */
+
+.step-card:hover .fas {
+  transform: scale(1.1);
+}
+
+.feature-card:hover .fas {
+  transform: scale(1.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .text-display-1 {
+    font-size: 2.5rem !important;
+  }
+  
+  .text-headline {
+    font-size: 1.75rem !important;
+  }
+  
+  .trust-badge .w-8.h-8 {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  
+  .trust-badge .fas {
+    font-size: 0.875rem;
+  }
+  
+  .faq-panel {
+    margin-bottom: 16px !important;
+    min-height: 70px !important;
+  }
+  
+  .faq-panel mat-expansion-panel-header {
+    padding: 16px 20px !important;
+    min-height: 70px !important;
+  }
+  
+  .faq-panel mat-expansion-panel-content {
+    padding: 0 20px 16px 20px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .text-title {
+    font-size: 1.125rem !important;
+  }
+}
+
+/* Trust badge pulse animation */
+/* .w-8.h-8.bg-emerald-500,
+.w-8.h-8.bg-blue-500,
+.w-8.h-8.bg-purple-500 {
+  animation: pulse 2s infinite;
+} */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Step card gradient backgrounds */
+.step-card:nth-child(1) .step-number {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.step-card:nth-child(2) .step-number {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.step-card:nth-child(3) .step-number {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.step-card:nth-child(4) .step-number {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* Feature card gradient backgrounds */
+.feature-card:nth-child(1) .feature-icon {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.feature-card:nth-child(2) .feature-icon {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.feature-card:nth-child(3) .feature-icon {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.feature-card:nth-child(4) .feature-icon {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.feature-card:nth-child(5) .feature-icon {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+}
+
+.feature-card:nth-child(6) .feature-icon {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+}
+
+/* Tech step gradient backgrounds */
+.tech-step:nth-child(1) .w-20.h-20 {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.tech-step:nth-child(3) .w-20.h-20 {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.tech-step:nth-child(5) .w-20.h-20 {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+/* Enhanced focus states for accessibility */
+button:focus,
+a:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
