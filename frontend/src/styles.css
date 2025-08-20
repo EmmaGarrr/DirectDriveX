@@ -862,7 +862,7 @@ p {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, rgba(67, 34, 170, 0.1) 0%, rgba(19, 94, 227, 0.05) 50%, rgba(104, 216, 252, 0.1) 100%);
+  /* background: linear-gradient(90deg, rgba(67, 34, 170, 0.1) 0%, rgba(19, 94, 227, 0.05) 50%, rgba(104, 216, 252, 0.1) 100%); */
   z-index: -1;
 }
 
@@ -925,7 +925,6 @@ p {
 }
 
 .premium-button:hover {
-  transform: translateY(-2px);
   box-shadow: 0 8px 25px 0 rgba(37, 99, 235, 0.4);
 }
 
@@ -1207,8 +1206,8 @@ p {
   
   .premium-button {
     width: 100%;
-    padding: 14px 24px;
-    font-size: 0.95rem;
+    padding: 10px 24px;
+    font-size: 14px;
   }
   
   .secondary-cta-button {
