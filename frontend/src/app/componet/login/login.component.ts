@@ -15,8 +15,8 @@ export class LoginComponent implements OnInit {
   loading = false;
   hidePassword = true;
 
-  // Consistent toast duration for all types
-  private readonly TOAST_DURATION = 2000;
+  // Increased toast duration for better readability
+  private readonly TOAST_DURATION = 2500; 
 
   constructor(
     private fb: FormBuilder,

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ToastConfig } from '../../services/toast.service';
 
@@ -21,6 +21,12 @@ export class ToastComponent implements OnInit, OnDestroy {
   private isClosing = false;
   private isProgressComplete = false; // Track if progress has completed
   private lastProgressUpdate = 0; // Track last progress update time
+  
+  // Hover pause functionality
+  isPaused = false; // Made public for template access
+  private pauseStartTime = 0;
+  private totalPausedTime = 0;
+  private pausedProgress = 0;
 
   ngOnInit(): void {
     // Trigger entrance animation
@@ -36,6 +42,17 @@ export class ToastComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.cleanupProgress();
+  }
+
+  // Hover event handlers
+  @HostListener('mouseenter')
+  onMouseEnter(): void {
+    this.pauseProgress();
+  }
+
+  @HostListener('mouseleave')
+  onMouseLeave(): void {
+    this.resumeProgress();
   }
 
   onClose(): void {
@@ -59,15 +76,45 @@ export class ToastComponent implements OnInit, OnDestroy {
     }, 300); // Wait for exit animation
   }
 
-  private startProgressBar(): void {
-    const duration = this.config.duration || 3000;
-    this.startTime = Date.now();
-    this.lastProgressUpdate = this.startTime;
+  private pauseProgress(): void {
+    if (this.isPaused || this.isClosing || this.isProgressComplete) {
+      return;
+    }
 
-    // Update progress every 16ms (60fps) for smooth animation
+    this.isPaused = true;
+    this.pauseStartTime = Date.now();
+    this.pausedProgress = this.progress;
+    
+    // Stop the progress interval
+    this.cleanupProgress();
+  }
+
+  private resumeProgress(): void {
+    if (!this.isPaused || this.isClosing || this.isProgressComplete) {
+      return;
+    }
+
+    this.isPaused = false;
+    
+    // Calculate total paused time
+    const pauseEndTime = Date.now();
+    const pauseDuration = pauseEndTime - this.pauseStartTime;
+    this.totalPausedTime += pauseDuration;
+    
+    // Restart progress bar with adjusted timing
+    this.startProgressBar();
+  }
+
+  private startProgressBar(): void {
+    const duration = this.config.duration || 2000; // Increased default duration
+    this.startTime = Date.now() - this.totalPausedTime; // Adjust for paused time
+    this.lastProgressUpdate = Date.now();
+
     this.progressInterval = setInterval(() => {
-      if (this.isClosing || this.isProgressComplete) {
-        this.cleanupProgress();
+      if (this.isClosing || this.isProgressComplete || this.isPaused) {
+        if (this.isPaused) {
+          this.cleanupProgress();
+        }
         return;
       }
 
@@ -75,22 +122,19 @@ export class ToastComponent implements OnInit, OnDestroy {
       const elapsed = currentTime - this.startTime;
       const remaining = Math.max(0, duration - elapsed);
       
-      // Calculate progress percentage
       const newProgress = Math.max(0, (remaining / duration) * 100);
       
-      // Only update if progress has actually changed (prevents unnecessary updates)
       if (Math.abs(newProgress - this.progress) >= 0.1 || newProgress === 0) {
         this.progress = newProgress;
         this.lastProgressUpdate = currentTime;
       }
 
-      // When progress reaches 0, mark as complete and close
       if (this.progress <= 0) {
         this.isProgressComplete = true;
         this.cleanupProgress();
         this.onClose();
       }
-    }, 16); // 60fps for smooth animation
+    }, 16);
   }
 
   private cleanupProgress(): void {

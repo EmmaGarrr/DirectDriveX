@@ -1,5 +1,5 @@
 <div class="toast-container" [class.visible]="isVisible">
-  <div [class]="getToastClass()">
+  <div [class]="getToastClass()" [class.paused]="isPaused">
     <!-- Toast Icon -->
     <div class="toast-icon">
       <span class="icon-text">{{ getIcon() }}</span>

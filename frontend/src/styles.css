@@ -95,12 +95,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Main content spacing */
-main {
-  padding-top: 60px; /* Add top padding to account for fixed header */
-  min-height: calc(100vh - 80px); /* Ensure full height minus header */
-}
-
 /* Responsive main content spacing */
 @media (max-width: 768px) {
   main {

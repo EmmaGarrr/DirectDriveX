@@ -31,7 +31,7 @@ export class ToastService {
     this.setupCleanupInterval();
   }
 
-  success(message: string, duration: number = 2000): void {
+  success(message: string, duration: number = 2500): void {
     this.show({
       message,
       type: 'success',
@@ -40,7 +40,7 @@ export class ToastService {
     });
   }
 
-  error(message: string, duration: number = 2000): void {
+  error(message: string, duration: number = 2500): void {
     this.show({
       message,
       type: 'error',
@@ -49,7 +49,7 @@ export class ToastService {
     });
   }
 
-  warning(message: string, duration: number = 2000): void {
+  warning(message: string, duration: number = 2500): void {
     this.show({
       message,
       type: 'warning',
@@ -58,7 +58,7 @@ export class ToastService {
     });
   }
 
-  info(message: string, duration: number = 2000): void {
+  info(message: string, duration: number = 2500): void {
     this.show({
       message,
       type: 'info',
