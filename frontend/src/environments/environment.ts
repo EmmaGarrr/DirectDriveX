@@ -3,6 +3,6 @@
 export const environment = {
   production: false,
   // Backend is running on port 8000
-  apiUrl: 'http://localhost:8000',
-  wsUrl: 'ws://localhost:8000/ws_api'
+  apiUrl: 'http://localhost:5000',
+  wsUrl: 'ws://localhost:5000/ws_api'
 };
