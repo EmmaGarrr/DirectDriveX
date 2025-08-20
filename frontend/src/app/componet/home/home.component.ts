@@ -404,6 +404,12 @@ export class HomeComponent implements OnDestroy {
         console.log(`[DEBUG] 🔌 [HOME] WebSocket protocol:`, ws.protocol);
         console.log(`[DEBUG] 🔌 [HOME] WebSocket extensions:`, ws.extensions);
         console.log(`[DEBUG] 🔌 [HOME] WebSocket extensions:`, ws.extensions);
+        
+        // Update file state to uploading
+        fileState.state = 'uploading';
+        fileState.progress = 0;
+        console.log(`[HOME_BATCH] Started upload for ${fileState.file.name}`);
+        
         this.sliceAndSend(fileState.file, ws);
       };
       
@@ -418,8 +424,26 @@ export class HomeComponent implements OnDestroy {
         try {
           const message: any = JSON.parse(event.data);
           
-          if (message.type === 'progress' || message.type === 'success' || message.type === 'error') {
+          if (message.type === 'progress') {
+            // Update individual file progress
+            fileState.progress = message.value;
+            fileState.state = 'uploading';
+            console.log(`[HOME_BATCH] Progress update for ${fileState.file.name}: ${message.value}%`);
             observer.next(message as UploadEvent);
+          } else if (message.type === 'success') {
+            // Update individual file state to success
+            fileState.state = 'success';
+            fileState.progress = 100;
+            console.log(`[HOME_BATCH] Success for ${fileState.file.name}`);
+            observer.next(message as UploadEvent);
+            observer.complete();
+          } else if (message.type === 'error') {
+            // Update individual file state to error
+            fileState.state = 'error';
+            fileState.error = message.value;
+            console.error(`[HOME_BATCH] Error for ${fileState.file.name}: ${message.value}`);
+            observer.next(message as UploadEvent);
+            observer.complete();
           }
           // Note: cancel_ack removed - now using superior HTTP cancel protocol
         } catch (e) {
@@ -497,47 +521,46 @@ export class HomeComponent implements OnDestroy {
 
       if (ws.readyState === WebSocket.OPEN) {
         console.log(`[DEBUG] 🔌 WebSocket is OPEN, sending chunk data`);
-        // Convert ArrayBuffer to base64 string for JSON serialization
-        let chunkData;
+        
+        // Convert ArrayBuffer to base64 and send as JSON
         if (e.target?.result instanceof ArrayBuffer) {
           const bytes = new Uint8Array(e.target.result);
           let binary = '';
           for (let i = 0; i < bytes.byteLength; i++) {
             binary += String.fromCharCode(bytes[i]);
           }
-          chunkData = btoa(binary); // Convert to base64
-          console.log(`[DEBUG] 🔄 Converted ArrayBuffer to base64, length:`, chunkData.length);
+          const base64Data = btoa(binary);
+          
+          const chunkMessage = {
+            bytes: base64Data
+          };
+          
+          console.log(`[DEBUG] 📤 Sending JSON chunk message with base64 data, length: ${base64Data.length}`);
+          ws.send(JSON.stringify(chunkMessage));
         } else {
-          chunkData = e.target?.result;
+          console.error(`[DEBUG] ❌ Unexpected result type: ${typeof e.target?.result}`);
+          ws.send(JSON.stringify({ error: "Invalid data format" }));
         }
-
-        const chunkMessage = {
-          bytes: chunkData
-        };
-        console.log(`[DEBUG] 📤 Chunk message to send:`, {
-          hasBytes: !!chunkMessage.bytes,
-          bytesType: typeof chunkMessage.bytes,
-          bytesConstructor: chunkMessage.bytes?.constructor?.name,
-          bytesSize: typeof chunkMessage.bytes === 'string' ? chunkMessage.bytes.length : 'not string'
-        });
-        const jsonMessage = JSON.stringify(chunkMessage);
-        console.log(`[DEBUG] 📤 JSON message length:`, jsonMessage.length);
-        console.log(`[DEBUG] 📤 JSON message preview:`, jsonMessage.substring(0, 100));
-        ws.send(jsonMessage);
-        console.log(`[DEBUG] ✅ Chunk sent successfully, calling next slice`);
-        this.sliceAndSend(file, ws, end);
+        
+        // Send next chunk
+        setTimeout(() => {
+          this.sliceAndSend(file, ws, end);
+        }, 100); // Small delay to prevent overwhelming the WebSocket
       } else {
         console.log(`[DEBUG] ❌ WebSocket not ready, state:`, ws.readyState);
         console.log(`[DEBUG] ❌ WebSocket states: CONNECTING=${WebSocket.CONNECTING}, OPEN=${WebSocket.OPEN}, CLOSING=${WebSocket.CLOSING}, CLOSED=${WebSocket.CLOSED}`);
       }
     };
+    
     reader.onerror = (e) => {
       console.error(`[DEBUG] ❌ FileReader error:`, e);
       console.error(`[DEBUG] ❌ FileReader error details:`, e.target?.error);
     };
+    
     reader.onabort = (e) => {
       console.log(`[DEBUG] ⚠️ FileReader aborted:`, e);
     };
+    
     console.log(`[DEBUG] 📖 Starting FileReader.readAsArrayBuffer for chunk`);
     reader.readAsArrayBuffer(chunk);
   }
@@ -671,7 +694,7 @@ export class HomeComponent implements OnDestroy {
     const allCompleted = this.batchFiles.every(f => f.state === 'success' || f.state === 'error');
     if (allCompleted) {
       this.batchState = 'success';
-      this.finalBatchLink = `${window.location.origin}/batch/${batchId}`;
+      this.finalBatchLink = `${window.location.origin}/batch-download/${batchId}`;
       this.snackBar.open('All files uploaded successfully!', 'Close', { duration: 3000 });
       
       // --- NEW: Refresh quota info after successful batch upload ---
@@ -712,7 +735,12 @@ export class HomeComponent implements OnDestroy {
       fileState.error = 'Upload cancelled by user';
       
       // Check if all files are now cancelled/completed
-      this.checkBatchCompletion('');
+      // Note: We need to get the batch ID from somewhere - for now, we'll check completion without it
+      const allCompleted = this.batchFiles.every(f => f.state === 'success' || f.state === 'error' || f.state === 'cancelled');
+      if (allCompleted) {
+        this.batchState = 'success';
+        this.snackBar.open('All files processed!', 'Close', { duration: 3000 });
+      }
     }, 500);
   }
 

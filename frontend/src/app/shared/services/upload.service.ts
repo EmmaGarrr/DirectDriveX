@@ -124,16 +124,34 @@ export class UploadService {
             const message = event.data;
             console.log(`[UPLOAD_SERVICE] Received message: ${message}`);
             
-            if (message.startsWith('PROGRESS:')) {
-              const progress = parseInt(message.split(':')[1]);
-              observer.next({ type: 'progress', value: progress });
-            } else if (message.startsWith('SUCCESS:')) {
-              const fileId = message.split(':')[1];
-              observer.next({ type: 'success', value: fileId });
-              observer.complete();
-            } else if (message.startsWith('ERROR:')) {
-              const error = message.split(':')[1];
-              observer.error(new Error(error));
+            try {
+              // Try to parse as JSON first (backend sends JSON format)
+              const jsonMessage = JSON.parse(message);
+              console.log(`[UPLOAD_SERVICE] Parsed JSON message:`, jsonMessage);
+              
+              if (jsonMessage.type === 'progress') {
+                observer.next({ type: 'progress', value: jsonMessage.value });
+              } else if (jsonMessage.type === 'success') {
+                observer.next({ type: 'success', value: jsonMessage.value });
+                observer.complete();
+              } else if (jsonMessage.type === 'error') {
+                observer.error(new Error(jsonMessage.value));
+              }
+            } catch (parseError) {
+              // Fallback to string parsing for backward compatibility
+              console.log(`[UPLOAD_SERVICE] JSON parse failed, trying string format: ${parseError}`);
+              
+              if (message.startsWith('PROGRESS:')) {
+                const progress = parseInt(message.split(':')[1]);
+                observer.next({ type: 'progress', value: progress });
+              } else if (message.startsWith('SUCCESS:')) {
+                const fileId = message.split(':')[1];
+                observer.next({ type: 'success', value: fileId });
+                observer.complete();
+              } else if (message.startsWith('ERROR:')) {
+                const error = message.split(':')[1];
+                observer.error(new Error(error));
+              }
             }
           };
           
@@ -185,7 +203,21 @@ export class UploadService {
       if (e.target && e.target.result) {
         const arrayBuffer = e.target.result as ArrayBuffer;
         console.log(`[DEBUG] 📤 Sending chunk of size ${arrayBuffer.byteLength} bytes`);
-        ws.send(arrayBuffer);
+        
+        // Convert ArrayBuffer to base64 and send as JSON
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        const base64Data = btoa(binary);
+        
+        const chunkMessage = {
+          bytes: base64Data
+        };
+        
+        console.log(`[DEBUG] 📤 Sending JSON chunk message with base64 data, length: ${base64Data.length}`);
+        ws.send(JSON.stringify(chunkMessage));
         
         // Send next chunk
         setTimeout(() => {
@@ -196,7 +228,7 @@ export class UploadService {
     
     reader.onerror = (error) => {
       console.error(`[DEBUG] ❌ FileReader error:`, error);
-      ws.send("ERROR:File reading failed");
+      ws.send(JSON.stringify({ error: "File reading failed" }));
     };
     
     reader.readAsArrayBuffer(chunk);
