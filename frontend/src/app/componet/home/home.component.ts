@@ -1,5 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { UploadService, UploadEvent, QuotaInfo } from '../../shared/services/upload.service';
+import { Router } from '@angular/router';
 import { Subscription, forkJoin, Observable, Observer, Subject } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { BatchUploadService, IBatchFileInfo } from '../../shared/services/batch-upload.service';
@@ -58,7 +59,8 @@ export class HomeComponent implements OnDestroy {
   constructor(
     private uploadService: UploadService,
     private snackBar: MatSnackBar,
-    private batchUploadService: BatchUploadService
+    private batchUploadService: BatchUploadService,
+    private router: Router
   ) {
     // Note: AuthService integration removed due to missing implementation
     // this.authService.isAuthenticated$.pipe(takeUntil(this.destroy$)).subscribe(...)
@@ -201,6 +203,11 @@ export class HomeComponent implements OnDestroy {
       }));
       this.batchState = 'selected';
     }
+  }
+
+  // CTA Button handlers
+  onClaimStorage(): void {
+    this.router.navigate(['/register']);
   }
 
   // Single file upload methods

@@ -101,6 +101,7 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
   public isConnected: boolean = true; // Set to true since backend is working
   public currentRoute: string = '';
   public environment = environment;
+  public brandingConfig: any;
   
   // New properties for enhanced dashboard
   public isDarkTheme: boolean = false;
@@ -158,7 +159,7 @@ export class AdminPanelComponent implements OnInit, OnDestroy {
     public adminAuthService: AdminAuthService,
     private adminStatsService: AdminStatsService,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
   ) { }
 
   ngOnInit(): void {
