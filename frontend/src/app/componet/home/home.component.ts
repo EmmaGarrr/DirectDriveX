@@ -5,11 +5,7 @@ import { Subscription, forkJoin, Observable, Observer, Subject } from 'rxjs';
 import { ToastService } from '../../shared/services/toast.service';
 import { BatchUploadService, IBatchFileInfo } from '../../shared/services/batch-upload.service';
 import { environment } from '../../../environments/environment';
-<<<<<<< HEAD
-import { MatSnackBar } from '@angular/material/snack-bar';
-=======
 import { AppComponent } from '../../app.component';
->>>>>>> 1c3d303d324059a9ee98721e479525b39d3692ef
 
 // Interfaces and Types
 interface IFileState {
@@ -67,15 +63,9 @@ export class HomeComponent implements OnDestroy {
   constructor(
     private router: Router,
     private uploadService: UploadService,
-<<<<<<< HEAD
-    private snackBar: MatSnackBar,
-    private batchUploadService: BatchUploadService,
-    private toastService: ToastService
-=======
     private toastService: ToastService,
     private batchUploadService: BatchUploadService,
     private appComponent: AppComponent
->>>>>>> 1c3d303d324059a9ee98721e479525b39d3692ef
   ) {
     // Track homepage view
     this.appComponent.trackHotjarEvent('homepage_viewed');
@@ -125,7 +115,7 @@ export class HomeComponent implements OnDestroy {
     const limitText = this.isAuthenticated ? '5GB' : '2GB';
     
     if (file.size > limits.singleFile) {
-      this.snackBar.open(`File size exceeds ${limitText} limit for ${this.isAuthenticated ? 'authenticated' : 'anonymous'} users`, 'Close', { duration: 5000 });
+      this.toastService.error(`File size exceeds ${limitText} limit for ${this.isAuthenticated ? 'authenticated' : 'anonymous'} users`, 5000);
       return false;
     }
     return true;
@@ -139,7 +129,7 @@ export class HomeComponent implements OnDestroy {
     // Check individual file sizes
     for (const file of files) {
       if (file.size > limits.singleFile) {
-        this.snackBar.open(`File "${file.name}" exceeds ${limitText} single file limit`, 'Close', { duration: 5000 });
+        this.toastService.error(`File "${file.name}" exceeds ${limitText} single file limit`, 5000);
         return false;
       }
     }
@@ -148,7 +138,7 @@ export class HomeComponent implements OnDestroy {
     const totalSize = files.reduce((sum, file) => sum + file.size, 0);
     if (totalSize > limits.daily) {
       const totalSizeGB = (totalSize / (1024 * 1024 * 1024)).toFixed(2);
-      this.snackBar.open(`Total file size (${totalSizeGB}GB) exceeds ${limitText} daily limit`, 'Close', { duration: 5000 });
+      this.toastService.error(`Total file size (${totalSizeGB}GB) exceeds ${limitText} daily limit`, 5000);
       return false;
     }
     
@@ -293,12 +283,6 @@ export class HomeComponent implements OnDestroy {
             const fileId = typeof event.value === 'string' ? event.value.split('/').pop() : event.value;
             // Generate frontend route URL like batch downloads (not direct API URL)
             this.finalDownloadLink = `${window.location.origin}/download/${fileId}`;
-<<<<<<< HEAD
-            this.snackBar.open('File uploaded successfully!', 'Close', { duration: 3000 });
-            
-            // --- NEW: Refresh quota info after successful upload ---
-            this.loadQuotaInfo();
-=======
             
             // Track successful upload
             this.appComponent.trackHotjarEvent('single_upload_success', {
@@ -309,7 +293,6 @@ export class HomeComponent implements OnDestroy {
             });
             
             this.toastService.success('File uploaded successfully!', 3000);
->>>>>>> 1c3d303d324059a9ee98721e479525b39d3692ef
           }
         }
       },
@@ -779,7 +762,7 @@ export class HomeComponent implements OnDestroy {
     if (allCompleted) {
       this.batchState = 'success';
       this.finalBatchLink = `${window.location.origin}/batch-download/${batchId}`;
-      this.snackBar.open('All files uploaded successfully!', 'Close', { duration: 3000 });
+      this.toastService.success('All files uploaded successfully!', 3000);
       
       // --- NEW: Refresh quota info after successful batch upload ---
       this.loadQuotaInfo();
@@ -811,7 +794,7 @@ export class HomeComponent implements OnDestroy {
     }
     
     // Show user-friendly message
-    this.snackBar.open(`Cancelling upload: ${fileState.file.name}`, 'Close', { duration: 2000 });
+    this.toastService.info(`Cancelling upload: ${fileState.file.name}`, 2000);
     
     // Simulate realistic cancellation time for better UX
     setTimeout(() => {
@@ -823,7 +806,7 @@ export class HomeComponent implements OnDestroy {
       const allCompleted = this.batchFiles.every(f => f.state === 'success' || f.state === 'error' || f.state === 'cancelled');
       if (allCompleted) {
         this.batchState = 'success';
-        this.snackBar.open('All files processed!', 'Close', { duration: 3000 });
+        this.toastService.success('All files processed!', 3000);
       }
     }, 500);
   }
@@ -907,9 +890,6 @@ export class HomeComponent implements OnDestroy {
       }
     });
   }
-<<<<<<< HEAD
-}
-=======
 
   // Helper method to get total file size
   private getTotalFileSize(): number {
@@ -922,4 +902,3 @@ export class HomeComponent implements OnDestroy {
     return [...new Set(types)]; // Remove duplicates
   }
 }
->>>>>>> 1c3d303d324059a9ee98721e479525b39d3692ef
