@@ -2,9 +2,10 @@ import { Component, OnDestroy } from '@angular/core';
 import { UploadService, UploadEvent, QuotaInfo } from '../../shared/services/upload.service';
 import { Router } from '@angular/router';
 import { Subscription, forkJoin, Observable, Observer, Subject } from 'rxjs';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ToastService } from '../../shared/services/toast.service';
 import { BatchUploadService, IBatchFileInfo } from '../../shared/services/batch-upload.service';
 import { environment } from '../../../environments/environment';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 // Interfaces and Types
 interface IFileState {
@@ -49,6 +50,9 @@ export class HomeComponent implements OnDestroy {
   // UI state for modern interface
   public isDragOver = false;
   
+  // Tab management for mobile comparison
+  public activeTab: 'dropbox' | 'google-drive' | 'mfcnextgen' = 'dropbox';
+  
   // Math reference for template
   public Math = Math;
 
@@ -57,10 +61,11 @@ export class HomeComponent implements OnDestroy {
   public quotaLoading = false;
 
   constructor(
+    private router: Router,
     private uploadService: UploadService,
     private snackBar: MatSnackBar,
     private batchUploadService: BatchUploadService,
-    private router: Router
+    private toastService: ToastService
   ) {
     // Note: AuthService integration removed due to missing implementation
     // this.authService.isAuthenticated$.pipe(takeUntil(this.destroy$)).subscribe(...)
@@ -229,7 +234,7 @@ export class HomeComponent implements OnDestroy {
           if (this.isCancelling || (typeof event.value === 'string' && event.value.includes('cancelled'))) {
             // Handle cancellation success
             this.currentState = 'cancelled';
-            this.snackBar.open('Upload cancelled successfully', 'Close', { duration: 3000 });
+            this.toastService.success('Upload cancelled successfully', 3000);
             this.resetToIdle();
           } else {
             // Handle regular upload success
@@ -249,7 +254,7 @@ export class HomeComponent implements OnDestroy {
         if (!this.isCancelling) {
           this.currentState = 'error';
           this.errorMessage = err.message || 'Upload failed';
-          this.snackBar.open('Upload failed: ' + this.errorMessage, 'Close', { duration: 5000 });
+          this.toastService.error('Upload failed: ' + this.errorMessage, 5000);
         }
       },
       complete: () => {
@@ -293,7 +298,7 @@ export class HomeComponent implements OnDestroy {
     this.isCancelling = true;
     
     // Show user-friendly message immediately
-    this.snackBar.open('Cancelling upload...', 'Close', { duration: 2000 });
+    this.toastService.info('Cancelling upload...', 2000);
     
     // Simulate realistic cancellation time for better UX
     setTimeout(() => {
@@ -306,7 +311,7 @@ export class HomeComponent implements OnDestroy {
         
         // Show success message after slight delay
         setTimeout(() => {
-          this.snackBar.open('Upload cancelled successfully', 'Close', { duration: 3000 });
+          this.toastService.success('Upload cancelled successfully', 3000);
           // Reset to idle after showing cancelled state briefly
           setTimeout(() => {
             this.resetToIdle();
@@ -314,7 +319,7 @@ export class HomeComponent implements OnDestroy {
         }, 500);
       } else {
         console.log('[HomeComponent] No active upload to cancel');
-        this.snackBar.open('Upload cancelled', 'Close', { duration: 2000 });
+        this.toastService.info('Upload cancelled', 2000);
         this.resetToIdle();
       }
     }, 300); // Small delay for better perceived performance
@@ -370,7 +375,7 @@ export class HomeComponent implements OnDestroy {
       error: (err) => {
         console.error(`[HOME_BATCH] Batch upload initiation failed:`, err);
         this.batchState = 'error';
-        this.snackBar.open(`Batch upload initiation failed: ${err.error?.detail || err.message || 'Unknown error'}`, 'Close', { duration: 5000 });
+        this.toastService.error(`Batch upload initiation failed: ${err.error?.detail || err.message || 'Unknown error'}`, 5000);
       },
       complete: () => {}
     };
@@ -631,7 +636,7 @@ export class HomeComponent implements OnDestroy {
 
   copyLink(link: string): void {
     navigator.clipboard.writeText(link).then(() => {
-      this.snackBar.open('Link copied to clipboard!', 'Close', { duration: 2000 });
+      this.toastService.success('Link copied to clipboard!', 2000);
     });
   }
 
@@ -648,7 +653,7 @@ export class HomeComponent implements OnDestroy {
     this.isCancelling = true;
     
     // Show user-friendly message immediately
-    this.snackBar.open('Cancelling all uploads...', 'Close', { duration: 2000 });
+    this.toastService.info('Cancelling all uploads...', 2000);
     
     // Simulate realistic cancellation time for better UX
     setTimeout(() => {
@@ -673,7 +678,7 @@ export class HomeComponent implements OnDestroy {
       
       // Show success message after slight delay
       setTimeout(() => {
-        this.snackBar.open('All uploads cancelled successfully', 'Close', { duration: 3000 });
+        this.toastService.success('All uploads cancelled successfully', 3000);
         
         // Reset after showing cancelled state briefly
         setTimeout(() => {
@@ -749,6 +754,63 @@ export class HomeComponent implements OnDestroy {
         this.snackBar.open('All files processed!', 'Close', { duration: 3000 });
       }
     }, 500);
+  }
+
+  // --- NEW: Add missing getFileTypeInfo method ---
+  getFileTypeInfo(filename: string): { iconType: string; color: string; bgColor: string } {
+    if (!filename) return { iconType: 'file', color: 'text-gray-500', bgColor: 'bg-gray-100' };
+    
+    const extension = filename.split('.').pop()?.toLowerCase();
+    
+    // Image files
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'].includes(extension || '')) {
+      return { iconType: 'image', color: 'text-blue-500', bgColor: 'bg-blue-50' };
+    }
+    
+    // Video files
+    if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv', 'm4v'].includes(extension || '')) {
+      return { iconType: 'video', color: 'text-red-500', bgColor: 'bg-red-50' };
+    }
+    
+    // Audio files
+    if (['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma'].includes(extension || '')) {
+      return { iconType: 'audio', color: 'text-green-500', bgColor: 'bg-green-50' };
+    }
+    
+    // Document files
+    if (['pdf', 'doc', 'docx', 'txt', 'rtf'].includes(extension || '')) {
+      return { iconType: 'document', color: 'text-yellow-500', bgColor: 'bg-yellow-50' };
+    }
+    
+    // Archive files
+    if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension || '')) {
+      return { iconType: 'archive', color: 'text-purple-500', bgColor: 'bg-purple-50' };
+    }
+    
+    // Code files
+    if (['js', 'ts', 'html', 'css', 'py', 'java', 'cpp', 'c', 'php', 'rb', 'go', 'rs'].includes(extension || '')) {
+      return { iconType: 'code', color: 'text-indigo-500', bgColor: 'bg-indigo-50' };
+    }
+    
+    // Default
+    return { iconType: 'file', color: 'text-gray-500', bgColor: 'bg-gray-50' };
+  }
+
+  // --- NEW: Add missing switchTab method ---
+  switchTab(tab: 'dropbox' | 'google-drive' | 'mfcnextgen'): void {
+    this.activeTab = tab;
+  }
+
+  // --- NEW: Add missing onGetStartedClick method ---
+  onGetStartedClick(): void {
+    // Scroll to the upload section or navigate to a specific route
+    const uploadSection = document.getElementById('upload-section');
+    if (uploadSection) {
+      uploadSection.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      // Fallback: scroll to top of page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   ngOnDestroy(): void {

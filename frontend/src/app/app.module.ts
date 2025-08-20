@@ -65,6 +65,7 @@ import { ResetPasswordComponent } from './componet/reset-password/reset-password
 import { FilePreviewComponent } from './componet/file-preview/file-preview.component';
 import { EnhancedVideoPreviewComponent } from './componet/file-preview/enhanced-video-preview.component';
 import { SafePipe } from './shared/pipes/safe.pipe';
+import { FooterComponent } from './shared/component/footer/footer.component';
 
 
 @NgModule({
@@ -100,7 +101,8 @@ import { SafePipe } from './shared/pipes/safe.pipe';
     ResetPasswordComponent,
     FilePreviewComponent,
     EnhancedVideoPreviewComponent,
-    SafePipe
+    SafePipe,
+    FooterComponent
   ],
   imports: [
     BrowserModule,

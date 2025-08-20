@@ -83,6 +83,94 @@
   }
 }
 
+/* mfcnextgen Column Special Effects */
+.mfcnextgen-highlight {
+  position: relative;
+  overflow: hidden;
+}
+
+.mfcnextgen-highlight::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.mfcnextgen-highlight:hover::before {
+  left: 100%;
+}
+
+/* Enhanced CTA Button */
+.enhanced-cta-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.enhanced-cta-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.enhanced-cta-button:hover::before {
+  left: 100%;
+}
+
+/* Mobile Responsive Enhancements */
+@media (max-width: 768px) {
+  .comparison-table {
+    @apply overflow-x-auto;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .comparison-table::-webkit-scrollbar {
+    @apply h-2;
+  }
+  
+  .comparison-table::-webkit-scrollbar-track {
+    @apply bg-slate-100 rounded;
+  }
+  
+  .comparison-table::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded;
+  }
+  
+  .mfcnextgen-highlight {
+    @apply transform scale-100;
+  }
+}
+
+/* Tab Navigation Styles */
+.tab-button {
+  @apply flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all duration-200;
+}
+
+.tab-button.active {
+  @apply bg-white text-blue-600 shadow-sm;
+}
+
+.tab-button:not(.active) {
+  @apply text-slate-600 hover:text-slate-900;
+}
+
+.tab-button:hover {
+  @apply transform scale-105;
+}
+
+.tab-button.active:hover {
+  @apply transform scale-105;
+}
+
 /* BOLT geometric elements */
 .bolt-geometric {
   position: relative;
