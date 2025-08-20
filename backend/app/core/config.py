@@ -55,6 +55,19 @@ class Settings(BaseSettings):
     PARALLEL_UPLOAD_MAX_CONCURRENT_USERS: int = 20  # Max 20 concurrent users
     PARALLEL_UPLOAD_MAX_MEMORY_PERCENT: float = 80.0  # Max 80% memory usage
 
+    # --- NEW: EMAIL CONFIGURATION ---
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_USE_TLS: bool = True
+    FROM_EMAIL: Optional[str] = None
+    FROM_NAME: str = "DirectDrive System"
+    
+    # --- NEW: PASSWORD RESET CONFIGURATION ---
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 30
+    FRONTEND_URL: str = "http://localhost:4200"  # For production, use your domain
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
