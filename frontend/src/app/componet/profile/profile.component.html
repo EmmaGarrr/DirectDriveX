@@ -1,322 +1,914 @@
-<!-- Profile Page matching first screenshot design -->
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 w-screen fixed top-0 left-0 z-0"></div>
+<!-- Profile Page with BOLT Design System -->
+<div
+  class="bg-gradient-to-br from-bolt-white to-bolt-light-blue w-screen fixed top-0 left-0 z-0"
+></div>
 <div class="min-h-screen relative z-10 pt-8">
-  
   <!-- Main Content -->
-  <main class="container mx-auto px-4 py-8 max-w-4xl">
-    
+  <main class="container mx-auto px-4 py-8 max-w-6xl">
     <!-- Page Header -->
-    <div class="text-center mb-8 space-y-2">
-      <h1 class="text-3xl font-bold text-slate-900">User Profile</h1>
-      <p class="text-slate-600">Manage your account settings and storage</p>
+    <div class="mb-8 space-y-2">
+      <h1 class="text-3xl font-bold text-bolt-black">User Profile</h1>
+      <p class="text-bolt-medium-black">
+        Manage your account settings and storage
+      </p>
     </div>
 
-    <!-- User Overview Card -->
-    <div class="card card-elevated mb-6">
-      <div class="card-content p-6">
-        <div class="flex items-center justify-between">
+    <!-- Loading State -->
+    <div *ngIf="profileLoading" class="space-y-6">
+      <!-- Skeleton Loading for User Overview -->
+      <div class="card card-elevated mb-6 animate-pulse">
+        <div class="card-content p-6">
           <div class="flex items-center space-x-4">
-            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-              </svg>
+            <div class="w-12 h-12 bg-bolt-light-blue rounded-full"></div>
+            <div class="space-y-2">
+              <div class="h-6 bg-bolt-light-blue rounded w-48"></div>
+              <div class="h-4 bg-bolt-light-blue rounded w-24"></div>
             </div>
-            <div>
-              <h3 class="text-lg font-semibold text-slate-900">{{ user?.email || 'jylowuke@forexzig.com' }}</h3>
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white mt-1">
-                ⭐ Premium Account
-              </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skeleton Loading for Grid -->
+      <div class="grid md:grid-cols-2 gap-6 mb-6">
+        <div class="card card-elevated animate-pulse">
+          <div class="card-content p-6 space-y-4">
+            <div class="h-6 bg-bolt-light-blue rounded w-32"></div>
+            <div class="space-y-2">
+              <div class="h-4 bg-bolt-light-blue rounded w-full"></div>
+              <div class="h-2 bg-bolt-light-blue rounded w-full"></div>
+              <div class="h-4 bg-bolt-light-blue rounded w-24"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card card-elevated animate-pulse">
+          <div class="card-content p-6 space-y-4">
+            <div class="h-6 bg-bolt-light-blue rounded w-40"></div>
+            <div class="space-y-3">
+              <div class="h-4 bg-bolt-light-blue rounded w-full"></div>
+              <div class="h-4 bg-bolt-light-blue rounded w-full"></div>
+              <div class="h-4 bg-bolt-light-blue rounded w-full"></div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Two Column Grid -->
-    <div class="grid md:grid-cols-2 gap-6 mb-6">
-      
-      <!-- Storage Usage Card -->
-      <div class="card card-elevated">
-        <div class="card-content p-6">
-          <div class="flex items-center space-x-2 mb-4">
-            <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-            </svg>
-            <h3 class="text-lg font-semibold text-slate-900">Storage Usage</h3>
-          </div>
-          
-          <div class="space-y-4">
-            <div>
-              <div class="flex justify-between text-sm mb-2">
-                <span class="text-slate-600">Used Storage</span>
-                <span class="font-medium text-slate-900">{{ user?.storage_used_gb || 0 }} GB / {{ user?.storage_limit_gb || 10 }} GB</span>
-              </div>
-              <div class="w-full bg-slate-200 rounded-full h-2">
-                <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full" [style.width.%]="user?.storage_percentage || 0"></div>
-              </div>
-              <p class="text-xs text-slate-500 mt-2">
-                {{ user?.remaining_storage_gb || user?.storage_limit_gb || 10 }} GB remaining
-              </p>
-            </div>
-            
-            <div class="border-t border-slate-200 pt-4">
-              <h4 class="text-sm font-medium text-slate-700 mb-3">Storage breakdown</h4>
-              <div class="space-y-2 text-sm">
-                <div class="flex justify-between">
-                  <span class="text-slate-600">Documents</span>
-                  <span class="text-slate-900">{{ formatFileSize(user?.file_type_breakdown?.documents || 0) }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-slate-600">Images</span>
-                  <span class="text-slate-900">{{ formatFileSize(user?.file_type_breakdown?.images || 0) }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-slate-600">Videos</span>
-                  <span class="text-slate-900">{{ formatFileSize(user?.file_type_breakdown?.videos || 0) }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-slate-600">Other</span>
-                  <span class="text-slate-900">{{ formatFileSize(user?.file_type_breakdown?.other || 0) }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Account Information Card -->
-      <div class="card card-elevated">
-        <div class="card-content p-6">
-          <div class="flex items-center space-x-2 mb-4">
-            <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-            </svg>
-            <h3 class="text-lg font-semibold text-slate-900">Account Information</h3>
-          </div>
-          
-          <div class="space-y-4">
-            <div>
-              <label class="text-sm text-slate-500 font-medium">Email Address</label>
-              <p class="text-slate-900">{{ user?.email || 'Loading...' }}</p>
-            </div>
-            <div>
-              <label class="text-sm text-slate-500 font-medium">Account Type</label>
-              <p class="text-slate-900">Premium ({{ user?.storage_limit_gb || 10 }}GB Storage)</p>
-            </div>
-            <div>
-              <label class="text-sm text-slate-500 font-medium">Member Since</label>
-              <p class="text-slate-900">December 2024</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Premium Features Card -->
-    <div class="card card-elevated mb-6">
-      <div class="card-content p-6">
-        <div class="flex items-center space-x-2 mb-4">
-          <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+    <!-- Error State -->
+    <div
+      *ngIf="profileError && !profileLoading"
+      class="card card-elevated mb-6"
+    >
+      <div class="card-content p-6 text-center">
+        <div class="flex flex-col items-center space-y-4">
+          <svg
+            class="w-12 h-12 text-bolt-blue"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+            ></path>
           </svg>
-          <h3 class="text-lg font-semibold text-slate-900">Premium Features</h3>
-        </div>
-        <p class="text-sm text-slate-500 mb-6">You have access to all premium features</p>
-        
-        <div class="grid md:grid-cols-2 gap-4">
-          <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
-            <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            <span class="text-sm text-green-900">{{ user?.storage_limit_gb || 10 }}GB storage limit (vs 5GB free tier)</span>
-          </div>
-          
-          <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
-            <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            <span class="text-sm text-green-900">ZIP download for multiple files</span>
-          </div>
-          
-          <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
-            <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            <span class="text-sm text-green-900">Batch upload capabilities</span>
-          </div>
-          
-          <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
-            <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            <span class="text-sm text-green-900">Advanced sharing options</span>
-          </div>
-          
-          <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
-            <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            <span class="text-sm text-green-900">Priority customer support</span>
-          </div>
-          
-          <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
-            <svg class="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            <span class="text-sm text-green-900">Secure cloud storage with Google Drive integration</span>
+          <div>
+            <h3 class="text-lg font-semibold text-bolt-black mb-2">
+              Failed to Load Profile
+            </h3>
+            <p class="text-bolt-medium-black mb-4">
+              We couldn't load your profile information. Please try again.
+            </p>
+            <button
+              class="btn-primary"
+              (click)="retryLoadProfile()"
+              aria-label="Retry loading profile"
+            >
+              <svg
+                class="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                ></path>
+              </svg>
+              Try Again
+            </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Password Change Section (Conditional) -->
-    <div *ngIf="isChangingPassword" class="card card-elevated mb-6">
-      <div class="card-content p-6">
-        <div class="flex items-center space-x-2 mb-4">
-          <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m0 0a2 2 0 012 2m-2-2a2 2 0 00-2 2m2-2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h1a1 1 0 110 2h-1a2 2 0 00-2 2v.5"></path>
-          </svg>
-          <h3 class="text-lg font-semibold text-slate-900">Change Password</h3>
-        </div>
-        
-        <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="space-y-4">
-          <!-- Current Password -->
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Current Password</mat-label>
-            <input matInput 
-                   [type]="hideCurrentPassword ? 'password' : 'text'" 
-                   formControlName="currentPassword" 
-                   placeholder="Enter current password">
-            <button mat-icon-button matSuffix (click)="hideCurrentPassword = !hideCurrentPassword" type="button">
-              <mat-icon>{{ hideCurrentPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-            <mat-error *ngIf="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched">
-              {{ getCurrentPasswordErrorMessage() }}
-            </mat-error>
-          </mat-form-field>
-
-          <!-- New Password -->
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>New Password</mat-label>
-            <input matInput 
-                   [type]="hideNewPassword ? 'password' : 'text'" 
-                   formControlName="newPassword" 
-                   placeholder="Enter new password">
-            <button mat-icon-button matSuffix (click)="hideNewPassword = !hideNewPassword" type="button">
-              <mat-icon>{{ hideNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-            <mat-error *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched">
-              {{ getNewPasswordErrorMessage() }}
-            </mat-error>
-          </mat-form-field>
-
-          <!-- Confirm New Password -->
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Confirm New Password</mat-label>
-            <input matInput 
-                   [type]="hideConfirmPassword ? 'password' : 'text'" 
-                   formControlName="confirmPassword" 
-                   placeholder="Confirm new password">
-            <button mat-icon-button matSuffix (click)="hideConfirmPassword = !hideConfirmPassword" type="button">
-              <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-            <mat-error *ngIf="(passwordForm.get('confirmPassword')?.invalid || passwordForm.hasError('passwordMismatch')) && passwordForm.get('confirmPassword')?.touched">
-              {{ getConfirmPasswordErrorMessage() }}
-            </mat-error>
-          </mat-form-field>
-
-          <!-- Submit Button -->
-          <div class="flex justify-end space-x-3">
-            <button type="button" class="btn-outline" (click)="togglePasswordChange()">
-              Cancel
-            </button>
-            <button type="submit" 
-                    class="btn-primary" 
-                    [disabled]="!passwordForm.valid || loading">
-              <span *ngIf="loading" class="flex items-center">
-                <mat-spinner diameter="18" class="mr-2"></mat-spinner>
-                Updating...
-              </span>
-              <span *ngIf="!loading">Update Password</span>
-            </button>
+    <!-- User Content (when loaded) -->
+    <div *ngIf="!profileLoading && !profileError">
+      <!-- User Overview Card -->
+      <div class="card card-elevated mb-6">
+        <div class="card-content p-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              <div
+                class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-300 text-white rounded-full flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  ></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-bolt-black">
+                  {{ user?.email || "Loading..." }}
+                </h3>
+                <span
+                  class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-blue-300 text-white mt-1"
+                >
+                  ⭐ {{ getAccountType() }} Account
+                </span>
+              </div>
+            </div>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
 
-    <!-- Bottom Action Cards -->
-    <div class="grid md:grid-cols-2 gap-6">
-      
-      <!-- Security & Privacy Card -->
-      <div class="card card-elevated">
+      <!-- Two Column Grid -->
+      <div class="grid md:grid-cols-2 gap-6 mb-6">
+        <!-- Storage Usage Card -->
+        <div class="card card-elevated">
+          <div class="card-content p-6">
+            <div class="flex items-center space-x-2 mb-4">
+              <svg
+                class="w-5 h-5 text-bolt-blue"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                ></path>
+              </svg>
+              <h3 class="text-lg font-semibold text-bolt-black">
+                Storage Usage
+              </h3>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between text-sm mb-2">
+                  <span class="text-bolt-medium-black">Used Storage</span>
+                  <span class="font-medium text-bolt-black"
+                    >{{ user?.storage_used_gb || 0 }} GB /
+                    {{ user?.storage_limit_gb || 10 }} GB</span
+                  >
+                </div>
+                <div
+                  class="w-full bg-bolt-light-blue rounded-full h-2"
+                  role="progressbar"
+                  [attr.aria-valuenow]="user?.storage_percentage || 0"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                >
+                  <div
+                    class="bg-gradient-to-r from-bolt-blue to-bolt-purple h-2 rounded-full transition-all duration-300"
+                    [style.width.%]="user?.storage_percentage || 0"
+                  ></div>
+                </div>
+                <p class="text-xs text-bolt-medium-black mt-2">
+                  {{
+                    user?.remaining_storage_gb || user?.storage_limit_gb || 10
+                  }}
+                  GB remaining
+                </p>
+              </div>
+
+              <div class="border-t border-bolt-light-blue pt-4">
+                <h4 class="text-base font-medium text-bolt-black mb-3">
+                  Storage breakdown
+                </h4>
+                <div class="space-y-2 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-bolt-medium-black">Documents</span>
+                    <span class="text-bolt-black">{{
+                      formatFileSize(user?.file_type_breakdown?.documents || 0)
+                    }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-bolt-medium-black">Images</span>
+                    <span class="text-bolt-black">{{
+                      formatFileSize(user?.file_type_breakdown?.images || 0)
+                    }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-bolt-medium-black">Videos</span>
+                    <span class="text-bolt-black">{{
+                      formatFileSize(user?.file_type_breakdown?.videos || 0)
+                    }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-bolt-medium-black">Other</span>
+                    <span class="text-bolt-black">{{
+                      formatFileSize(user?.file_type_breakdown?.other || 0)
+                    }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Account Information Card -->
+        <div class="card card-elevated">
+          <div class="card-content p-6">
+            <div class="flex items-center space-x-2 mb-4">
+              <svg
+                class="w-5 h-5 text-bolt-blue"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                ></path>
+              </svg>
+              <h3 class="text-lg font-semibold text-bolt-black">
+                Account Information
+              </h3>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm text-gray-500 font-medium"
+                  >Email Address</label
+                >
+                <p class="text-bolt-black">{{ user?.email || "Loading..." }}</p>
+              </div>
+              <div>
+                <label class="text-sm text-gray-500 font-medium"
+                  >Account Type</label
+                >
+                <p class="text-bolt-black">
+                  {{ getAccountType() }} ({{ user?.storage_limit_gb || 10 }}GB
+                  Storage)
+                </p>
+              </div>
+              <div>
+                <label class="text-sm text-gray-500 font-medium"
+                  >Member Since</label
+                >
+                <p class="text-bolt-black">{{ getMemberSinceDate() }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Premium Features Card -->
+      <div class="card card-elevated mb-6">
         <div class="card-content p-6">
           <div class="flex items-center space-x-2 mb-4">
-            <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            <svg
+              class="w-5 h-5 text-bolt-mid-blue"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+              ></path>
             </svg>
-            <h3 class="text-lg font-semibold text-slate-900">Security & Privacy</h3>
+            <h3 class="text-lg font-semibold text-bolt-black">
+              Premium Features
+            </h3>
           </div>
-          
-          <div class="space-y-3">
-            <button class="btn-outline w-full text-left justify-start" (click)="togglePasswordChange()">
-              <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+          <p class="text-sm text-bolt-medium-black mb-6">
+            You have access to all premium features
+          </p>
+
+          <div class="grid md:grid-cols-2 gap-4">
+            <div
+              class="flex items-center space-x-2 p-3 rounded-lg border border-gray-300 shadow-sm"
+            >
+              <svg
+                class="w-5 h-5 text-bolt-blue flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
               </svg>
-              {{ isChangingPassword ? 'Cancel Password Change' : 'Change Password' }}
-            </button>
-            
-            <button class="btn-outline w-full text-left justify-start" disabled>
-              <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              <span class="text-sm text-bolt-black"
+                >{{ user?.storage_limit_gb || 10 }}GB storage limit (vs 5GB free
+                tier)</span
+              >
+            </div>
+
+            <div
+              class="flex items-center space-x-2 p-3 rounded-lg border border-gray-300 shadow-sm"
+            >
+              <svg
+                class="w-5 h-5 text-bolt-blue flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
               </svg>
-              Two-Factor Authentication
-            </button>
-            
-            <button class="btn-outline w-full text-left justify-start" disabled>
-              <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              <span class="text-sm text-bolt-black"
+                >ZIP download for multiple files</span
+              >
+            </div>
+
+            <div
+              class="flex items-center space-x-2 p-3 rounded-lg border border-gray-300 shadow-sm"
+            >
+              <svg
+                class="w-5 h-5 text-bolt-blue flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
               </svg>
-              Download My Data
-            </button>
+              <span class="text-sm text-bolt-black"
+                >Batch upload capabilities</span
+              >
+            </div>
+
+            <div
+              class="flex items-center space-x-2 p-3 rounded-lg border border-gray-300 shadow-sm"
+            >
+              <svg
+                class="w-5 h-5 text-bolt-blue flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              <span class="text-sm text-bolt-black"
+                >Advanced sharing options</span
+              >
+            </div>
+
+            <div
+              class="flex items-center space-x-2 p-3 rounded-lg border border-gray-300 shadow-sm"
+            >
+              <svg
+                class="w-5 h-5 text-bolt-blue flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              <span class="text-sm text-bolt-black"
+                >Priority customer support</span
+              >
+            </div>
+
+            <div
+              class="flex items-center space-x-2 p-3 rounded-lg border border-gray-300 shadow-sm"
+            >
+              <svg
+                class="w-5 h-5 text-bolt-blue flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              <span class="text-sm text-bolt-black"
+                >Secure cloud storage with Google Drive integration</span
+              >
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Quick Actions Card -->
-      <div class="card card-elevated">
+      <!-- Password Change Section (Conditional) -->
+      <div
+        *ngIf="isChangingPassword"
+        class="card card-elevated mb-6 form-section"
+      >
         <div class="card-content p-6">
           <div class="flex items-center space-x-2 mb-4">
-            <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
-            <h3 class="text-lg font-semibold text-slate-900">Quick Actions</h3>
+            <h3 class="text-lg font-semibold text-bolt-black">
+              Change Password
+            </h3>
           </div>
-          
-          <div class="space-y-3">
-            <button class="btn-primary w-full" (click)="navigateHome()">
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+
+          <form
+            [formGroup]="passwordForm"
+            (ngSubmit)="onChangePassword()"
+            class="space-y-4"
+          >
+            <!-- Current Password Field -->
+            <div class="space-y-2">
+              <label for="currentPassword" class="text-sm font-medium text-slate-900"
+                >Current Password</label
+              >
+              <div class="input-with-icon">
+                <input
+                  id="currentPassword"
+                  [type]="hideCurrentPassword ? 'password' : 'text'"
+                  formControlName="currentPassword"
+                  placeholder="Enter current password"
+                  class="input h-11"
+                  [class.border-destructive]="
+                    passwordForm.get('currentPassword')?.invalid &&
+                    passwordForm.get('currentPassword')?.touched
+                  "
+                  [attr.aria-describedby]="
+                    passwordForm.get('currentPassword')?.invalid &&
+                    passwordForm.get('currentPassword')?.touched
+                      ? 'currentPassword-error'
+                      : null
+                  "
+                  [attr.aria-invalid]="
+                    passwordForm.get('currentPassword')?.invalid &&
+                    passwordForm.get('currentPassword')?.touched
+                  "
+                  autocomplete="current-password"
+                  required
+                />
+                <svg
+                  class="input-icon w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  ></path>
+                </svg>
+                <button
+                  type="button"
+                  (click)="hideCurrentPassword = !hideCurrentPassword"
+                  class="absolute right-1 top-1/2 transform -translate-y-1/2 text-slate-400 transition-colors  flex items-center justify-center"
+                  [attr.aria-label]="
+                    hideCurrentPassword ? 'Show password' : 'Hide password'
+                  "
+                  [attr.aria-pressed]="!hideCurrentPassword"
+                >
+                  <i
+                    [class]="
+                      hideCurrentPassword
+                        ? 'fa-solid fa-eye'
+                        : 'fa-solid fa-eye-slash'
+                    "
+                    class="text-base"
+                  ></i>
+                </button>
+              </div>
+              <div
+                *ngIf="
+                  passwordForm.get('currentPassword')?.invalid &&
+                  passwordForm.get('currentPassword')?.touched
+                "
+                id="currentPassword-error"
+                class="error-message"
+                role="alert"
+                aria-live="polite"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  ></path>
+                </svg>
+                {{ getCurrentPasswordErrorMessage() }}
+              </div>
+            </div>
+
+            <!-- New Password Field -->
+            <div class="space-y-2">
+              <label for="newPassword" class="text-sm font-medium text-slate-900"
+                >New Password</label
+              >
+              <div class="input-with-icon">
+                <input
+                  id="newPassword"
+                  [type]="hideNewPassword ? 'password' : 'text'"
+                  formControlName="newPassword"
+                  placeholder="Enter new password"
+                  class="input h-11"
+                  [class.border-destructive]="
+                    passwordForm.get('newPassword')?.invalid &&
+                    passwordForm.get('newPassword')?.touched
+                  "
+                  [attr.aria-describedby]="
+                    passwordForm.get('newPassword')?.invalid &&
+                    passwordForm.get('newPassword')?.touched
+                      ? 'newPassword-error'
+                      : null
+                  "
+                  [attr.aria-invalid]="
+                    passwordForm.get('newPassword')?.invalid &&
+                    passwordForm.get('newPassword')?.touched
+                  "
+                  autocomplete="new-password"
+                  required
+                />
+                <svg
+                  class="input-icon w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  ></path>
+                </svg>
+                <button
+                  type="button"
+                  (click)="hideNewPassword = !hideNewPassword"
+                  class="absolute right-1 top-1/2 transform -translate-y-1/2 text-slate-400 transition-colors flex items-center justify-center"
+                  [attr.aria-label]="
+                    hideNewPassword ? 'Show password' : 'Hide password'
+                  "
+                  [attr.aria-pressed]="!hideNewPassword"
+                >
+                  <i
+                    [class]="
+                      hideNewPassword
+                        ? 'fa-solid fa-eye'
+                        : 'fa-solid fa-eye-slash'
+                    "
+                    class="text-base"
+                  ></i>
+                </button>
+              </div>
+              <div
+                *ngIf="
+                  passwordForm.get('newPassword')?.invalid &&
+                  passwordForm.get('newPassword')?.touched
+                "
+                id="newPassword-error"
+                class="error-message"
+                role="alert"
+                aria-live="polite"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  ></path>
+                </svg>
+                {{ getNewPasswordErrorMessage() }}
+              </div>
+            </div>
+
+            <!-- Confirm New Password Field -->
+            <div class="space-y-2">
+              <label for="confirmPassword" class="text-sm font-medium text-slate-900"
+                >Confirm New Password</label
+              >
+              <div class="input-with-icon">
+                <input
+                  id="confirmPassword"
+                  [type]="hideConfirmPassword ? 'password' : 'text'"
+                  formControlName="confirmPassword"
+                  placeholder="Confirm new password"
+                  class="input h-11"
+                  [class.border-destructive]="
+                    (passwordForm.get('confirmPassword')?.invalid ||
+                      passwordForm.hasError('passwordMismatch')) &&
+                    passwordForm.get('confirmPassword')?.touched
+                  "
+                  [attr.aria-describedby]="
+                    (passwordForm.get('confirmPassword')?.invalid ||
+                      passwordForm.hasError('passwordMismatch')) &&
+                    passwordForm.get('confirmPassword')?.touched
+                      ? 'confirmPassword-error'
+                      : null
+                  "
+                  [attr.aria-invalid]="
+                    (passwordForm.get('confirmPassword')?.invalid ||
+                      passwordForm.hasError('passwordMismatch')) &&
+                    passwordForm.get('confirmPassword')?.touched
+                  "
+                  autocomplete="new-password"
+                  required
+                />
+                <svg
+                  class="input-icon w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  ></path>
+                </svg>
+                <button
+                  type="button"
+                  (click)="hideConfirmPassword = !hideConfirmPassword"
+                  class="absolute right-1 top-1/2 transform -translate-y-1/2 text-slate-400 transition-colors flex items-center justify-center"
+                  [attr.aria-label]="
+                    hideConfirmPassword ? 'Show password' : 'Hide password'
+                  "
+                  [attr.aria-pressed]="!hideConfirmPassword"
+                >
+                  <i
+                    [class]="
+                      hideConfirmPassword
+                        ? 'fa-solid fa-eye'
+                        : 'fa-solid fa-eye-slash'
+                    "
+                    class="text-base"
+                  ></i>
+                </button>
+              </div>
+              <div
+                *ngIf="
+                  (passwordForm.get('confirmPassword')?.invalid ||
+                    passwordForm.hasError('passwordMismatch')) &&
+                  passwordForm.get('confirmPassword')?.touched
+                "
+                id="confirmPassword-error"
+                class="error-message"
+                role="alert"
+                aria-live="polite"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  ></path>
+                </svg>
+                {{ getConfirmPasswordErrorMessage() }}
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end space-x-3">
+              <button
+                type="button"
+                class="px-10 bg-gray-300 rounded-md text-bolt-black"
+                (click)="togglePasswordChange()"
+                aria-label="Cancel password change"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                class="bg-gradient-to-r from-blue-600 to-blue-700 text-white cursor-pointer font-medium px-8 py-3 rounded-xl transition-all"
+                [disabled]="!passwordForm.valid || loading"
+                aria-label="Update password"
+              >
+                <span *ngIf="loading" class="flex items-center">
+                  <mat-spinner diameter="18" class="mr-2"></mat-spinner>
+                  Updating...
+                </span>
+                <span *ngIf="!loading">Update Password</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Bottom Action Cards -->
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- Security & Privacy Card -->
+        <div class="card card-elevated">
+          <div class="card-content p-6">
+            <div class="flex items-center space-x-2 mb-4">
+              <svg
+                class="w-5 h-5 text-bolt-blue"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                ></path>
               </svg>
-              Back to Home
-            </button>
-            
-            <button class="btn-outline w-full" (click)="navigateHome()">
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+              <h3 class="text-lg font-semibold text-bolt-black">
+                Security & Privacy
+              </h3>
+            </div>
+
+            <div class="space-y-3">
+              <button
+                class="btn-outline w-full text-left justify-start"
+                (click)="togglePasswordChange()"
+                aria-label="Change password"
+              >
+                <svg
+                  class="w-4 h-4 mr-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  ></path>
+                </svg>
+                {{
+                  isChangingPassword
+                    ? "Cancel Password Change"
+                    : "Change Password"
+                }}
+              </button>
+
+              <button
+                class="btn-outline w-full text-left justify-start"
+                disabled
+                aria-label="Two-factor authentication (coming soon)"
+              >
+                <svg
+                  class="w-4 h-4 mr-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  ></path>
+                </svg>
+                Two-Factor Authentication
+              </button>
+
+              <button
+                class="btn-outline w-full text-left justify-start"
+                disabled
+                aria-label="Download my data (coming soon)"
+              >
+                <svg
+                  class="w-4 h-4 mr-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  ></path>
+                </svg>
+                Download My Data
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions Card -->
+        <div class="card card-elevated">
+          <div class="card-content p-6">
+            <div class="flex items-center space-x-2 mb-4">
+              <svg
+                class="w-5 h-5 text-bolt-blue"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                ></path>
               </svg>
-              Manage Files
-            </button>
-            
-            <button class="btn-outline text-red-600 border-red-200 hover:bg-red-50 w-full" (click)="onLogout()">
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-              </svg>
-              Logout
-            </button>
+              <h3 class="text-lg font-semibold text-bolt-black">
+                Quick Actions
+              </h3>
+            </div>
+
+            <div class="space-y-3">
+              <button
+                class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium px-8 py-2 rounded-xl transition-all"
+                (click)="navigateHome()"
+                aria-label="Back to home"
+              >
+                Back to Home
+              </button>
+
+              <button
+                class="btn-outline w-full"
+                (click)="navigateHome()"
+                aria-label="Manage files"
+              >
+                Manage Files
+              </button>
+
+              <button
+                class="btn-outline text-red-600 w-full"
+                (click)="onLogout()"
+                aria-label="Logout from account"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-
   </main>
 </div>

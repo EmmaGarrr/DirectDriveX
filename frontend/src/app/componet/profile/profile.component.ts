@@ -19,6 +19,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   hideNewPassword = true;
   hideConfirmPassword = true;
   loading = false;
+  profileLoading = true;
+  profileError = false;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -38,6 +40,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(user => {
       this.user = user;
+      this.profileLoading = false;
     });
   }
 
@@ -65,18 +68,28 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   private loadUserProfile(): void {
+    this.profileLoading = true;
+    this.profileError = false;
+    
     this.authService.loadUserProfile().subscribe({
       next: (user) => {
         this.user = user;
+        this.profileLoading = false;
       },
       error: (error) => {
         console.error('Error loading user profile:', error);
-        this.snackBar.open('Failed to load profile', 'Close', {
-          duration: 3000,
+        this.profileError = true;
+        this.profileLoading = false;
+        this.snackBar.open('Failed to load profile. Please try again.', 'Close', {
+          duration: 5000,
           panelClass: ['error-snackbar']
         });
       }
     });
+  }
+
+  retryLoadProfile(): void {
+    this.loadUserProfile();
   }
 
   onChangePassword(): void {
@@ -113,7 +126,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   onLogout(): void {
-    // Optional: Show confirmation dialog
+    // Show confirmation dialog
     const confirmLogout = confirm('Are you sure you want to logout?');
     if (confirmLogout) {
       this.authService.logout();
@@ -148,6 +161,33 @@ export class ProfileComponent implements OnInit, OnDestroy {
     if (percentage >= 90) return 'warn';
     if (percentage >= 70) return 'accent';
     return 'primary';
+  }
+
+  getMemberSinceDate(): string {
+    if (!this.user) return 'Loading...';
+    
+    // If user has a created_at field, use it
+    if (this.user.created_at) {
+      return new Date(this.user.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long'
+      });
+    }
+    
+    // Fallback to current date if no creation date available
+    return new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long'
+    });
+  }
+
+  getAccountType(): string {
+    if (!this.user) return 'Loading...';
+    
+    const storageLimit = this.user.storage_limit_gb || 10;
+    if (storageLimit >= 50) return 'Premium';
+    if (storageLimit >= 20) return 'Pro';
+    return 'Basic';
   }
 
   // Form validation helpers
