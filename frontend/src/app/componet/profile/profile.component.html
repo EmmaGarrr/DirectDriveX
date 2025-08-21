@@ -2,7 +2,7 @@
 <div
   class="bg-gradient-to-br from-bolt-white to-bolt-light-blue w-screen fixed top-0 left-0 z-0"
 ></div>
-<div class="min-h-screen relative z-10 pt-8">
+<div class="min-h-screen relative z-10">
   <!-- Main Content -->
   <main class="container mx-auto px-4 py-8 max-w-6xl">
     <!-- Page Header -->
@@ -61,7 +61,7 @@
       <div class="card-content p-6 text-center">
         <div class="flex flex-col items-center space-y-4">
           <svg
-            class="w-12 h-12 text-bolt-blue"
+            class="size-10 text-bolt-blue"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -82,7 +82,7 @@
               We couldn't load your profile information. Please try again.
             </p>
             <button
-              class="btn-primary"
+              class=""
               (click)="retryLoadProfile()"
               aria-label="Retry loading profile"
             >
@@ -181,14 +181,14 @@
                   >
                 </div>
                 <div
-                  class="w-full bg-bolt-light-blue rounded-full h-2"
+                  class="w-full bg-bolt-light-blue rounded-full h-2 overflow-hidden"
                   role="progressbar"
                   [attr.aria-valuenow]="user?.storage_percentage || 0"
                   aria-valuemin="0"
                   aria-valuemax="100"
                 >
                   <div
-                    class="bg-gradient-to-r from-bolt-blue to-bolt-purple h-2 rounded-full transition-all duration-300"
+                    class="bg-blue-500 h-2 rounded-full transition-all duration-300"
                     [style.width.%]="user?.storage_percentage || 0"
                   ></div>
                 </div>
@@ -744,7 +744,7 @@
               </button>
               <button
                 type="submit"
-                class="bg-gradient-to-r from-blue-600 to-blue-700 text-white cursor-pointer font-medium px-8 py-3 rounded-xl transition-all"
+                class="bg-gradient-to-r from-blue-600 to-blue-700 text-white cursor-pointer font-medium px-8 py-2 rounded-xl transition-all"
                 [disabled]="!passwordForm.valid || loading"
                 aria-label="Update password"
               >

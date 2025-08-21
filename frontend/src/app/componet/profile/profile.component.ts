@@ -1,10 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
 import { AuthService, User, PasswordChangeData } from '../../services/auth.service';
+import { ToastService } from '../../shared/services/toast.service';
 
 @Component({
   selector: 'app-profile',
@@ -27,7 +27,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private snackBar: MatSnackBar,
+    private toastService: ToastService,
     private dialog: MatDialog
   ) {}
 
@@ -80,10 +80,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         console.error('Error loading user profile:', error);
         this.profileError = true;
         this.profileLoading = false;
-        this.snackBar.open('Failed to load profile. Please try again.', 'Close', {
-          duration: 5000,
-          panelClass: ['error-snackbar']
-        });
+        this.toastService.error('Failed to load profile. Please try again.');
       }
     });
   }
@@ -104,19 +101,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.authService.changePassword(passwordData).subscribe({
         next: (response) => {
           console.log('Password changed successfully:', response);
-          this.snackBar.open('Password changed successfully!', 'Close', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
+          this.toastService.success('Password changed successfully!');
           this.passwordForm.reset();
           this.isChangingPassword = false;
         },
         error: (error) => {
           console.error('Password change error:', error);
-          this.snackBar.open(error.message || 'Failed to change password', 'Close', {
-            duration: 5000,
-            panelClass: ['error-snackbar']
-          });
+          this.toastService.error(error.message || 'Failed to change password');
         },
         complete: () => {
           this.loading = false;
@@ -130,10 +121,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const confirmLogout = confirm('Are you sure you want to logout?');
     if (confirmLogout) {
       this.authService.logout();
-      this.snackBar.open('Logged out successfully', 'Close', {
-        duration: 3000,
-        panelClass: ['success-snackbar']
-      });
+      this.toastService.success('Logged out successfully');
       this.router.navigate(['/']);
     }
   }
