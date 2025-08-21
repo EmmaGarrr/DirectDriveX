@@ -7,8 +7,8 @@ The DirectDriveX application now supports environment-based memory limits that a
 ## Memory Limits by Environment
 
 ### Development Environment
-- **Memory Limit**: 95% of available RAM
-- **Reserved Memory**: 0.5GB
+- **Memory Limit**: 100% of available RAM (no limit)
+- **Reserved Memory**: 0GB (use full memory)
 - **Use Case**: Local development, testing, debugging
 - **Configuration**: `ENVIRONMENT=development`
 
@@ -35,7 +35,7 @@ Add these variables to your `.env` file:
 ENVIRONMENT=development  # Options: development, staging, production
 
 # Memory Limits by Environment (optional - uses defaults if not set)
-PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_DEV=95.0      # Development: 95%
+PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_DEV=100.0     # Development: 100% (no limit)
 PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_STAGING=85.0  # Staging: 85%
 PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_PROD=80.0     # Production: 80%
 ```
@@ -45,8 +45,8 @@ PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_PROD=80.0     # Production: 80%
 If environment-specific variables are not set, the system uses these defaults:
 
 ```python
-# Development (default)
-PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_DEV = 95.0
+# Development (default) - No limits
+PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_DEV = 100.0
 PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_STAGING = 85.0
 PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_PROD = 80.0
 ```
@@ -57,7 +57,7 @@ PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_PROD = 80.0
 ```bash
 # .env file
 ENVIRONMENT=development
-# Result: 95% memory limit, 0.5GB reserved
+# Result: 100% memory limit, 0GB reserved (use full memory)
 ```
 
 ### For Production Deployment
@@ -82,9 +82,9 @@ ENVIRONMENT=staging
 - **Conservative approach** for live environments
 
 ### ✅ Development Flexibility
-- **95% limit** allows extensive testing
-- **0.5GB reserved** maximizes available memory
-- **Lenient approach** for development work
+- **100% limit** allows unlimited testing
+- **0GB reserved** uses full available memory
+- **No restrictions** for development work
 
 ### ✅ Environment-Specific
 - **Different limits** for different stages

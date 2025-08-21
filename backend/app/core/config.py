@@ -57,9 +57,9 @@ class Settings(BaseSettings):
     # --- ENVIRONMENT-BASED MEMORY LIMITS ---
     ENVIRONMENT: str = "development"  # Options: development, staging, production
     PARALLEL_UPLOAD_MAX_MEMORY_PERCENT: float = 80.0  # Default memory limit (legacy)
-    PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_DEV: float = 95.0  # Development: 95% (more lenient)
+    PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_DEV: float = 100.0  # Development: 100% (no limit)
     PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_STAGING: float = 85.0  # Staging: 85% (moderate)
-    PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_PROD: float = 80.0  # Production: 80% (more strict)
+    PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_PROD: float = 80.0  # Production: 80% (safe)
 
     # --- NEW: UPLOAD LIMITS CONFIGURATION ---
     ANONYMOUS_DAILY_LIMIT_BYTES: int = 2 * 1024 * 1024 * 1024  # 2GB

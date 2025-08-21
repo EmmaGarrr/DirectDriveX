@@ -32,8 +32,8 @@ class MemoryMonitor:
             self.max_memory_usage_percent = getattr(settings, 'PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_STAGING', 85.0)
             self.reserved_memory_bytes = 1.5 * 1024 * 1024 * 1024  # 1.5GB reserved for staging
         else:  # development
-            self.max_memory_usage_percent = getattr(settings, 'PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_DEV', 95.0)
-            self.reserved_memory_bytes = 0.5 * 1024 * 1024 * 1024  # 0.5GB reserved for development
+            self.max_memory_usage_percent = getattr(settings, 'PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_DEV', 100.0)
+            self.reserved_memory_bytes = 0  # No reserved memory for development (use full memory)
         
         self.warning_threshold = self.max_memory_usage_percent - 10.0  # 10% below max
         
