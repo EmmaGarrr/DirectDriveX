@@ -21,6 +21,7 @@ from app.middleware.priority_middleware import PriorityMiddleware
 # New parallel upload services
 from app.services.upload_concurrency_manager import upload_concurrency_manager
 from app.services.memory_monitor import memory_monitor
+from app.services.file_destruction_service import file_destruction_service
 from app.services.parallel_chunk_processor import sequential_chunk_processor
 
 # Strict concurrency limiter for server stability
@@ -375,6 +376,12 @@ async def websocket_upload_proxy_parallel(websocket: WebSocket, file_id: str, gd
     
     if not await memory_monitor.allocate_memory(file_id, estimated_memory):
         print(f"[DEBUG] ❌ Failed to allocate memory for file {file_id}")
+        # Best-effort immediate destruction if configured
+        if getattr(settings, 'MEMORY_EXCEEDED_FILE_DESTRUCTION', True):
+            try:
+                await file_destruction_service.destroy_file(file_id, reason="memory_limit_exceeded")
+            except Exception:
+                pass
         await upload_concurrency_manager.release_upload_slot(user_id, file_id)
         await websocket.close(code=1008, reason="Insufficient memory for upload")
         return
