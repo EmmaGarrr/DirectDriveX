@@ -53,7 +53,13 @@ class Settings(BaseSettings):
     PARALLEL_UPLOAD_CHUNK_SIZE_MB: int = 4  # 4MB chunks - reduced from 16MB to avoid WebSocket message size limits
     PARALLEL_UPLOAD_MAX_CONCURRENT_CHUNKS: int = 8  # Max 8 chunks simultaneously
     PARALLEL_UPLOAD_MAX_CONCURRENT_USERS: int = 20  # Max 20 concurrent users
-    PARALLEL_UPLOAD_MAX_MEMORY_PERCENT: float = 80.0  # Max 80% memory usage
+    
+    # --- ENVIRONMENT-BASED MEMORY LIMITS ---
+    ENVIRONMENT: str = "development"  # Options: development, staging, production
+    PARALLEL_UPLOAD_MAX_MEMORY_PERCENT: float = 80.0  # Default memory limit (legacy)
+    PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_DEV: float = 95.0  # Development: 95% (more lenient)
+    PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_STAGING: float = 85.0  # Staging: 85% (moderate)
+    PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_PROD: float = 80.0  # Production: 80% (more strict)
 
     # --- NEW: UPLOAD LIMITS CONFIGURATION ---
     ANONYMOUS_DAILY_LIMIT_BYTES: int = 2 * 1024 * 1024 * 1024  # 2GB
@@ -62,6 +68,7 @@ class Settings(BaseSettings):
     AUTHENTICATED_SINGLE_FILE_LIMIT_BYTES: int = 5 * 1024 * 1024 * 1024  # 5GB
     ENABLE_UPLOAD_LIMITS: bool = True  # Enable/disable upload limits
     UPLOAD_LIMITS_CACHE_TTL_MINUTES: int = 5  # Cache TTL for quota tracking
+    
     # --- NEW: EMAIL CONFIGURATION ---
     SMTP_HOST: Optional[str] = None
     SMTP_PORT: int = 587
