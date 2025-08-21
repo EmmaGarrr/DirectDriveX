@@ -29,8 +29,18 @@ async def initiate_upload(
     client_ip = get_client_ip(client_request)
     user_id = current_user.id if current_user else None
     
-    # --- NEW: Check upload limits before proceeding ---
-    if settings.ENABLE_UPLOAD_LIMITS:
+    # --- NEW: Check upload limits based on environment ---
+    environment = getattr(settings, 'ENVIRONMENT', 'development').lower()
+    enable_limits = False
+    
+    if environment == 'production':
+        enable_limits = getattr(settings, 'ENABLE_UPLOAD_LIMITS_PROD', True)
+    elif environment == 'staging':
+        enable_limits = getattr(settings, 'ENABLE_UPLOAD_LIMITS_STAGING', True)
+    else:  # development
+        enable_limits = getattr(settings, 'ENABLE_UPLOAD_LIMITS_DEV', False)
+    
+    if enable_limits:
         limits_check = await upload_limits_service.check_upload_limits(
             user_id=user_id,
             ip_address=client_ip,
@@ -69,7 +79,7 @@ async def initiate_upload(
     # await manager.broadcast(f"[{timestamp}] [API_REQUEST] Google Drive: Initiate Resumable Upload for '{request.filename}'") 
 
     # --- NEW: Record upload for quota tracking ---
-    if settings.ENABLE_UPLOAD_LIMITS:
+    if enable_limits:
         await upload_limits_service.record_upload(user_id, client_ip, [request.size])
 
     file_meta = FileMetadataCreate(
@@ -155,7 +165,17 @@ async def get_quota_info(
     current_user: Optional[UserInDB] = Depends(get_current_user_optional)
 ):
     """Get quota information for current user or IP"""
-    if not settings.ENABLE_UPLOAD_LIMITS:
+    environment = getattr(settings, 'ENVIRONMENT', 'development').lower()
+    enable_limits = False
+    
+    if environment == 'production':
+        enable_limits = getattr(settings, 'ENABLE_UPLOAD_LIMITS_PROD', True)
+    elif environment == 'staging':
+        enable_limits = getattr(settings, 'ENABLE_UPLOAD_LIMITS_STAGING', True)
+    else:  # development
+        enable_limits = getattr(settings, 'ENABLE_UPLOAD_LIMITS_DEV', False)
+
+    if not enable_limits:
         return {"message": "Upload limits are disabled"}
     
     client_ip = get_client_ip(client_request)

@@ -18,9 +18,22 @@ class UploadConcurrencyManager:
     """Manages upload concurrency limits and prevents server overload"""
     
     def __init__(self):
+        # Get environment-based configuration
+        self.environment = getattr(settings, 'ENVIRONMENT', 'development').lower()
+        
+        # Set memory limits based on environment
+        if self.environment == 'production':
+            self.max_memory_usage_percent = getattr(settings, 'PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_PROD', 80.0)
+            self.reserved_memory_bytes = 2 * 1024 * 1024 * 1024  # 2GB reserved for production
+        elif self.environment == 'staging':
+            self.max_memory_usage_percent = getattr(settings, 'PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_STAGING', 85.0)
+            self.reserved_memory_bytes = 1.5 * 1024 * 1024 * 1024  # 1.5GB reserved for staging
+        else:  # development
+            self.max_memory_usage_percent = getattr(settings, 'PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_DEV', 100.0)
+            self.reserved_memory_bytes = 0  # No reserved memory for development (use full memory)
+        
         # Get configuration from settings
         self.max_concurrent_users = getattr(settings, 'PARALLEL_UPLOAD_MAX_CONCURRENT_USERS', 20)
-        self.max_memory_usage_percent = getattr(settings, 'PARALLEL_UPLOAD_MAX_MEMORY_PERCENT', 80.0)
         
         # Per-user upload limits
         self.user_upload_semaphores: Dict[str, asyncio.Semaphore] = {}
@@ -34,10 +47,7 @@ class UploadConcurrencyManager:
         self.active_uploads: Dict[str, UploadSlot] = {}
         self._lock = asyncio.Lock()
         
-        # Memory limits (4GB server)
-        self.reserved_memory_bytes = 1 * 1024 * 1024 * 1024  # 1GB reserved
-        
-        print(f"UploadConcurrencyManager initialized with max {self.max_concurrent_users} concurrent users, {self.max_memory_usage_percent}% memory limit")
+        print(f"UploadConcurrencyManager initialized for {self.environment} environment with max {self.max_concurrent_users} concurrent users, {self.max_memory_usage_percent}% memory limit")
     
     async def acquire_upload_slot(self, user_id: str, file_id: str, file_size: int) -> bool:
         """Check if user can start new upload and acquire slot"""
@@ -109,6 +119,7 @@ class UploadConcurrencyManager:
         try:
             current_usage = psutil.virtual_memory().percent
             if current_usage > self.max_memory_usage_percent:
+                print(f"Memory usage too high: {current_usage:.1f}% (limit: {self.max_memory_usage_percent}%)")
                 return False
             
             # Check if adding this upload would exceed limits
@@ -123,11 +134,13 @@ class UploadConcurrencyManager:
     def get_status(self) -> dict:
         """Get current concurrency status for monitoring"""
         return {
+            "environment": self.environment,
             "active_uploads": len(self.active_uploads),
             "global_upload_slots_available": self.global_upload_semaphore._value,
             "global_download_slots_available": self.global_download_semaphore._value,
             "user_upload_counts": {user: sem._value for user, sem in self.user_upload_semaphores.items()},
-            "memory_usage_percent": psutil.virtual_memory().percent if 'psutil' in globals() else 0
+            "memory_usage_percent": psutil.virtual_memory().percent if 'psutil' in globals() else 0,
+            "memory_limit_percent": self.max_memory_usage_percent
         }
 
 # Global instance

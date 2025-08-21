@@ -100,8 +100,16 @@ export class LoginComponent implements OnInit {
           error_code: error.status || 'unknown'
         });
         
+        // Handle specific error messages
+        let errorMessage = error.message || 'Login failed. Please try again.';
+        
+        // Check for Google OAuth user error
+        if (error.message && error.message.includes('You are logged in with Google')) {
+          errorMessage = 'You are logged in with Google or you have forgotten your password.';
+        }
+        
         // Show error toast with consistent duration and wait for completion
-        await this.showToastAndWait('error', error.message || 'Login failed. Please try again.');
+        await this.showToastAndWait('error', errorMessage);
         
         // Reset loading state after error toast completes
         this.loading = false;

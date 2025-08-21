@@ -69,7 +69,7 @@ class GoogleOAuthService:
         current_time_str = current_time.isoformat()
         
         if user:
-            # Update existing user with Google info
+            # Update existing user with Google info, but preserve existing password
             update_data = {
                 "google_id": google_user_info.id,
                 "name": google_user_info.name or user.get("name", ""),
@@ -78,6 +78,10 @@ class GoogleOAuthService:
                 "last_login": current_time_str,
                 "verified_email": google_user_info.verified_email or user.get("verified_email", False)
             }
+            
+            # Preserve existing password if user had one
+            if user.get("hashed_password"):
+                update_data["hashed_password"] = user["hashed_password"]
             
             db.users.update_one(
                 {"email": email},

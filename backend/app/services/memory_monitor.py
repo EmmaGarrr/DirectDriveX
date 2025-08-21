@@ -21,9 +21,20 @@ class MemoryMonitor:
     """Monitors and manages memory usage to prevent server overload"""
     
     def __init__(self):
-        # Get configuration from settings
-        self.max_memory_usage_percent = getattr(settings, 'PARALLEL_UPLOAD_MAX_MEMORY_PERCENT', 80.0)
-        self.reserved_memory_bytes = 1 * 1024 * 1024 * 1024  # 1GB reserved
+        # Get environment-based configuration
+        self.environment = getattr(settings, 'ENVIRONMENT', 'development').lower()
+        
+        # Set memory limits based on environment
+        if self.environment == 'production':
+            self.max_memory_usage_percent = getattr(settings, 'PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_PROD', 80.0)
+            self.reserved_memory_bytes = 2 * 1024 * 1024 * 1024  # 2GB reserved for production
+        elif self.environment == 'staging':
+            self.max_memory_usage_percent = getattr(settings, 'PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_STAGING', 85.0)
+            self.reserved_memory_bytes = 1.5 * 1024 * 1024 * 1024  # 1.5GB reserved for staging
+        else:  # development
+            self.max_memory_usage_percent = getattr(settings, 'PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_DEV', 100.0)
+            self.reserved_memory_bytes = 0  # No reserved memory for development (use full memory)
+        
         self.warning_threshold = self.max_memory_usage_percent - 10.0  # 10% below max
         
         # Memory usage history for trend analysis
@@ -34,7 +45,7 @@ class MemoryMonitor:
         self.allocated_memory: Dict[str, int] = {}  # file_id -> bytes
         self._lock = asyncio.Lock()
         
-        logger.info(f"MemoryMonitor initialized with {self.max_memory_usage_percent}% max usage, {self.warning_threshold}% warning threshold")
+        logger.info(f"MemoryMonitor initialized for {self.environment} environment with {self.max_memory_usage_percent}% max usage, {self.warning_threshold}% warning threshold")
     
     def get_current_memory_usage(self) -> MemoryUsage:
         """Get current memory usage information"""
@@ -64,7 +75,7 @@ class MemoryMonitor:
         
         # Check percentage threshold
         if current_usage.percent > self.max_memory_usage_percent:
-            logger.warning(f"Memory usage too high: {current_usage.percent:.1f}%")
+            logger.warning(f"Memory usage too high: {current_usage.percent:.1f}% (limit: {self.max_memory_usage_percent}%)")
             return False
         
         # Check available memory
@@ -121,6 +132,7 @@ class MemoryMonitor:
                 "percent": round(current_usage.percent, 1)
             },
             "limits": {
+                "environment": self.environment,
                 "max_percent": self.max_memory_usage_percent,
                 "reserved_gb": round(self.reserved_memory_bytes / (1024**3), 2),
                 "warning_threshold": self.warning_threshold

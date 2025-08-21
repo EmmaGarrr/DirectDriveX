@@ -16,12 +16,30 @@ router = APIRouter()
 @router.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = db.users.find_one({"email": form_data.username})
-    if not user or not verify_password(form_data.password, user["hashed_password"]):
+    
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    # Check if user is a Google OAuth user without password
+    if user.get("is_google_user") and user.get("hashed_password") is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You are logged in with Google or you have forgotten your password.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Verify password for non-Google users or Google users with passwords
+    if not verify_password(form_data.password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     access_token_expires = timedelta(minutes=1440)
     access_token = create_access_token(
         data={"sub": user["email"]}, expires_delta=access_token_expires
@@ -156,10 +174,13 @@ async def reset_password(request: ResetPasswordRequest):
         # Hash new password
         hashed_password = get_password_hash(request.new_password)
         
-        # Update user password
+        # Update user password and reset Google OAuth flags
         db.users.update_one(
             {"email": reset_data["email"]},
-            {"$set": {"hashed_password": hashed_password}}
+            {"$set": {
+                "hashed_password": hashed_password,
+                "is_google_user": False  # Allow manual login after password reset
+            }}
         )
         
         # Mark token as used
