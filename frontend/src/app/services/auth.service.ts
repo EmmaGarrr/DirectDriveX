@@ -25,6 +25,7 @@ export interface User {
   remaining_storage_gb: number;
   file_type_breakdown: FileTypeBreakdown;
   total_files: number;
+  created_at?: string;
 }
 
 export interface LoginCredentials {
