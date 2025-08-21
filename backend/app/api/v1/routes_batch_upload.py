@@ -31,8 +31,18 @@ async def initiate_batch_upload(
     client_ip = get_client_ip(client_request)
     user_id = current_user.id if current_user else None
     
-    # --- NEW: Check upload limits before proceeding ---
-    if settings.ENABLE_UPLOAD_LIMITS:
+    # --- NEW: Check upload limits based on environment ---
+    environment = getattr(settings, 'ENVIRONMENT', 'development').lower()
+    enable_limits = False
+    
+    if environment == 'production':
+        enable_limits = getattr(settings, 'ENABLE_UPLOAD_LIMITS_PROD', True)
+    elif environment == 'staging':
+        enable_limits = getattr(settings, 'ENABLE_UPLOAD_LIMITS_STAGING', True)
+    else:  # development
+        enable_limits = getattr(settings, 'ENABLE_UPLOAD_LIMITS_DEV', False)
+    
+    if enable_limits:
         file_sizes = [file_info.size for file_info in request.files]
         limits_check = await upload_limits_service.check_upload_limits(
             user_id=user_id,
@@ -103,7 +113,7 @@ async def initiate_batch_upload(
     gdrive_pool_manager.tracker.increment_upload_volume(active_account.id, total_batch_size)
 
     # --- NEW: Record batch upload for quota tracking ---
-    if settings.ENABLE_UPLOAD_LIMITS:
+    if enable_limits:
         file_sizes = [file_info.size for file_info in request.files]
         await upload_limits_service.record_upload(user_id, client_ip, file_sizes)
 

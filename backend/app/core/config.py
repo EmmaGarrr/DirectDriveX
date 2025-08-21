@@ -61,12 +61,17 @@ class Settings(BaseSettings):
     PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_STAGING: float = 85.0  # Staging: 85% (moderate)
     PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_PROD: float = 80.0  # Production: 80% (safe)
 
+    # --- ENVIRONMENT-BASED UPLOAD LIMITS ---
+    ENABLE_UPLOAD_LIMITS_DEV: bool = False  # Development: No upload limits
+    ENABLE_UPLOAD_LIMITS_STAGING: bool = True  # Staging: Enable upload limits
+    ENABLE_UPLOAD_LIMITS_PROD: bool = True  # Production: Enable upload limits
+    
     # --- NEW: UPLOAD LIMITS CONFIGURATION ---
     ANONYMOUS_DAILY_LIMIT_BYTES: int = 2 * 1024 * 1024 * 1024  # 2GB
     ANONYMOUS_SINGLE_FILE_LIMIT_BYTES: int = 2 * 1024 * 1024 * 1024  # 2GB
     AUTHENTICATED_DAILY_LIMIT_BYTES: int = 5 * 1024 * 1024 * 1024  # 5GB
     AUTHENTICATED_SINGLE_FILE_LIMIT_BYTES: int = 5 * 1024 * 1024 * 1024  # 5GB
-    ENABLE_UPLOAD_LIMITS: bool = True  # Enable/disable upload limits
+    ENABLE_UPLOAD_LIMITS: bool = False  # Default (will be overridden by environment)
     UPLOAD_LIMITS_CACHE_TTL_MINUTES: int = 5  # Cache TTL for quota tracking
     
     # --- NEW: EMAIL CONFIGURATION ---
