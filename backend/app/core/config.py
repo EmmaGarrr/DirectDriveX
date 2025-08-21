@@ -74,6 +74,11 @@ class Settings(BaseSettings):
     # --- NEW: PASSWORD RESET CONFIGURATION ---
     PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 30
     FRONTEND_URL: str = "http://localhost:4200"  # For production, use your domain
+    
+    # --- NEW: GOOGLE OAUTH CONFIGURATION ---
+    GOOGLE_OAUTH_CLIENT_ID: Optional[str] = None
+    GOOGLE_OAUTH_CLIENT_SECRET: Optional[str] = None
+    GOOGLE_OAUTH_REDIRECT_URI: str = "http://localhost:4200/auth/google/callback"
 
     class Config:
         env_file = ".env"

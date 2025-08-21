@@ -31,14 +31,18 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initializePasswordForm();
-    this.loadUserProfile();
     
-    // Subscribe to user changes
+    // Subscribe to user changes first
     this.authService.currentUser$.pipe(
       takeUntil(this.destroy$)
     ).subscribe(user => {
       this.user = user;
     });
+
+    // Only load if not already loaded
+    if (!this.authService.getCurrentUser()) {
+      this.loadUserProfile();
+    }
   }
 
   ngOnDestroy(): void {

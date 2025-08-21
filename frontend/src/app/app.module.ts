@@ -67,6 +67,7 @@ import { EnhancedVideoPreviewComponent } from './componet/file-preview/enhanced-
 import { SafePipe } from './shared/pipes/safe.pipe';
 import { FooterComponent } from './shared/component/footer/footer.component';
 import { HowItWorksComponent } from './componet/how-it-works/how-it-works.component';
+import { GoogleCallbackComponent } from './auth/google-callback/google-callback.component';
 
 
 @NgModule({
@@ -104,7 +105,8 @@ import { HowItWorksComponent } from './componet/how-it-works/how-it-works.compon
     EnhancedVideoPreviewComponent,
     SafePipe,
     FooterComponent,
-    HowItWorksComponent
+    HowItWorksComponent,
+    GoogleCallbackComponent
   ],
   imports: [
     BrowserModule,

@@ -230,4 +230,20 @@ export class AuthService {
     
     return throwError(() => new Error(errorMessage));
   }
+
+  // Add method to refresh user data globally
+  public refreshUserData(): void {
+    if (this.isAuthenticated()) {
+      this.loadUserProfile().subscribe({
+        next: (user) => {
+          this.currentUserSubject.next(user);
+          this.isAuthenticatedSubject.next(true);
+        },
+        error: (error) => {
+          console.error('Failed to refresh user data:', error);
+          this.logout();
+        }
+      });
+    }
+  }
 }

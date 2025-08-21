@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService, RegisterData } from '../../services/auth.service';
+import { GoogleAuthService } from '../../shared/services/google-auth.service';
 import { ToastService } from '../../shared/services/toast.service';
 
 @Component({
@@ -22,7 +23,9 @@ export class RegisterComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private googleAuthService: GoogleAuthService,
     private router: Router,
+    private route: ActivatedRoute,
     private toastService: ToastService
   ) {}
 
@@ -32,6 +35,18 @@ export class RegisterComponent implements OnInit {
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
+
+    // Check for error messages from Google OAuth callback
+    this.route.queryParams.subscribe(params => {
+      if (params['error']) {
+        this.showToastAndWait('error', params['error']);
+        // Clear the error from URL
+        this.router.navigate([], { 
+          queryParams: {}, 
+          replaceUrl: true 
+        });
+      }
+    });
   }
 
   // Custom validator to check if passwords match
@@ -141,5 +156,9 @@ export class RegisterComponent implements OnInit {
 
   navigateToLogin(): void {
     this.router.navigate(['/login']);
+  }
+
+  onGoogleRegister(): void {
+    this.googleAuthService.initiateGoogleLogin();
   }
 }

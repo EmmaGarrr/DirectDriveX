@@ -2,11 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from app.services.auth_service import create_access_token, verify_password, get_password_hash, get_current_user
 from app.models.user import UserCreate, UserInDB, Token, UserProfileResponse, ForgotPasswordRequest, ResetPasswordRequest, PasswordResetResponse
+from app.models.google_oauth import GoogleAuthRequest, GoogleCallbackRequest, GoogleAuthResponse, GoogleCallbackResponse
 from app.services.storage_service import StorageService
 from app.services.email_service import EmailService
 from app.services.password_reset_service import PasswordResetService
+from app.services.google_oauth_service import GoogleOAuthService
 from app.db.mongodb import db
-from datetime import timedelta
+from datetime import timedelta, datetime
 import time
 
 router = APIRouter()
@@ -206,4 +208,66 @@ async def change_password(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while changing your password"
+        )
+
+# --- NEW: GOOGLE OAUTH ENDPOINTS ---
+
+@router.get("/google/auth", response_model=GoogleAuthResponse)
+async def google_auth():
+    """Initiate Google OAuth flow"""
+    try:
+        # Validate OAuth configuration
+        if not GoogleOAuthService.validate_oauth_config():
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Google OAuth is not properly configured"
+            )
+        
+        auth_url = GoogleOAuthService.get_oauth_url()
+        return GoogleAuthResponse(auth_url=auth_url)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate Google OAuth URL: {str(e)}"
+        )
+
+@router.post("/google/callback", response_model=GoogleCallbackResponse)
+async def google_callback(request: GoogleCallbackRequest):
+    """Handle Google OAuth callback"""
+    try:
+        # Validate OAuth configuration
+        if not GoogleOAuthService.validate_oauth_config():
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Google OAuth is not properly configured"
+            )
+        
+        # Exchange code for tokens
+        token_info = await GoogleOAuthService.exchange_code_for_tokens(request.code)
+        
+        # Get user information
+        user_info = await GoogleOAuthService.get_user_info(token_info["access_token"])
+        
+        # Authenticate or create user
+        user = await GoogleOAuthService.authenticate_or_create_user(user_info)
+        
+        # Create JWT token
+        access_token = await GoogleOAuthService.create_auth_token(user)
+        
+        return GoogleCallbackResponse(
+            access_token=access_token,
+            token_type="bearer",
+            user={
+                "email": user["email"],
+                "name": user.get("name", ""),
+                "picture": user.get("picture")
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Google OAuth authentication failed: {str(e)}"
         )

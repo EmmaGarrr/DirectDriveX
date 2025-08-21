@@ -31,6 +31,7 @@ import { StorageCleanupComponent } from './admin-panel/storage-cleanup/storage-c
 import { ForgotPasswordComponent } from './componet/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './componet/reset-password/reset-password.component';
 import { HowItWorksComponent } from './componet/how-it-works/how-it-works.component';
+import { GoogleCallbackComponent } from './auth/google-callback/google-callback.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -39,6 +40,7 @@ const routes: Routes = [
   { path: 'batch-download/:batchId', component: BatchDownloadComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'auth/google/callback', component: GoogleCallbackComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] }, // FIXED: Added missing profile route

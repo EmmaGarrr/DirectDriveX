@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService, LoginCredentials } from '../../services/auth.service';
+import { GoogleAuthService } from '../../shared/services/google-auth.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { AppComponent } from '../../app.component';
 
@@ -22,7 +23,9 @@ export class LoginComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private googleAuthService: GoogleAuthService,
     private router: Router,
+    private route: ActivatedRoute,
     private toastService: ToastService,
     private appComponent: AppComponent
   ) {}
@@ -39,6 +42,18 @@ export class LoginComponent implements OnInit {
         Validators.minLength(6),
         Validators.maxLength(128)
       ]]
+    });
+
+    // Check for error messages from Google OAuth callback
+    this.route.queryParams.subscribe(params => {
+      if (params['error']) {
+        this.showToastAndWait('error', params['error']);
+        // Clear the error from URL
+        this.router.navigate([], { 
+          queryParams: {}, 
+          replaceUrl: true 
+        });
+      }
     });
 
     // Track login page view
@@ -187,5 +202,10 @@ export class LoginComponent implements OnInit {
 
   navigateToForgotPassword(): void {
     this.router.navigate(['/forgot-password']);
+  }
+
+  onGoogleLogin(): void {
+    this.appComponent.trackHotjarEvent('google_login_attempted');
+    this.googleAuthService.initiateGoogleLogin();
   }
 }

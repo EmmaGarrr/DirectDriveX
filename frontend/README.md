@@ -1,6 +1,21 @@
-# FrontendTest
+# DirectDriveX Frontend
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.17.
+
+## Environment Setup
+
+This project requires environment-specific configuration. See [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md) for detailed setup instructions.
+
+### Quick Start
+```bash
+# Copy environment templates
+cp src/environments/environment.template.ts src/environments/environment.ts
+cp src/environments/environment.prod.template.ts src/environments/environment.prod.ts
+
+# Update with your configuration values
+# Then run the development server
+npm start
+```
 
 ## Development server
 

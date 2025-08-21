@@ -18,7 +18,15 @@ class UserCreate(UserBase):
 
 class UserInDB(UserBase):
     id: str = Field(..., alias="_id")
-    hashed_password: str
+    hashed_password: Optional[str] = None  # Optional for Google OAuth users
+    google_id: Optional[str] = None  # Google user ID for OAuth users
+    name: Optional[str] = None  # User's full name
+    picture: Optional[str] = None  # Profile picture URL
+    is_google_user: Optional[bool] = False  # Flag indicating Google OAuth user
+    verified_email: Optional[bool] = False  # Email verification status
+    created_at: Optional[str] = None  # Account creation timestamp
+    last_login: Optional[str] = None  # Last login timestamp
+    is_active: Optional[bool] = True  # Account status
 
     class Config:
         populate_by_name = True

@@ -120,7 +120,22 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (this.isLoggedIn) {
       // Get current user from auth service
       this.currentUser = this.authService.getCurrentUser();
-      this.updateUserDisplay();
+      if (!this.currentUser) {
+        // If no user data, try to load it
+        this.authService.loadUserProfile().subscribe({
+          next: (user) => {
+            this.currentUser = user;
+            this.updateUserDisplay();
+          },
+          error: (error) => {
+            console.error('Failed to load user data:', error);
+            // If loading fails, logout
+            this.authService.logout();
+          }
+        });
+      } else {
+        this.updateUserDisplay();
+      }
     } else {
       this.currentUser = null;
       this.displayName = 'User';
