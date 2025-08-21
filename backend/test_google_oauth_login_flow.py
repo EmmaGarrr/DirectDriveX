@@ -10,7 +10,7 @@ import time
 from typing import Dict, Any
 
 class GoogleOAuthLoginFlowTester:
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://localhost:5000"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api/v1/auth"
         
