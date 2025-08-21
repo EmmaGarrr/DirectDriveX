@@ -10,7 +10,7 @@ export const environment = {
   // Google OAuth configuration
   googleOAuth: {
     // Replace with your Google OAuth Client ID
-    clientId: 'YOUR_GOOGLE_OAUTH_CLIENT_ID_HERE',
+    clientId: '471697263631-k8un0og206itv9nrji334b7uk2hf8u37.apps.googleusercontent.com',
     // Replace with your redirect URI
     redirectUri: 'http://localhost:4200/auth/google/callback'
   }

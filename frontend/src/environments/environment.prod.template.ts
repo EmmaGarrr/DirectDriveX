@@ -4,16 +4,16 @@
 export const environment = {
   production: true,
   // Production API URL
-  apiUrl: 'https://your-production-api.com',
+  apiUrl: 'https://api.mfcnextgen.com',
   // Production WebSocket URL
-  wsUrl: 'wss://your-production-api.com/ws_api',
+  wsUrl: 'wss://api.mfcnextgen.com/ws_api',
   // Production frontend URL
-  frontendUrl: 'https://your-production-frontend.com',
+  frontendUrl: 'https://mfcnextgen.com',
   // Google OAuth configuration for production
   googleOAuth: {
     // Replace with your production Google OAuth Client ID
-    clientId: 'YOUR_PRODUCTION_GOOGLE_OAUTH_CLIENT_ID_HERE',
+    clientId: '471697263631-k8un0og206itv9nrji334b7uk2hf8u37.apps.googleusercontent.com',
     // Replace with your production redirect URI
-    redirectUri: 'https://your-production-frontend.com/auth/google/callback'
+    redirectUri: 'https://mfcnextgen.com/auth/google/callback'
   }
 };
