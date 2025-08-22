@@ -1,18 +1,18 @@
 <!-- BOLT-Inspired Premium Footer -->
-<footer class="bg-white shadow-lg border-t border-gray-300">
+<footer class="bg-white border-t border-gray-300 shadow-lg">
   <!-- Main Footer Content -->
-  <div class="container mx-auto px-4 lg:py-10 py-5">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 sm:gap-8 gap-6">
+  <div class="container px-4 py-5 mx-auto lg:py-10">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 sm:gap-8">
       <!-- Company Information Section -->
       <div class="lg:col-span-1">
         <div class="flex items-center space-x-3 mb-3.5">
           <div class="flex items-center space-x-3">
             <div
-              class="lg:size-10 size-8 bg-primary rounded-xl flex items-center justify-center shadow-lg"
+              class="flex items-center justify-center shadow-lg lg:size-10 size-8 bg-primary rounded-xl"
             >
               <!-- Enhanced Cloud Upload icon -->
               <svg
-                class="lg:size-5 size-4 text-white"
+                class="text-white lg:size-5 size-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -27,14 +27,14 @@
             </div>
             <a
               routerLink="/"
-              class="lg:text-2xl text-lg font-bold text-black bg-clip-text transition-all duration-300"
+              class="text-lg font-bold text-black transition-all duration-300 lg:text-2xl bg-clip-text"
             >
               Mfcnextgen
             </a>
           </div>
         </div>
 
-        <p class="text-gray-500 text-sm leading-relaxed">
+        <p class="text-sm leading-relaxed text-gray-500">
           Secure, fast, and reliable file storage solution for individuals and
           businesses. Transfer your files with confidence using our
           enterprise-grade infrastructure.
@@ -43,30 +43,23 @@
 
       <!-- Quick Links Section -->
       <div class="lg:col-span-1">
-        <h3 class="text-black font-semibold text-lg sm:mb-6 mb-4">
+        <h3 class="mb-4 text-lg font-semibold text-black sm:mb-6">
           Quick Links
         </h3>
         <ul class="space-y-1">
           <li>
             <a
-              href="#how-it-works"
-              class="text-gray-500 hover:text-gray-700 inline-block transition-colors text-sm"
+              routerLink="/how-it-works"
+              class="inline-block text-sm text-gray-500 transition-colors hover:text-gray-700"
             >
               How it Works
             </a>
           </li>
-          <li>
-            <a
-              href="#pricing"
-              class="text-gray-500 hover:text-gray-700 inline-block transition-colors text-sm"
-            >
-              Pricing
-            </a>
-          </li>
+          
           <li>
             <a
               href="#security"
-              class="text-gray-500 hover:text-gray-700 inline-block transition-colors text-sm"
+              class="inline-block text-sm text-gray-500 transition-colors hover:text-gray-700"
             >
               Security
             </a>
@@ -74,7 +67,7 @@
           <li>
             <a
               href="#enterprise"
-              class="text-gray-500 hover:text-gray-700 inline-block transition-colors text-sm"
+              class="inline-block text-sm text-gray-500 transition-colors hover:text-gray-700"
             >
               Enterprise
             </a>
@@ -82,7 +75,7 @@
           <li>
             <a
               href="#support"
-              class="text-gray-500 hover:text-gray-700 inline-block transition-colors text-sm"
+              class="inline-block text-sm text-gray-500 transition-colors hover:text-gray-700"
             >
               Support
             </a>
@@ -92,14 +85,14 @@
 
       <!-- Legal & Resources Section -->
       <div class="lg:col-span-1">
-        <h3 class="text-black font-semibold text-lg sm:mb-6 mb-4">
+        <h3 class="mb-4 text-lg font-semibold text-black sm:mb-6">
           Legal & Resources
         </h3>
         <ul class="space-y-1">
           <li>
             <a
               href="/privacy"
-              class="text-gray-500 hover:text-gray-700 inline-block transition-colors text-sm"
+              class="inline-block text-sm text-gray-500 transition-colors hover:text-gray-700"
             >
               Privacy Policy
             </a>
@@ -107,7 +100,7 @@
           <li>
             <a
               href="/terms"
-              class="text-gray-500 hover:text-gray-700 inline-block transition-colors text-sm"
+              class="inline-block text-sm text-gray-500 transition-colors hover:text-gray-700"
             >
               Terms of Service
             </a>
@@ -115,7 +108,7 @@
           <li>
             <a
               href="/cookies"
-              class="text-gray-500 hover:text-gray-700 inline-block transition-colors text-sm"
+              class="inline-block text-sm text-gray-500 transition-colors hover:text-gray-700"
             >
               Cookie Policy
             </a>
@@ -123,7 +116,7 @@
           <li>
             <a
               href="/status"
-              class="text-gray-500 hover:text-gray-700 inline-block transition-colors text-sm"
+              class="inline-block text-sm text-gray-500 transition-colors hover:text-gray-700"
             >
               System Status
             </a>
@@ -131,7 +124,7 @@
           <li>
             <a
               href="/api"
-              class="text-gray-500 hover:text-gray-700 inline-block transition-colors text-sm"
+              class="inline-block text-sm text-gray-500 transition-colors hover:text-gray-700"
             >
               API Documentation
             </a>
@@ -141,13 +134,13 @@
 
       <!-- Newsletter & Contact Section -->
       <div class="lg:col-span-1">
-        <h3 class="text-black font-semibold text-lg sm:mb-6 mb-4">
+        <h3 class="mb-4 text-lg font-semibold text-black sm:mb-6">
           Stay Updated
         </h3>
 
         <!-- Newsletter Subscription -->
         <div class="mb-4">
-          <p class="text-gray-500 text-sm mb-4">
+          <p class="mb-4 text-sm text-gray-500">
             Get the latest updates on new features and security enhancements.
           </p>
           <form (ngSubmit)="subscribeNewsletter()" class="space-y-3">
@@ -157,7 +150,7 @@
                 [(ngModel)]="newsletterEmail"
                 name="newsletterEmail"
                 placeholder="Enter your email"
-                class="input h-12"
+                class="h-12 input"
                 required
               />
             </div>
@@ -188,7 +181,7 @@
             </svg>
             <a
               href="mailto:support&#64;mfcnextgen.com"
-              class="text-gray-500 hover:text-gray-700 transition-colors text-sm"
+              class="text-sm text-gray-500 transition-colors hover:text-gray-700"
             >
               support&#64;mfcnextgen.com
             </a>
@@ -198,19 +191,19 @@
     </div>
 
     <!-- Bottom Section with Social Media and Copyright -->
-    <div class="border-t border-gray-300 mt-5 pt-5">
+    <div class="pt-5 mt-5 border-t border-gray-300">
       <div
-        class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0"
+        class="flex flex-col items-center justify-between space-y-4 md:flex-row md:space-y-0"
       >
         <!-- Copyright -->
-        <div class="text-gray-500 text-sm">
+        <div class="text-sm text-gray-500">
           © {{ currentYear }} mfcnextgen. All rights reserved.
         </div>
 
         <!-- Social Media Links -->
         <div class="flex items-center space-x-4">
           <div
-            class="size-10 bg-primary rounded-full flex items-center justify-center flex-shrink-0"
+            class="flex items-center justify-center flex-shrink-0 rounded-full size-10 bg-primary"
           >
             <a href="/twitter" class="text-white">
               <i class="fa-brands fa-twitter"></i>
@@ -218,7 +211,7 @@
           </div>
 
           <div
-            class="size-10 bg-primary rounded-full flex items-center justify-center flex-shrink-0"
+            class="flex items-center justify-center flex-shrink-0 rounded-full size-10 bg-primary"
           >
             <a href="/facebook" class="text-white">
               <i class="fa-brands fa-facebook"></i>
@@ -226,14 +219,14 @@
           </div>
 
           <div
-            class="size-10 bg-primary rounded-full flex items-center justify-center flex-shrink-0"
+            class="flex items-center justify-center flex-shrink-0 rounded-full size-10 bg-primary"
           >
             <a href="/linkedin" class="text-white">
               <i class="fa-brands fa-linkedin"></i>
             </a>
           </div>
           <div
-            class="size-10 bg-primary rounded-full flex items-center justify-center flex-shrink-0"
+            class="flex items-center justify-center flex-shrink-0 rounded-full size-10 bg-primary"
           >
             <a href="/whatsapp" class="text-white">
               <i class="fa-brands fa-whatsapp"></i>
@@ -247,7 +240,7 @@
   <!-- Back to Top Button -->
   <button
     (click)="scrollToTop()"
-    class="fixed bottom-4 right-6 bg-gradient-to-r from-blue-600 flex-shrink-0 to-blue-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 transform z-50"
+    class="fixed z-50 flex-shrink-0 p-2 text-white transition-all duration-200 transform rounded-full shadow-lg bottom-4 right-6 bg-gradient-to-r from-blue-600 to-blue-700"
     [class.hidden]="!showBackToTop"
   >
     <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
