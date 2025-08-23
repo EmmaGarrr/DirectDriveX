@@ -16,13 +16,13 @@ export interface User {
   email: string;
   role?: string;
   is_admin?: boolean;
-  storage_limit_bytes: number;
+  storage_limit_bytes?: number;  // Optional for unlimited
   storage_used_bytes: number;
   storage_used_gb: number;
-  storage_limit_gb: number;
-  storage_percentage: number;
-  remaining_storage_bytes: number;
-  remaining_storage_gb: number;
+  storage_limit_gb?: number;  // Optional for unlimited
+  storage_percentage?: number;  // Optional for unlimited
+  remaining_storage_bytes?: number;  // Optional for unlimited
+  remaining_storage_gb?: number;  // Optional for unlimited
   file_type_breakdown: FileTypeBreakdown;
   total_files: number;
   created_at?: string;

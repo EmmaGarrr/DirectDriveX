@@ -49,10 +49,10 @@ class UserProfileResponse(UserBase):
     id: str = Field(..., alias="_id")
     storage_used_bytes: int = 0
     storage_used_gb: float = 0.0
-    storage_limit_gb: float = 0.0
-    storage_percentage: float = 0.0
-    remaining_storage_bytes: int = 0
-    remaining_storage_gb: float = 0.0
+    storage_limit_gb: Optional[float] = None  # Optional for unlimited
+    storage_percentage: Optional[float] = None  # Optional for unlimited
+    remaining_storage_bytes: Optional[int] = None  # Optional for unlimited
+    remaining_storage_gb: Optional[float] = None  # Optional for unlimited
     file_type_breakdown: FileTypeBreakdown = Field(default_factory=FileTypeBreakdown)
     total_files: int = 0
     

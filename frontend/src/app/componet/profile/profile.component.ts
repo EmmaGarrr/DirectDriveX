@@ -176,9 +176,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   getAccountType(): string {
     if (!this.user) return 'Loading...';
     
-    const storageLimit = this.user.storage_limit_gb || 10;
-    if (storageLimit >= 50) return 'Premium';
-    if (storageLimit >= 20) return 'Pro';
+    // All users have unlimited storage now
     return 'Basic';
   }
 

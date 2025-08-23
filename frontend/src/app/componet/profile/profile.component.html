@@ -176,27 +176,12 @@
                 <div class="flex justify-between text-sm mb-2">
                   <span class="text-bolt-medium-black">Used Storage</span>
                   <span class="font-medium text-bolt-black"
-                    >{{ user?.storage_used_gb || 0 }} GB /
-                    {{ user?.storage_limit_gb || 10 }} GB</span
+                    >{{ user?.storage_used_gb || 0 }} GB</span
                   >
                 </div>
-                <div
-                  class="w-full bg-bolt-light-blue rounded-full h-2 overflow-hidden"
-                  role="progressbar"
-                  [attr.aria-valuenow]="user?.storage_percentage || 0"
-                  aria-valuemin="0"
-                  aria-valuemax="100"
-                >
-                  <div
-                    class="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                    [style.width.%]="user?.storage_percentage || 0"
-                  ></div>
-                </div>
+                <!-- Progress bar removed - no storage limits -->
                 <p class="text-xs text-bolt-medium-black mt-2">
-                  {{
-                    user?.remaining_storage_gb || user?.storage_limit_gb || 10
-                  }}
-                  GB remaining
+                  Unlimited storage available
                 </p>
               </div>
 
@@ -270,8 +255,7 @@
                   >Account Type</label
                 >
                 <p class="text-bolt-black">
-                  {{ getAccountType() }} ({{ user?.storage_limit_gb || 10 }}GB
-                  Storage)
+                  {{ getAccountType() }} Account
                 </p>
               </div>
               <div>
@@ -326,8 +310,7 @@
                 ></path>
               </svg>
               <span class="text-sm text-bolt-black"
-                >{{ user?.storage_limit_gb || 10 }}GB storage limit (vs 5GB free
-                tier)</span
+                >Unlimited storage</span
               >
             </div>
 
