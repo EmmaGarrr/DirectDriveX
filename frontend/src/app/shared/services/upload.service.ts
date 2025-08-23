@@ -132,6 +132,9 @@ export class UploadService {
               if (jsonMessage.type === 'progress') {
                 observer.next({ type: 'progress', value: jsonMessage.value });
               } else if (jsonMessage.type === 'success') {
+                // Add detailed logging for success messages
+                console.log(`[UPLOAD_SERVICE] Success message received:`, jsonMessage);
+                console.log(`[UPLOAD_SERVICE] Upload success, notifying component`);
                 observer.next({ type: 'success', value: jsonMessage.value });
                 observer.complete();
               } else if (jsonMessage.type === 'error') {

@@ -195,3 +195,80 @@
   backdrop-filter: blur(20px);
   box-shadow: 0 8px 32px rgba(2, 10, 24, 0.1);
 }
+
+/* --- ENHANCED: Optimized Upload Animation Styles --- */
+.smooth-spinner {
+  animation: spinner-rotation 0.75s linear infinite;
+  transform-origin: center center;
+  will-change: transform;
+  backface-visibility: hidden;  /* GPU rendering optimization */
+  perspective: 1000;            /* GPU rendering optimization */
+  transform: translateZ(0);     /* Force GPU acceleration */
+  filter: drop-shadow(0 0 1px rgba(0,0,0,0.1)); /* Improve rendering */
+  contain: strict;              /* Improve performance */
+}
+
+@keyframes spinner-rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.progress-transition {
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width;
+  transform: translateZ(0);  /* Force hardware acceleration */
+}
+
+/* Fix progress bar CSS conflicts - use more specific selectors */
+.upload-progress-container .progress-transition {
+  transition: width 0.2s cubic-bezier(0.4, 0.2, 0.2, 1) !important;
+  will-change: width !important;
+  transform: translateZ(0) !important;
+  /* Override global styles */
+  height: 100% !important;
+  background: linear-gradient(90deg, #3b82f6, #2563eb) !important;
+  border-radius: inherit !important;
+}
+
+/* Ensure progress bar container has proper dimensions */
+.upload-progress-container {
+  width: 100%;
+  background-color: #e5e7eb;
+  border-radius: 9999px;
+  overflow: hidden;
+  height: 0.5rem;
+}
+
+/* Enhanced hover effects for remove buttons */
+.remove-button-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, background-color;
+}
+
+.remove-button-hover:hover {
+  transform: scale(1.1);
+  background-color: rgb(254, 202, 202); /* red-200 */
+}
+
+/* Smooth file state transitions */
+.file-state-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity, transform;
+}
+
+/* Optimized progress bar animations */
+.progress-bar-smooth {
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width;
+}
+
+/* Enhanced loading states */
+.loading-state {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  will-change: opacity;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

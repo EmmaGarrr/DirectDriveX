@@ -261,7 +261,13 @@ export class HomeComponent implements OnDestroy {
     this.uploadService.upload(this.selectedFile).subscribe({
       next: (event: UploadEvent) => {
         if (event.type === 'progress') {
-          this.uploadProgress = event.value as number;
+          // Use requestAnimationFrame for smoother animation
+          requestAnimationFrame(() => {
+            console.log(`[HOME] Updating progress: ${event.value}%`);
+            this.uploadProgress = event.value as number;
+            // Force layout recalculation
+            document.body.offsetHeight;
+          });
         } else if (event.type === 'success') {
           // Check if this is a cancellation success message
           if (this.isCancelling || (typeof event.value === 'string' && event.value.includes('cancelled'))) {
@@ -278,6 +284,7 @@ export class HomeComponent implements OnDestroy {
             this.resetToIdle();
           } else {
             // Handle regular upload success
+            console.log(`[HOME] Received success event, updating state to success`);
             this.currentState = 'success';
             // Extract file ID from the API path
             const fileId = typeof event.value === 'string' ? event.value.split('/').pop() : event.value;
@@ -900,5 +907,43 @@ export class HomeComponent implements OnDestroy {
   private getFileTypes(): string[] {
     const types = this.batchFiles.map(fileState => fileState.file.type || 'unknown');
     return [...new Set(types)]; // Remove duplicates
+  }
+
+  // --- NEW: Single file remove functionality ---
+  removeSelectedFile(event: Event): void {
+    // Prevent event bubbling to avoid triggering file selection
+    event.stopPropagation();
+    
+    // Reset file selection
+    this.selectedFile = null;
+    this.currentState = 'idle';
+    
+    // Reset file input
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  }
+
+  // --- NEW: Batch file remove functionality ---
+  removeBatchFile(fileState: IFileState, event: Event): void {
+    // Prevent event bubbling
+    event.stopPropagation();
+    
+    // Remove file from batch
+    this.batchFiles = this.batchFiles.filter(f => f !== fileState);
+    
+    // Check if we need to change modes
+    if (this.batchFiles.length === 0) {
+      // No files left, reset to idle state
+      this.batchState = 'idle';
+    } else if (this.batchFiles.length === 1) {
+      // Only one file left, switch to single file mode
+      const remainingFile = this.batchFiles[0].file;
+      this.batchFiles = [];
+      this.batchState = 'idle';
+      this.selectedFile = remainingFile;
+      this.currentState = 'selected';
+    }
   }
 }

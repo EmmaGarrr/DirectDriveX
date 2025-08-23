@@ -511,20 +511,25 @@
                   </p>
                 </div>
                 <div class="flex-shrink-0">
-                  <div
-                    class="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 rounded-full flex items-center justify-center"
+                  <button 
+                    (click)="removeSelectedFile($event)" 
+                    class="w-6 h-6 sm:w-8 sm:h-8 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center remove-button-hover"
+                    title="Remove file"
                   >
                     <svg
-                      class="w-3 h-3 sm:w-4 sm:h-4 text-green-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
+                      class="w-3 h-3 sm:w-4 sm:h-4 text-red-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
                       <path
-                        fill-rule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12"
                       />
                     </svg>
-                  </div>
+                  </button>
                 </div>
               </div>
             </div>
@@ -696,20 +701,25 @@
                       </p>
                     </div>
                     <div class="flex-shrink-0">
-                      <div
-                        class="w-5 h-5 sm:w-6 sm:h-6 bg-green-100 rounded-full flex items-center justify-center"
+                      <button 
+                        (click)="removeBatchFile(f, $event)" 
+                        class="w-5 h-5 sm:w-6 sm:h-6 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center remove-button-hover"
+                        title="Remove file"
                       >
                         <svg
-                          class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-600"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
+                          class="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
                           <path
-                            fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
                           />
                         </svg>
-                      </div>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -873,47 +883,47 @@
                           </svg>
                         </div>
                       </div>
-                      <!-- Loading spinner for uploading -->
+                      <!-- Loading spinner for uploading - Simplified SVG -->
                       <svg
                         *ngIf="f.state === 'uploading'"
-                        class="w-5 h-5 text-white animate-spin"
-                        fill="none"
+                        class="w-5 h-5 text-blue-600 smooth-spinner"
+                        width="24"
+                        height="24"
                         viewBox="0 0 24 24"
+                        stroke-width="3"
+                        stroke="currentColor"
+                        fill="none"
+                        shape-rendering="geometricPrecision"
                       >
-                        <circle
-                          class="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          stroke-width="4"
+                        <circle 
+                          cx="12" 
+                          cy="12" 
+                          r="9" 
+                          stroke-dasharray="56.5" 
+                          stroke-dashoffset="14" 
+                          stroke-linecap="round"
                         ></circle>
-                        <path
-                          class="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
                       </svg>
-                      <!-- Loading spinner for cancelling -->
+                      <!-- Loading spinner for cancelling - Simplified SVG -->
                       <svg
                         *ngIf="f.state === 'cancelling'"
-                        class="w-5 h-5 text-white animate-spin"
-                        fill="none"
+                        class="w-5 h-5 text-blue-600 smooth-spinner"
+                        width="24"
+                        height="24"
                         viewBox="0 0 24 24"
+                        stroke-width="3"
+                        stroke="currentColor"
+                        fill="none"
+                        shape-rendering="geometricPrecision"
                       >
-                        <circle
-                          class="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          stroke-width="4"
+                        <circle 
+                          cx="12" 
+                          cy="12" 
+                          r="9" 
+                          stroke-dasharray="56.5" 
+                          stroke-dashoffset="14" 
+                          stroke-linecap="round"
                         ></circle>
-                        <path
-                          class="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 718-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
                       </svg>
                       <!-- X icon for cancelled -->
                       <svg
@@ -1028,23 +1038,23 @@
               <div class="flex items-center justify-center space-x-2">
                 <svg
                   *ngIf="isCancelling"
-                  class="w-3 h-3 sm:w-4 sm:h-4 animate-spin"
-                  fill="none"
+                  class="w-3 h-3 sm:w-4 sm:h-4 smooth-spinner"
+                  width="24"
+                  height="24"
                   viewBox="0 0 24 24"
+                  stroke-width="2.5"
+                  stroke="currentColor"
+                  fill="none"
+                  shape-rendering="geometricPrecision"
                 >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
+                  <circle 
+                    cx="12" 
+                    cy="12" 
+                    r="9" 
+                    stroke-dasharray="56.5" 
+                    stroke-dashoffset="14" 
+                    stroke-linecap="round"
                   ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 718-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
                 </svg>
                 <svg
                   *ngIf="!isCancelling"
@@ -1267,47 +1277,47 @@
                       </svg>
                     </div>
                   </div>
-                  <!-- Loading spinner for uploading -->
+                  <!-- Loading spinner for uploading - Simplified SVG -->
                   <svg
                     *ngIf="!isCancelling && uploadProgress > 0"
-                    class="w-6 h-6 text-slate-600 animate-spin"
-                    fill="none"
+                    class="w-6 h-6 text-blue-600 smooth-spinner"
+                    width="24"
+                    height="24"
                     viewBox="0 0 24 24"
+                    stroke-width="3"
+                    stroke="currentColor"
+                    fill="none"
+                    shape-rendering="geometricPrecision"
                   >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
+                    <circle 
+                      cx="12" 
+                      cy="12" 
+                      r="9" 
+                      stroke-dasharray="56.5" 
+                      stroke-dashoffset="14" 
+                      stroke-linecap="round"
                     ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
                   </svg>
-                  <!-- Loading spinner for cancelling -->
+                  <!-- Loading spinner for cancelling - Simplified SVG -->
                   <svg
                     *ngIf="isCancelling"
-                    class="w-6 h-6 text-white animate-spin"
-                    fill="none"
+                    class="w-6 h-6 text-blue-600 smooth-spinner"
+                    width="24"
+                    height="24"
                     viewBox="0 0 24 24"
+                    stroke-width="3"
+                    stroke="currentColor"
+                    fill="none"
+                    shape-rendering="geometricPrecision"
                   >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
+                    <circle 
+                      cx="12" 
+                      cy="12" 
+                      r="9" 
+                      stroke-dasharray="56.5" 
+                      stroke-dashoffset="14" 
+                      stroke-linecap="round"
                     ></circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
                   </svg>
                 </div>
                 <div class="flex-1 text-left min-w-0">
@@ -1328,9 +1338,9 @@
                   </p>
                 </div>
               </div>
-              <div class="w-full bg-gray-200 rounded-full h-2 shadow-inner">
+              <div class="w-full upload-progress-container bg-gray-200 rounded-full h-2 shadow-inner">
                 <div
-                  class="h-2 rounded-full transition-all duration-500 shadow-sm"
+                  class="h-2 rounded-full progress-transition shadow-sm"
                   [ngClass]="{
                     'bg-gradient-to-r from-blue-500 to-blue-600': !isCancelling,
                     'bg-gradient-to-r from-orange-500 to-orange-600':
@@ -1352,23 +1362,23 @@
               <div class="flex items-center justify-center space-x-2">
                 <svg
                   *ngIf="isCancelling"
-                  class="w-3 h-3 sm:w-4 sm:h-4 animate-spin"
-                  fill="none"
+                  class="w-3 h-4 sm:w-4 sm:h-4 smooth-spinner"
+                  width="24"
+                  height="24"
                   viewBox="0 0 24 24"
+                  stroke-width="2.5"
+                  stroke="currentColor"
+                  fill="none"
+                  shape-rendering="geometricPrecision"
                 >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
+                  <circle 
+                    cx="12" 
+                    cy="12" 
+                    r="9" 
+                    stroke-dasharray="56.5" 
+                    stroke-dashoffset="14" 
+                    stroke-linecap="round"
                   ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
                 </svg>
                 <svg
                   *ngIf="!isCancelling"
@@ -1464,6 +1474,12 @@
                   <p class="text-sm text-slate-500">
                     Your file has been uploaded successfully
                   </p>
+                </div>
+                <!-- Add right arrow icon for completion indication -->
+                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                  </svg>
                 </div>
               </div>
             </div>
