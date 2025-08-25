@@ -273,6 +273,7 @@
               (change)="onFileSelect($event)"
               class="hidden"
               multiple
+              max="5"
             />
 
             <div class="text-center">
@@ -298,7 +299,7 @@
                 class="text-base sm:text-lg font-semibold text-slate-900 mb-2"
               >
                 {{
-                  isDragOver ? "✨ Drop files here" : "Drag & Drop files here"
+                  isDragOver ? "✨ Drop files here" : "Drag & Drop up to 5 files here"
                 }}
               </h3>
 
@@ -372,7 +373,7 @@
 
               <div class="space-y-1">
                 <div class="text-xs text-slate-400">
-                  Try it now - no signup required for 2GB
+                  Try it now - no signup required for 2GB (max 5 files)
                 </div>
                 <div class="text-xs font-medium text-slate-500">
                   Bank-level encryption • Up to 30GB with account
@@ -736,7 +737,7 @@
               (click)="onUploadBatch()"
               class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 text-sm sm:text-base"
             >
-              Upload {{ batchFiles.length }} Files
+              Upload {{ batchFiles.length }} Files (Max 5)
             </button>
           </div>
 

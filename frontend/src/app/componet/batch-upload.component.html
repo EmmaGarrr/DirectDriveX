@@ -64,12 +64,13 @@
       <!-- Hero Title -->
       <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 mb-6 leading-tight tracking-tight">
         Thoughtfully<br/>
-        <span class="text-primary">Batch Upload.</span>
+        <span class="text-primary">Batch Upload.</span><br/>
+        <span class="text-lg text-slate-600">Up to 5 files simultaneously</span>
       </h1>
       
       <!-- Subtitle -->
       <p class="text-xl text-slate-600 mb-12 max-w-2xl mx-auto font-medium">
-        Upload multiple files at once. Get a single download link for everything.
+        Upload up to 5 files at once. Get a single download link for everything.
       </p>
       
 
@@ -86,7 +87,7 @@
              (dragleave)="onDragLeave($event)" 
              (drop)="onDrop($event)"
              (click)="fileInput.click()">
-          <input type="file" #fileInput (change)="onFilesSelected($event)" class="hidden" multiple>
+          <input type="file" #fileInput (change)="onFilesSelected($event)" class="hidden" multiple max="5">
           
           <div class="text-center">
             <div class="w-12 h-12 mx-auto mb-4 bg-mint-200 rounded-full flex items-center justify-center">
@@ -94,7 +95,7 @@
             </div>
             
             <h3 class="text-lg font-semibold text-slate-900 mb-2">
-              {{ isDragOver ? 'Drop files here' : 'Drag & Drop multiple files here' }}
+              {{ isDragOver ? 'Drop files here' : 'Drag & Drop up to 5 files here' }}
             </h3>
             
             <button class="btn-primary mt-4">
@@ -173,7 +174,7 @@
           <!-- Action Buttons -->
           <div class="mt-6 space-y-2">
             <button *ngIf="batchState === 'idle'" (click)="onUploadBatch()" class="w-full btn-primary py-3">
-              Upload {{ files.length }} File(s)
+              Upload {{ files.length }} File(s) (Max 5)
             </button>
             <button *ngIf="canCancelUpload" (click)="onCancelUpload()" class="w-full btn-destructive py-3">
               <span *ngIf="!isCancelling">Cancel Upload</span>

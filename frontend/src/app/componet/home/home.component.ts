@@ -121,7 +121,7 @@ export class HomeComponent implements OnDestroy {
     return true;
   }
 
-  // --- NEW: Validate batch file sizes ---
+    // --- NEW: Validate batch file sizes ---
   private validateBatchFiles(files: File[]): boolean {
     const limits = this.getFileSizeLimits();
     const limitText = this.isAuthenticated ? '5GB' : '2GB';
@@ -139,6 +139,21 @@ export class HomeComponent implements OnDestroy {
     if (totalSize > limits.daily) {
       const totalSizeGB = (totalSize / (1024 * 1024 * 1024)).toFixed(2);
       this.toastService.error(`Total file size (${totalSizeGB}GB) exceeds ${limitText} daily limit`, 5000);
+        return false;
+    }
+    
+    return true;
+  }
+
+  // --- NEW: Validate file count for batch uploads ---
+  private validateFileCount(files: File[]): boolean {
+    const maxFiles = 5;
+    
+    if (files.length > maxFiles) {
+      this.toastService.error(
+        `You can upload maximum ${maxFiles} files at a time. Please select fewer files.`, 
+        5000
+      );
       return false;
     }
     
@@ -205,7 +220,12 @@ export class HomeComponent implements OnDestroy {
       // Multiple files - batch upload mode
       const fileArray = Array.from(files);
       
-      // --- NEW: Validate batch files before proceeding ---
+      // --- NEW: Check file count first ---
+      if (!this.validateFileCount(fileArray)) {
+        return; // Stop processing if too many files
+      }
+      
+      // --- NEW: Then validate batch files (existing logic) ---
       if (!this.validateBatchFiles(fileArray)) {
         return;
       }

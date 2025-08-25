@@ -67,11 +67,34 @@ export class BatchUploadComponent implements OnDestroy {
     this.appComponent.trackHotjarEvent('batch_upload_page_viewed');
   }
 
+  // --- NEW: Validate file count for batch uploads ---
+  private validateFileCount(files: File[]): boolean {
+    const maxFiles = 5;
+    
+    if (files.length > maxFiles) {
+      this.snackBar.open(
+        `You can upload maximum ${maxFiles} files at a time. Please select fewer files.`, 
+        'Close', 
+        { duration: 5000 }
+      );
+      return false;
+    }
+    
+    return true;
+  }
+
   onFilesSelected(event: any): void {
     const selectedFiles = (event.target as HTMLInputElement).files;
     if (selectedFiles && selectedFiles.length > 0) {
+      const fileArray = Array.from(selectedFiles);
+      
+      // --- NEW: Validate file count first ---
+      if (!this.validateFileCount(fileArray)) {
+        return; // Stop processing if too many files
+      }
+      
       this.reset();
-      this.files = Array.from(selectedFiles).map(file => ({
+      this.files = fileArray.map(file => ({
         file, state: 'pending', progress: 0
       }));
 

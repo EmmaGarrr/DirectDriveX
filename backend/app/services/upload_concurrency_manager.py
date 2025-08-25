@@ -56,9 +56,9 @@ class UploadConcurrencyManager:
             if not self._can_allocate_memory(file_size):
                 return False
             
-            # Check user limits (max 3 concurrent uploads per user)
+            # Check user limits (max 5 concurrent uploads per user)
             if user_id not in self.user_upload_semaphores:
-                self.user_upload_semaphores[user_id] = asyncio.Semaphore(3)
+                self.user_upload_semaphores[user_id] = asyncio.Semaphore(5)
             
             user_sem = self.user_upload_semaphores[user_id]
             
@@ -93,7 +93,7 @@ class UploadConcurrencyManager:
                 # If anything fails, release what we acquired
                 if self.global_upload_semaphore._value < self.max_concurrent_users:
                     self.global_upload_semaphore.release()
-                if user_sem._value < 3:
+                if user_sem._value < 5:
                     user_sem.release()
                 print(f"Failed to acquire upload slot: {e}")
                 return False
