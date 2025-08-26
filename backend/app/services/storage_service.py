@@ -104,6 +104,10 @@ class StorageService:
         # Calculate percentage (avoid division by zero)
         storage_percentage = None  # No percentage calculation
         
+        # Add authentication info
+        is_google_user = user_doc.get("is_google_user", False)
+        has_password = user_doc.get("hashed_password") is not None
+        
         return UserProfileResponse(
             _id=user_doc["_id"],
             email=user_doc["email"],
@@ -117,5 +121,7 @@ class StorageService:
             remaining_storage_bytes=remaining_storage_bytes,
             remaining_storage_gb=remaining_storage_gb,
             file_type_breakdown=storage_data["file_type_breakdown"],
-            total_files=storage_data["total_files"]
+            total_files=storage_data["total_files"],
+            is_google_user=is_google_user,
+            has_password=has_password
         )

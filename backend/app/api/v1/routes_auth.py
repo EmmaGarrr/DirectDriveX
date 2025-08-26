@@ -204,28 +204,73 @@ async def change_password(
 ):
     """Change password for authenticated user"""
     try:
-        # Verify current password
-        if not verify_password(password_data["current_password"], current_user.hashed_password):
+        # Log request details for debugging (excluding sensitive data)
+        print(f"Password change request for user: {current_user.email}")
+        print(f"User is Google user: {current_user.is_google_user}")
+        print(f"User has password: {current_user.hashed_password is not None}")
+        print(f"Request contains current_password: {'current_password' in password_data}")
+        
+        # Check if this is a Google user without password (first-time setup)
+        # or a Google user who is setting up a password for the first time
+        is_first_time_setup = (
+            current_user.is_google_user and 
+            (current_user.hashed_password is None or 
+             ("current_password" not in password_data and current_user.is_google_user))
+        )
+        
+        print(f"Is first time setup: {is_first_time_setup}")
+        print(f"Is Google user: {current_user.is_google_user}")
+        print(f"Has password: {current_user.hashed_password is not None}")
+        print(f"Password data keys: {password_data.keys()}")
+        
+        # For regular users or Google users with password, verify current password
+        if not is_first_time_setup:
+            if "current_password" not in password_data or not password_data["current_password"]:
+                print(f"Current password missing or empty for user: {current_user.email}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Current password is required"
+                )
+                
+            if not verify_password(password_data["current_password"], current_user.hashed_password):
+                print(f"Incorrect password provided for user: {current_user.email}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Current password is incorrect"
+                )
+        else:
+            print(f"First-time password setup for Google user: {current_user.email}")
+        
+        # Validate new password
+        if "new_password" not in password_data or not password_data["new_password"]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Current password is incorrect"
+                detail="New password is required"
+            )
+            
+        if len(password_data["new_password"]) < 6:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="New password must be at least 6 characters long"
             )
         
         # Hash new password
         hashed_password = get_password_hash(password_data["new_password"])
         
-        # Update password
+        # Update password and maintain Google OAuth flag
+        # We don't change is_google_user flag as users can still use both methods
         db.users.update_one(
             {"email": current_user.email},
             {"$set": {"hashed_password": hashed_password}}
         )
         
+        print(f"Password successfully changed for user: {current_user.email}")
         return {"message": "Password changed successfully"}
         
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error in change_password: {e}")
+        print(f"Error in change_password for user {current_user.email}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while changing your password"

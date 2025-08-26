@@ -55,6 +55,8 @@ class UserProfileResponse(UserBase):
     remaining_storage_gb: Optional[float] = None  # Optional for unlimited
     file_type_breakdown: FileTypeBreakdown = Field(default_factory=FileTypeBreakdown)
     total_files: int = 0
+    is_google_user: Optional[bool] = False  # Flag indicating Google OAuth user
+    has_password: Optional[bool] = False    # Flag indicating if user has a password
     
     class Config:
         populate_by_name = True

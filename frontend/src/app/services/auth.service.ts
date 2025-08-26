@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface FileTypeBreakdown {
@@ -26,6 +26,8 @@ export interface User {
   file_type_breakdown: FileTypeBreakdown;
   total_files: number;
   created_at?: string;
+  is_google_user?: boolean;  // Flag indicating Google OAuth user
+  has_password?: boolean;    // Flag indicating if user has a password
 }
 
 export interface LoginCredentials {
@@ -39,7 +41,7 @@ export interface RegisterData {
 }
 
 export interface PasswordChangeData {
-  current_password: string;
+  current_password?: string | null;  // Optional for Google users without password
   new_password: string;
 }
 
@@ -156,10 +158,31 @@ export class AuthService {
   }
 
   changePassword(passwordData: PasswordChangeData): Observable<any> {
+    console.log('Auth service: sending password change request', {
+      has_current_password: passwordData.hasOwnProperty('current_password'),
+      endpoint: `${this.API_URL}/change-password`,
+      new_password_length: passwordData.new_password?.length || 0
+    });
+    
+    // Add retry logic for better reliability
     return this.http.post(`${this.API_URL}/change-password`, passwordData, {
       headers: this.getAuthHeaders()
     }).pipe(
-      catchError(this.handleError)
+      tap(response => console.log('Password change response:', response)),
+      catchError(error => {
+        console.error('Password change error in service:', error);
+        
+        // Add more specific logging for debugging
+        if (error.status === 400) {
+          console.error('Bad request error:', error.error);
+        } else if (error.status === 401) {
+          console.error('Authentication error:', error.error);
+        } else {
+          console.error('Unexpected error:', error);
+        }
+        
+        return this.handleError(error);
+      })
     );
   }
 
