@@ -4,6 +4,8 @@ from typing import Optional, List
 from pydantic_settings import BaseSettings
 from pydantic import BaseModel
 import os
+import secrets
+import string
 
 # A model to hold the configuration for a single Google Drive account
 class GoogleAccountConfig(BaseModel):
@@ -18,7 +20,14 @@ class Settings(BaseSettings):
     MONGODB_URI: str
     DATABASE_NAME: str
 
-    # JWT
+    # JWT Configuration
+    # SECURITY CRITICAL: JWT_SECRET_KEY is used to sign authentication tokens
+    # Requirements:
+    # - Minimum 32 characters (64+ recommended for production)
+    # - Mix of letters, numbers, and symbols
+    # - Unique per environment (dev/staging/production should use different secrets)
+    # - Never commit real secrets to version control
+    # Generate secure secret: python -c "from app.core.config import Settings; Settings.print_secure_secret_example()"
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
@@ -96,6 +105,115 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         extra = 'ignore'
+    
+    def __init__(self, **kwargs):
+        """Initialize settings and validate JWT secret security"""
+        super().__init__(**kwargs)
+        # Validate JWT secret after all settings are loaded
+        self._validate_jwt_secret()
+    
+    def _validate_jwt_secret(self) -> None:
+        """
+        Validate JWT secret key strength and security
+        Raises ValueError if secret is weak or insecure
+        """
+        if not hasattr(self, 'JWT_SECRET_KEY') or not self.JWT_SECRET_KEY:
+            raise ValueError(
+                "JWT_SECRET_KEY is required. "
+                "Use generate_secure_secret() to create a strong secret."
+            )
+        
+        # Check minimum length requirement
+        if len(self.JWT_SECRET_KEY) < 32:
+            raise ValueError(
+                f"JWT_SECRET_KEY must be at least 32 characters long. "
+                f"Current length: {len(self.JWT_SECRET_KEY)}. "
+                f"Use generate_secure_secret() to create a strong secret."
+            )
+        
+        # Check against common weak values
+        weak_secrets = [
+            "secret", "test", "dev", "development", "password", 
+            "123456", "jwt_secret", "your_secret_key", "changeme",
+            "default", "admin", "root", "demo", "sample", "example",
+            "your_jwt_secret_key_here", "your_development_secret_key_here_minimum_32_characters",
+            "your_very_long_secret_key_here_minimum_32_characters"
+        ]
+        
+        if self.JWT_SECRET_KEY.lower() in [weak.lower() for weak in weak_secrets]:
+            raise ValueError(
+                f"JWT_SECRET_KEY '{self.JWT_SECRET_KEY}' is a common weak value. "
+                f"Use generate_secure_secret() to create a strong secret."
+            )
+        
+        # Check for patterns that indicate weak secrets
+        if self.JWT_SECRET_KEY.isalpha() or self.JWT_SECRET_KEY.isdigit():
+            raise ValueError(
+                "JWT_SECRET_KEY should contain a mix of letters, numbers, and symbols. "
+                "Use generate_secure_secret() to create a strong secret."
+            )
+        
+        # Check for repeating patterns (like "aaaaaa...")
+        if len(set(self.JWT_SECRET_KEY)) < len(self.JWT_SECRET_KEY) / 4:
+            raise ValueError(
+                "JWT_SECRET_KEY appears to have too many repeating characters. "
+                "Use generate_secure_secret() to create a strong secret."
+            )
+    
+    @staticmethod
+    def generate_secure_secret(length: int = 64) -> str:
+        """
+        Generate a cryptographically secure JWT secret key
+        
+        Args:
+            length: Length of the secret (minimum 32, default 64)
+        
+        Returns:
+            A secure random string suitable for JWT signing
+            
+        Example:
+            >>> Settings.generate_secure_secret()
+            'kJ8$mN2#pL9@qR5%tY7&uI3*oP6^eW1!mX4@nB7%vC9&dF2$gH5#jK8@'
+        """
+        if length < 32:
+            raise ValueError("Secret length must be at least 32 characters")
+        
+        # Create character set with letters, numbers, and safe symbols
+        chars = string.ascii_letters + string.digits + "!@#$%^&*"
+        
+        # Generate cryptographically secure random secret
+        return ''.join(secrets.choice(chars) for _ in range(length))
+
+    @staticmethod
+    def print_secure_secret_example():
+        """
+        Print an example of a secure JWT secret for development use
+        """
+        secure_secret = Settings.generate_secure_secret()
+        print("\n" + "="*60)
+        print("SECURE JWT SECRET GENERATED:")
+        print("="*60)
+        print(f"JWT_SECRET_KEY={secure_secret}")
+        print("="*60)
+        print("Copy this to your .env file")
+        print("NEVER use this in production - generate a new one!")
+        print("="*60 + "\n")
+    
+    def validate_and_suggest_fix(self) -> None:
+        """
+        Validate JWT secret and provide helpful error messages with solutions
+        """
+        try:
+            self._validate_jwt_secret()
+            print("✅ JWT Secret validation passed - your secret is secure!")
+        except ValueError as e:
+            print(f"❌ JWT Secret validation failed: {e}")
+            print("\n🔧 To fix this issue:")
+            print("1. Generate a new secure secret:")
+            print("   python -c \"from app.core.config import Settings; Settings.print_secure_secret_example()\"")
+            print("2. Add the generated secret to your .env file")
+            print("3. Restart your server")
+            raise e
 
 # Initialize settings from .env
 settings = Settings()
