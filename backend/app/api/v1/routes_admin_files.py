@@ -13,6 +13,104 @@ import mimetypes
 import io
 import zipfile
 
+# --- SECURITY: MongoDB Injection Prevention ---
+def sanitize_mongo_input(user_input):
+    """
+    Sanitize user input to prevent MongoDB injection attacks
+    
+    Args:
+        user_input: Raw input from user (string, dict, list, or other)
+    
+    Returns:
+        Sanitized input safe for MongoDB queries
+    """
+    if isinstance(user_input, str):
+        # Remove MongoDB operators and special characters
+        dangerous_patterns = [
+            '$ne', '$gt', '$lt', '$in', '$nin', '$exists', '$regex', 
+            '$where', '$expr', '$jsonSchema', '$mod', '$all', '$size',
+            '$elemMatch', '$not', '$nor', '$and', '$or', '$text',
+            '$geoIntersects', '$geoWithin', '$near', '$nearSphere'
+        ]
+        sanitized = user_input
+        for pattern in dangerous_patterns:
+            sanitized = sanitized.replace(pattern, '')
+        
+        # Remove other suspicious patterns
+        sanitized = sanitized.replace('function(', '').replace('eval(', '').replace('javascript:', '')
+        return sanitized.strip()
+    
+    elif isinstance(user_input, dict):
+        # Recursively sanitize dictionary inputs
+        sanitized_dict = {}
+        for key, value in user_input.items():
+            # Remove keys starting with $ (MongoDB operators)
+            if not key.startswith('$') and not key.startswith('.'):
+                clean_key = sanitize_mongo_input(key) if isinstance(key, str) else key
+                sanitized_dict[clean_key] = sanitize_mongo_input(value)
+        return sanitized_dict
+    
+    elif isinstance(user_input, list):
+        # Sanitize list inputs
+        return [sanitize_mongo_input(item) for item in user_input]
+    
+    else:
+        # For other types (int, float, bool, None), return as-is if safe
+        return user_input
+
+def validate_search_input(input_value, max_length=100):
+    """
+    Validate search input parameters for additional security
+    
+    Args:
+        input_value: The input to validate
+        max_length: Maximum allowed length for string inputs
+    
+    Returns:
+        tuple: (is_valid: bool, error_message: str)
+    """
+    if input_value is None:
+        return True, "Valid input"
+    
+    if not isinstance(input_value, str):
+        return False, "Search input must be a string"
+    
+    if len(input_value) > max_length:
+        return False, f"Search input too long (max {max_length} characters)"
+    
+    # Check for suspicious patterns
+    suspicious_patterns = ['javascript:', 'eval(', 'function(', '<script', 'document.', 'window.']
+    for pattern in suspicious_patterns:
+        if pattern.lower() in input_value.lower():
+            return False, "Invalid characters in search input"
+    
+    return True, "Valid input"
+
+def validate_email_input(email_input):
+    """
+    Validate email input for owner filtering
+    
+    Args:
+        email_input: Email string to validate
+    
+    Returns:
+        tuple: (is_valid: bool, error_message: str)
+    """
+    if not email_input:
+        return True, "Valid input"
+    
+    if not isinstance(email_input, str):
+        return False, "Email must be a string"
+    
+    if len(email_input) > 255:
+        return False, "Email too long"
+    
+    # Basic email format check
+    if '@' not in email_input or '.' not in email_input:
+        return False, "Invalid email format"
+    
+    return True, "Valid input"
+
 router = APIRouter()
 
 # Pydantic models for file management
@@ -66,10 +164,30 @@ async def list_files(
 ):
     """List all files with advanced filtering and search"""
     
+    # --- SECURITY: Validate and sanitize all user inputs ---
+    if search:
+        is_valid, error_msg = validate_search_input(search)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        search = sanitize_mongo_input(search)
+    
+    if owner_email:
+        is_valid, error_msg = validate_email_input(owner_email)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        owner_email = sanitize_mongo_input(owner_email)
+    
+    # Sanitize other inputs
+    file_type = sanitize_mongo_input(file_type) if file_type else None
+    storage_location = sanitize_mongo_input(storage_location) if storage_location else None
+    file_status = sanitize_mongo_input(file_status) if file_status else None
+    sort_by = sanitize_mongo_input(sort_by) if sort_by else "upload_date"
+    sort_order = sanitize_mongo_input(sort_order) if sort_order else "desc"
+    
     # Build query
     query = {}
     
-    # Search filter - search in filename
+    # Search filter - search in filename (now sanitized)
     if search:
         query["filename"] = {"$regex": re.escape(search), "$options": "i"}
     
@@ -110,9 +228,9 @@ async def list_files(
         if date_query:
             query["upload_date"] = date_query
     
-    # Owner filter
+    # Owner filter (now sanitized)
     if owner_email:
-        # Get user by email
+        # Get user by email (using sanitized input)
         user = db.users.find_one({"email": owner_email})
         if user:
             query["owner_id"] = user["_id"]
@@ -214,6 +332,9 @@ async def get_file_detail(
 ):
     """Get detailed file information"""
     
+    # --- SECURITY: Sanitize file_id parameter ---
+    file_id = sanitize_mongo_input(file_id)
+    
     file_doc = db.files.find_one({"_id": file_id})
     if not file_doc:
         raise HTTPException(
@@ -271,6 +392,9 @@ async def get_file_preview(
 ):
     """Get file preview (for images, videos, documents)"""
     
+    # --- SECURITY: Sanitize file_id parameter ---
+    file_id = sanitize_mongo_input(file_id)
+    
     file_doc = db.files.find_one({"_id": file_id})
     if not file_doc:
         raise HTTPException(
@@ -317,6 +441,10 @@ async def delete_file(
     current_admin: AdminUserInDB = Depends(get_current_admin)
 ):
     """Delete a file (admin only) - Deletes from Google Drive and marks as deleted in database"""
+    
+    # --- SECURITY: Sanitize file_id and reason parameters ---
+    file_id = sanitize_mongo_input(file_id)
+    reason = sanitize_mongo_input(reason) if reason else None
     
     print(f"🚀 [DELETE_FILE] ===== DELETION REQUEST RECEIVED =====")
     print(f"🚀 [DELETE_FILE] File ID: {file_id}")
@@ -488,13 +616,19 @@ async def bulk_file_action(
 ):
     """Perform bulk actions on multiple files"""
     
+    # --- SECURITY: Sanitize bulk action data ---
+    action_data.file_ids = [sanitize_mongo_input(file_id) for file_id in action_data.file_ids]
+    action_data.action = sanitize_mongo_input(action_data.action)
+    action_data.reason = sanitize_mongo_input(action_data.reason) if action_data.reason else None
+    action_data.target_location = sanitize_mongo_input(action_data.target_location) if action_data.target_location else None
+    
     if len(action_data.file_ids) > 100:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot perform bulk action on more than 100 files at once"
         )
     
-    # Verify all files exist
+    # Verify all files exist (using sanitized file IDs)
     existing_files = list(db.files.find({"_id": {"$in": action_data.file_ids}}, {"_id": 1, "filename": 1}))
     if len(existing_files) != len(action_data.file_ids):
         raise HTTPException(
@@ -716,6 +850,12 @@ async def execute_file_operation(
     current_admin: AdminUserInDB = Depends(get_current_admin)
 ):
     """Execute various file operations"""
+    
+    # --- SECURITY: Sanitize file_id and operation data ---
+    file_id = sanitize_mongo_input(file_id)
+    operation_data.operation = sanitize_mongo_input(operation_data.operation)
+    operation_data.target_location = sanitize_mongo_input(operation_data.target_location) if operation_data.target_location else None
+    operation_data.reason = sanitize_mongo_input(operation_data.reason) if operation_data.reason else None
     
     file_doc = db.files.find_one({"_id": file_id})
     if not file_doc:
@@ -1534,6 +1674,25 @@ async def list_drive_files(
 ):
     """List files that are stored on Google Drive (primary storage)"""
     
+    # --- SECURITY: Validate and sanitize all user inputs ---
+    if search:
+        is_valid, error_msg = validate_search_input(search)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        search = sanitize_mongo_input(search)
+    
+    if owner_email:
+        is_valid, error_msg = validate_email_input(owner_email)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        owner_email = sanitize_mongo_input(owner_email)
+    
+    # Sanitize other inputs
+    file_type = sanitize_mongo_input(file_type) if file_type else None
+    backup_status = sanitize_mongo_input(backup_status) if backup_status else None
+    sort_by = sanitize_mongo_input(sort_by) if sort_by else "upload_date"
+    sort_order = sanitize_mongo_input(sort_order) if sort_order else "desc"
+    
     # Build query for files stored on Google Drive
     query = {
         "storage_location": StorageLocation.GDRIVE,
@@ -1541,7 +1700,7 @@ async def list_drive_files(
         "deleted_at": {"$exists": False}  # Exclude deleted files
     }
     
-    # Search filter - search in filename
+    # Search filter - search in filename (now sanitized)
     if search:
         query["filename"] = {"$regex": re.escape(search), "$options": "i"}
     
@@ -1788,6 +1947,25 @@ async def list_hetzner_files(
 ):
     """List files that are backed up to Hetzner storage"""
     
+    # --- SECURITY: Validate and sanitize all user inputs ---
+    if search:
+        is_valid, error_msg = validate_search_input(search)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        search = sanitize_mongo_input(search)
+    
+    if owner_email:
+        is_valid, error_msg = validate_email_input(owner_email)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        owner_email = sanitize_mongo_input(owner_email)
+    
+    # Sanitize other inputs
+    file_type = sanitize_mongo_input(file_type) if file_type else None
+    backup_status = sanitize_mongo_input(backup_status) if backup_status else None
+    sort_by = sanitize_mongo_input(sort_by) if sort_by else "upload_date"
+    sort_order = sanitize_mongo_input(sort_order) if sort_order else "desc"
+    
     # Build query for files backed up to Hetzner (excluding deleted files)
     query = {
         "backup_status": BackupStatus.COMPLETED,
@@ -1795,7 +1973,7 @@ async def list_hetzner_files(
         "deleted_at": {"$exists": False}  # Exclude deleted files
     }
     
-    # Search filter - search in filename
+    # Search filter - search in filename (now sanitized)
     if search:
         query["filename"] = {"$regex": re.escape(search), "$options": "i"}
     
