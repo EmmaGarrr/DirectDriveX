@@ -2,7 +2,9 @@
 
 import uuid
 import os
-from typing import Optional
+import re
+from pathlib import Path
+from typing import Optional, Tuple
 from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, Depends, Request
@@ -62,6 +64,118 @@ def validate_file_safety(filename: str, content_type: str) -> tuple[bool, str]:
     
     return True, "File type is safe"
 
+# --- SECURITY: Filename sanitization functions ---
+def sanitize_filename(filename: str, max_length: int = 255) -> Tuple[str, bool]:
+    """
+    Sanitize filename to prevent path traversal attacks and ensure safe storage
+    
+    Args:
+        filename: Original filename from user
+        max_length: Maximum allowed filename length (default 255)
+    
+    Returns:
+        Tuple of (sanitized_filename: str, was_modified: bool)
+    """
+    if not filename or not isinstance(filename, str):
+        return generate_safe_default_filename(), True
+    
+    original_filename = filename
+    
+    # Step 1: Remove/replace path separators and traversal attempts
+    # Remove any path separators (forward slash, backslash)
+    sanitized = filename.replace('/', '_').replace('\\', '_')
+    
+    # Remove path traversal patterns
+    sanitized = sanitized.replace('..', '_')
+    sanitized = sanitized.replace('./', '_')
+    sanitized = sanitized.replace('.\\', '_')
+    
+    # Step 2: Remove control characters and dangerous characters
+    # Remove control characters (ASCII 0-31 and 127)
+    sanitized = ''.join(char for char in sanitized if ord(char) >= 32 and ord(char) != 127)
+    
+    # Remove other dangerous characters for file systems
+    dangerous_chars = '<>:"|?*'
+    for char in dangerous_chars:
+        sanitized = sanitized.replace(char, '_')
+    
+    # Step 3: Handle Windows reserved names
+    windows_reserved = [
+        'CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 
+        'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 
+        'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
+    ]
+    
+    filename_without_ext = os.path.splitext(sanitized)[0]
+    if filename_without_ext.upper() in windows_reserved:
+        sanitized = f"file_{sanitized}"
+    
+    # Step 4: Handle length restrictions
+    if len(sanitized) > max_length:
+        # Try to preserve file extension if possible
+        name, ext = os.path.splitext(sanitized)
+        if ext:
+            max_name_length = max_length - len(ext)
+            sanitized = name[:max_name_length] + ext
+        else:
+            sanitized = sanitized[:max_length]
+    
+    # Step 5: Ensure filename is not empty or just dots/underscores
+    sanitized = sanitized.strip('. ')
+    if not sanitized or sanitized in ['.', '..', '_', '__', '___']:
+        sanitized = generate_safe_default_filename()
+        return sanitized, True
+    
+    # Step 6: Ensure filename doesn't start with dot (hidden files)
+    if sanitized.startswith('.'):
+        sanitized = 'file_' + sanitized[1:]
+    
+    was_modified = sanitized != original_filename
+    return sanitized, was_modified
+
+def generate_safe_default_filename() -> str:
+    """
+    Generate a safe default filename when original is invalid
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    unique_id = str(uuid.uuid4())[:8]
+    return f"file_{timestamp}_{unique_id}.txt"
+
+def validate_filename_safety(filename: str) -> Tuple[bool, str]:
+    """
+    Validate if a filename is safe without modifying it
+    
+    Args:
+        filename: Filename to validate
+    
+    Returns:
+        Tuple of (is_safe: bool, error_message: str)
+    """
+    if not filename or not isinstance(filename, str):
+        return False, "Filename cannot be empty"
+    
+    if len(filename) > 255:
+        return False, "Filename is too long (maximum 255 characters)"
+    
+    # Check for path traversal patterns
+    dangerous_patterns = ['../', '..\\', '../', '..\\']
+    for pattern in dangerous_patterns:
+        if pattern in filename:
+            return False, "Filename contains path traversal patterns"
+    
+    # Check for control characters
+    for char in filename:
+        if ord(char) < 32 or ord(char) == 127:
+            return False, "Filename contains invalid control characters"
+    
+    # Check for dangerous characters
+    dangerous_chars = '<>:"|?*'
+    for char in dangerous_chars:
+        if char in filename:
+            return False, f"Filename contains invalid character: {char}"
+    
+    return True, "Filename is safe"
+
 router = APIRouter()
 
 @router.post("/upload/initiate", response_model=dict)
@@ -78,6 +192,13 @@ async def initiate_upload(
     is_safe, safety_error = validate_file_safety(request.filename, request.content_type)
     if not is_safe:
         raise HTTPException(status_code=400, detail=safety_error)
+    
+    # --- SECURITY: Sanitize filename to prevent path traversal attacks ---
+    sanitized_filename, was_modified = sanitize_filename(request.filename)
+    
+    # Log filename modification for security tracking
+    if was_modified:
+        print(f"SECURITY: Filename sanitized from '{request.filename}' to '{sanitized_filename}'")
     
     # --- NEW: Check upload limits based on environment ---
     environment = getattr(settings, 'ENVIRONMENT', 'development').lower()
@@ -112,9 +233,9 @@ async def initiate_upload(
         raise HTTPException(status_code=503, detail="All storage accounts are currently busy or unavailable. Please try again in a minute.")
 
     try:
-        # --- MODIFIED: Pass the active account to the session creator ---
+        # --- MODIFIED: Pass the sanitized filename to the session creator ---
         gdrive_upload_url = create_resumable_upload_session(
-            filename=request.filename,
+            filename=sanitized_filename,
             filesize=request.size,
             account=active_account
         )
@@ -134,7 +255,8 @@ async def initiate_upload(
 
     file_meta = FileMetadataCreate(
         _id=file_id,
-        filename=request.filename,
+        filename=sanitized_filename,  # Use sanitized filename for storage
+        original_filename=request.filename,  # Store original filename for reference
         size_bytes=request.size,
         content_type=request.content_type,
         owner_id=user_id,

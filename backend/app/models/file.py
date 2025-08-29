@@ -1,6 +1,6 @@
 # In file: Backend/app/models/file.py
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from typing import List, Optional
 from enum import Enum
 import datetime
@@ -26,8 +26,34 @@ class BackupStatus(str, Enum):
 
 class FileMetadataBase(BaseModel):
     filename: str
+    original_filename: Optional[str] = None  # Store original filename for reference
     size_bytes: int
     content_type: str
+    
+    @validator('filename')
+    def validate_filename(cls, v):
+        """
+        Validate filename is safe and sanitized
+        """
+        if not v:
+            raise ValueError("Filename cannot be empty")
+        
+        if len(v) > 255:
+            raise ValueError("Filename too long (maximum 255 characters)")
+        
+        # Check for path traversal patterns
+        dangerous_patterns = ['../', '..\\', '../', '..\\']
+        for pattern in dangerous_patterns:
+            if pattern in v:
+                raise ValueError("Filename contains path traversal patterns")
+        
+        # Check for dangerous characters that should have been sanitized
+        dangerous_chars = '<>:"|?*/\\'
+        for char in dangerous_chars:
+            if char in v:
+                raise ValueError(f"Filename contains unsafe character: {char}")
+        
+        return v
 
 class FileMetadataCreate(FileMetadataBase):
     id: str = Field(..., alias="_id")
