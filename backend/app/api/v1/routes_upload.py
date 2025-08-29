@@ -1,6 +1,7 @@
 # In file: Backend/app/api/v1/routes_upload.py
 
 import uuid
+import os
 from typing import Optional
 from datetime import datetime
 
@@ -17,6 +18,50 @@ from app.services.admin_auth_service import get_client_ip
 from app.core.config import settings
 # from app.ws_manager import manager # Assuming you have a WebSocket manager for admin logs
 
+# --- SECURITY: File type validation constants ---
+BLOCKED_EXTENSIONS = {
+    '.exe', '.bat', '.scr', '.com', '.cmd', 
+    '.ps1', '.vbs', '.jar', '.msi', '.deb', 
+    '.rpm', '.dmg', '.pkg', '.app', '.pif',
+    '.scf', '.lnk', '.inf', '.reg'
+}
+
+BLOCKED_MIME_TYPES = {
+    'application/x-msdownload',
+    'application/x-executable', 
+    'application/executable',
+    'application/x-winexe',
+    'application/x-msdos-program',
+    'application/x-dosexec',
+    'application/x-ms-dos-executable',
+    'application/x-bat',
+    'application/x-sh'
+}
+
+def validate_file_safety(filename: str, content_type: str) -> tuple[bool, str]:
+    """
+    Validate file safety for upload to prevent malicious files
+    
+    Args:
+        filename: The original filename from the client
+        content_type: The MIME type provided by the client
+    
+    Returns:
+        tuple: (is_safe: bool, error_message: str)
+    """
+    # Extract file extension (case-insensitive)
+    file_ext = os.path.splitext(filename.lower())[1]
+    
+    # Check against blocked extensions
+    if file_ext in BLOCKED_EXTENSIONS:
+        return False, f"File type '{file_ext}' is not allowed for security reasons"
+    
+    # Check against blocked MIME types
+    if content_type.lower() in BLOCKED_MIME_TYPES:
+        return False, f"File type '{content_type}' is not allowed for security reasons"
+    
+    return True, "File type is safe"
+
 router = APIRouter()
 
 @router.post("/upload/initiate", response_model=dict)
@@ -28,6 +73,11 @@ async def initiate_upload(
     # --- NEW: Extract client IP address ---
     client_ip = get_client_ip(client_request)
     user_id = current_user.id if current_user else None
+    
+    # --- SECURITY: Validate file safety BEFORE processing ---
+    is_safe, safety_error = validate_file_safety(request.filename, request.content_type)
+    if not is_safe:
+        raise HTTPException(status_code=400, detail=safety_error)
     
     # --- NEW: Check upload limits based on environment ---
     environment = getattr(settings, 'ENVIRONMENT', 'development').lower()
