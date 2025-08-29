@@ -129,45 +129,149 @@ async def startup_storage_management():
 
 @app.websocket("/ws_admin")
 async def websocket_admin_endpoint(websocket: WebSocket, token: str = ""):
-    """Admin WebSocket endpoint with JWT authentication"""
+    """Admin WebSocket endpoint with real-time database role verification"""
     from app.services.admin_auth_service import get_current_admin
     from app.models.admin import AdminUserInDB
     from jose import JWTError, jwt
+    from datetime import datetime
+    from typing import Tuple, Optional
     
-    # Validate JWT token
+    def verify_admin_access(user_identifier: str) -> Tuple[bool, str]:
+        """
+        Verify user has current admin access by checking database
+        
+        Args:
+            user_identifier: User ID or email from JWT token
+        
+        Returns:
+            Tuple of (is_authorized: bool, message: str)
+        """
+        try:
+            # Always check current database state, never trust JWT claims
+            # Try to find user by ID first, then by email
+            user = db.users.find_one({"_id": user_identifier}) or db.users.find_one({"email": user_identifier})
+            
+            if not user:
+                return False, "User not found in database"
+            
+            # Check if user account is active (if you have account status)
+            if user.get("status") == "disabled" or user.get("is_active") == False:
+                return False, "User account is disabled"
+            
+            # Verify current role is admin or superadmin
+            user_role = user.get("role", "").lower()
+            if user_role not in ["admin", "superadmin"]:
+                return False, f"User role '{user_role}' is not authorized for admin access"
+            
+            return True, f"User authorized with role: {user_role}"
+            
+        except Exception as e:
+            # Log the error for debugging but don't expose internal details
+            print(f"SECURITY ERROR: Database verification failed for user {user_identifier}: {e}")
+            return False, "Authorization verification failed"
+
+    def get_user_id_from_jwt(token: str) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Extract user identifier from JWT token without trusting role claims
+        
+        Args:
+            token: JWT token string
+        
+        Returns:
+            Tuple of (user_identifier: Optional[str], error_message: Optional[str])
+        """
+        try:
+            # Decode JWT but only trust user identification, not role claims
+            payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            
+            # Try multiple possible user identification fields
+            # Admin tokens typically use 'sub' for email, but also check other fields
+            user_identifier = payload.get("user_id") or payload.get("sub") or payload.get("id") or payload.get("email")
+            if not user_identifier:
+                return None, "No user identifier found in token"
+            
+            return user_identifier, None
+            
+        except jwt.ExpiredSignatureError:
+            return None, "Token has expired"
+        except JWTError:
+            return None, "Invalid token"
+        except Exception as e:
+            print(f"JWT decode error: {e}")
+            return None, "Token processing failed"
+
+    def log_websocket_security_event(event_type: str, user_id: str, message: str, success: bool = True):
+        """
+        Log security events for WebSocket connections
+        """
+        timestamp = datetime.now().isoformat()
+        log_entry = {
+            "timestamp": timestamp,
+            "event_type": event_type,
+            "user_id": user_id,
+            "message": message,
+            "success": success,
+            "endpoint": "admin_websocket"
+        }
+        
+        # Log to console (replace with your preferred logging system)
+        status = "SUCCESS" if success else "SECURITY_VIOLATION"
+        print(f"[{timestamp}] {status}: {event_type} - User {user_id}: {message}")
+        
+        # Optional: Store security events in database for audit trail
+        try:
+            db.security_logs.insert_one(log_entry)
+        except Exception as e:
+            print(f"Failed to log security event: {e}")
+    
+    # Validate JWT token and extract user information
     try:
         if not token:
-            await websocket.close(code=1008, reason="No token provided")
+            await websocket.close(code=1008, reason="No authentication token provided")
             return
-            
-        # Decode and validate JWT token
-        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
-        email: str = payload.get("sub")
-        is_admin: bool = payload.get("is_admin", False)
         
-        if email is None or not is_admin:
-            await websocket.close(code=1008, reason="Invalid admin token")
+        # Step 1: Extract user identifier from token (don't trust role claims)
+        user_identifier, jwt_error = get_user_id_from_jwt(token)
+        if jwt_error or not user_identifier:
+            log_websocket_security_event("token_validation_failed", user_identifier or "unknown", f"Token validation failed: {jwt_error}", False)
+            await websocket.close(code=1008, reason=f"Token validation failed: {jwt_error}")
             return
+        
+        # Step 2: SECURITY - Always verify current database role
+        is_authorized, auth_message = verify_admin_access(user_identifier)
+        
+        if not is_authorized:
+            # Log security violation
+            log_websocket_security_event("unauthorized_access_attempt", user_identifier, f"Unauthorized WebSocket access attempt: {auth_message}", False)
             
-        # Verify admin user exists in database
-        from app.db.mongodb import db
-        user = db.users.find_one({"email": email})
-        if not user or user.get("role") not in ["admin", "superadmin"]:
-            await websocket.close(code=1008, reason="Admin user not found or insufficient permissions")
+            # Close connection immediately with appropriate reason
+            await websocket.close(code=1008, reason="Unauthorized: Admin access required")
+            return
+        
+        # Step 3: Get user details for logging (now that we know they're authorized)
+        user = db.users.find_one({"_id": user_identifier}) or db.users.find_one({"email": user_identifier})
+        if not user:
+            log_websocket_security_event("user_not_found", user_identifier, "User not found after successful role verification", False)
+            await websocket.close(code=1008, reason="User verification failed")
             return
             
         # Create admin object for logging
         admin = AdminUserInDB(**user)
         
     except JWTError as e:
+        log_websocket_security_event("jwt_error", "unknown", f"JWT validation error: {e}", False)
         await websocket.close(code=1008, reason="Invalid JWT token")
         return
     except Exception as e:
+        log_websocket_security_event("authentication_error", "unknown", f"Authentication failed: {e}", False)
         await websocket.close(code=1008, reason="Authentication failed")
         return
     
-    # Connection successful
+    # Step 4: Accept connection only after successful authorization
     await manager.connect(websocket)
+    
+    # Log successful admin connection
+    log_websocket_security_event("websocket_connection_authorized", user_identifier, f"Admin WebSocket connection authorized: {auth_message}", True)
     print(f"[WebSocket] Admin connected: {admin.email} (Role: {admin.role})")
     
     try:
@@ -188,6 +292,15 @@ async def websocket_admin_endpoint(websocket: WebSocket, token: str = ""):
         while True:
             try:
                 message = await websocket.receive_text()
+                
+                # Optional: Re-verify admin access periodically for long-running connections
+                # This prevents privilege escalation during active sessions
+                is_still_authorized, _ = verify_admin_access(user_identifier)
+                if not is_still_authorized:
+                    log_websocket_security_event("authorization_revoked", user_identifier, "Authorization revoked during active session", False)
+                    await websocket.close(code=1008, reason="Authorization revoked")
+                    break
+                
                 # Echo received messages and broadcast to demonstrate real-time capability
                 response_msg = f"[{admin.role.upper()}] {admin.email}: {message}"
                 
@@ -202,8 +315,10 @@ async def websocket_admin_endpoint(websocket: WebSocket, token: str = ""):
                 break
                 
     except WebSocketDisconnect:
+        log_websocket_security_event("websocket_disconnected", user_identifier, f"Admin WebSocket disconnected: {admin.email}", True)
         print(f"[WebSocket] Admin disconnected: {admin.email}")
     except Exception as e:
+        log_websocket_security_event("websocket_error", user_identifier, f"WebSocket connection error: {e}", False)
         print(f"[WebSocket] Connection error: {e}")
     finally:
         manager.disconnect(websocket)
