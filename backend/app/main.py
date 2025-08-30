@@ -93,15 +93,57 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 app = FastAPI(title="File Transfer Service")
-origins = ["http://localhost:4200", "http://192.168.1.23:4200", "http://135.148.33.247", "https://teletransfer.vercel.app", "https://direct-drive-x.vercel.app", "https://*.vercel.app", "https://mfcnextgen.com", "https://www.mfcnextgen.com", "https://api.mfcnextgen.com"]
+
+def configure_cors(app):
+    """
+    Configure CORS middleware with environment-based settings
+    """
+    from app.core.config import settings, validate_cors_security
+    
+    allowed_origins = settings.get_allowed_origins()
+    cors_methods = settings.get_cors_methods()
+    cors_headers = settings.get_cors_headers()
+    
+    # Log CORS configuration for debugging (but not in production)
+    if settings.DEBUG:
+        print(f"CORS Configuration:")
+        print(f"  Allowed Origins: {allowed_origins}")
+        print(f"  Allow Credentials: {settings.CORS_ALLOW_CREDENTIALS}")
+        print(f"  Allowed Methods: {cors_methods}")
+        print(f"  Allowed Headers: {cors_headers}")
+    
+    # Validate that we're not using wildcard in production
+    if "*" in allowed_origins and not settings.DEBUG:
+        print("ERROR: Wildcard CORS origin (*) detected in production mode!")
+        print("This is a serious security risk. Please configure specific origins.")
+        # Fail hard in production (recommended)
+        raise ValueError("Wildcard CORS origins not allowed in production")
+    
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=allowed_origins,
+        allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+        allow_methods=cors_methods,
+        allow_headers=cors_headers,
+    )
 
 # Add priority middleware first (before CORS)
 app.add_middleware(PriorityMiddleware)
-app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+
+# Configure CORS with environment-based settings
+configure_cors(app)
 
 # --- Startup hooks for storage account health and pool sync ---
 @app.on_event("startup")
 async def startup_storage_management():
+    # CORS Security Validation
+    from app.core.config import settings, validate_cors_security
+    if not validate_cors_security(settings):
+        if not settings.DEBUG:
+            raise ValueError("CORS security validation failed")
+        else:
+            print("WARNING: CORS security issues detected in development mode")
+    
     try:
         # Ensure accounts collection exists, migrate from env on first run, and sync
         await GoogleDriveAccountService.initialize_service()

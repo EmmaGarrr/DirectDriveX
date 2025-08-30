@@ -2,7 +2,7 @@
 
 from typing import Optional, List
 from pydantic_settings import BaseSettings
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import os
 import secrets
 import string
@@ -100,6 +100,35 @@ class Settings(BaseSettings):
     GOOGLE_OAUTH_CLIENT_ID: Optional[str] = None
     GOOGLE_OAUTH_CLIENT_SECRET: Optional[str] = None
     GOOGLE_OAUTH_REDIRECT_URI: str = "http://localhost:4200/auth/google/callback"
+    
+    # --- NEW: CORS CONFIGURATION ---
+    # Environment-based CORS origins to prevent security risks in production
+    ALLOWED_ORIGINS: str = Field(
+        default="http://localhost:5000,http://localhost:4200",
+        description="Comma-separated list of allowed CORS origins"
+    )
+    
+    # Additional CORS settings for granular control
+    CORS_ALLOW_CREDENTIALS: bool = Field(
+        default=True,
+        description="Allow credentials in CORS requests"
+    )
+    
+    CORS_ALLOW_METHODS: str = Field(
+        default="GET,POST,PUT,DELETE,OPTIONS,PATCH",
+        description="Comma-separated list of allowed HTTP methods"
+    )
+    
+    CORS_ALLOW_HEADERS: str = Field(
+        default="*",
+        description="Comma-separated list of allowed headers"
+    )
+    
+    # Debug mode for environment-specific behavior
+    DEBUG: bool = Field(
+        default=True,
+        description="Enable debug mode (allows less strict CORS in development)"
+    )
 
     class Config:
         env_file = ".env"
@@ -214,6 +243,124 @@ class Settings(BaseSettings):
             print("2. Add the generated secret to your .env file")
             print("3. Restart your server")
             raise e
+    
+    # --- NEW: CORS CONFIGURATION METHODS ---
+    
+    def get_allowed_origins(self) -> List[str]:
+        """
+        Parse ALLOWED_ORIGINS string into list and validate origins
+        
+        Returns:
+            List of validated origin URLs
+        """
+        if not self.ALLOWED_ORIGINS:
+            return []
+        
+        # Split by comma and clean up whitespace
+        origins = [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",") if origin.strip()]
+        
+        # Validate origins
+        validated_origins = []
+        for origin in origins:
+            if self.is_valid_origin(origin):
+                validated_origins.append(origin)
+            else:
+                print(f"WARNING: Invalid CORS origin ignored: {origin}")
+        
+        return validated_origins
+    
+    def is_valid_origin(self, origin: str) -> bool:
+        """
+        Validate a CORS origin URL
+        
+        Args:
+            origin: Origin URL to validate
+            
+        Returns:
+            True if origin is valid, False otherwise
+        """
+        if not origin:
+            return False
+        
+        # Allow wildcard only for development (not recommended for production)
+        if origin == "*":
+            if not self.DEBUG:
+                print("ERROR: Wildcard CORS origin (*) not allowed in production!")
+                return False
+            else:
+                print("WARNING: Wildcard CORS origin (*) should not be used in production!")
+                return True
+        
+        # Basic URL validation
+        if not (origin.startswith("http://") or origin.startswith("https://")):
+            return False
+        
+        # Check for incomplete URLs
+        if origin in ["http://", "https://", "http:", "https:"]:
+            return False
+        
+        # Additional validation can be added here
+        # - Check for valid domain names
+        # - Validate port numbers
+        # - Check against whitelist patterns
+        
+        return True
+    
+    def get_cors_methods(self) -> List[str]:
+        """Parse CORS_ALLOW_METHODS into list"""
+        if not self.CORS_ALLOW_METHODS:
+            return ["GET"]
+        return [method.strip() for method in self.CORS_ALLOW_METHODS.split(",") if method.strip()]
+    
+    def get_cors_headers(self) -> List[str]:
+        """Parse CORS_ALLOW_HEADERS into list"""
+        if not self.CORS_ALLOW_HEADERS or self.CORS_ALLOW_HEADERS == "*":
+            return ["*"]
+        return [header.strip() for header in self.CORS_ALLOW_HEADERS.split(",") if header.strip()]
+
+# --- NEW: CORS SECURITY VALIDATION FUNCTIONS ---
+
+def validate_cors_security(settings) -> bool:
+    """
+    Validate CORS configuration for security issues
+    
+    Args:
+        settings: Settings instance to validate
+    
+    Returns:
+        True if configuration is secure, False if issues found
+    """
+    origins = settings.get_allowed_origins()
+    issues = []
+    
+    # Check for wildcard in production
+    if "*" in origins and not settings.DEBUG:
+        issues.append("Wildcard origin (*) used in production")
+    
+    # Check for localhost in production
+    if not settings.DEBUG:
+        localhost_origins = [origin for origin in origins if "localhost" in origin or "127.0.0.1" in origin]
+        if localhost_origins:
+            issues.append(f"Localhost origins in production: {localhost_origins}")
+    
+    # Check for HTTP origins in production
+    if not settings.DEBUG:
+        http_origins = [origin for origin in origins if origin.startswith("http://")]
+        if http_origins:
+            issues.append(f"Insecure HTTP origins in production: {http_origins}")
+    
+    # Check if no origins are configured
+    if not origins:
+        issues.append("No CORS origins configured")
+    
+    # Report issues
+    if issues:
+        print("CORS Security Issues Detected:")
+        for issue in issues:
+            print(f"  - {issue}")
+        return False
+    
+    return True
 
 # Initialize settings from .env
 settings = Settings()
