@@ -83,6 +83,13 @@ class Settings(BaseSettings):
     ENABLE_UPLOAD_LIMITS: bool = False  # Default (will be overridden by environment)
     UPLOAD_LIMITS_CACHE_TTL_MINUTES: int = 5  # Cache TTL for quota tracking
     
+    # --- NEW: SECURITY INPUT VALIDATION CONSTANTS ---
+    # These are separate from business logic limits and provide input safety validation
+    # Input validation prevents malicious/invalid data before business rules are applied
+    MAX_FILE_SIZE_INPUT_VALIDATION: int = 10 * 1024 * 1024 * 1024  # 10GB absolute maximum for input validation
+    MIN_FILE_SIZE_INPUT_VALIDATION: int = 1  # 1 byte minimum for input validation
+    MAX_FILE_SIZE_INPUT_VALIDATION_GB: int = 10  # 10GB in GB units for error messages
+    
     # --- NEW: EMAIL CONFIGURATION ---
     SMTP_HOST: Optional[str] = None
     SMTP_PORT: int = 587

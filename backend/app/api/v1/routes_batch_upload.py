@@ -42,6 +42,51 @@ BLOCKED_MIME_TYPES = {
     'application/x-sh'
 }
 
+# --- SECURITY: File size input validation functions ---
+def safe_size_validation(size: int) -> tuple[bool, str]:
+    """
+    Safely validate file size with overflow protection and input safety checks
+    
+    Args:
+        size: File size value to validate
+    
+    Returns:
+        tuple: (is_valid: bool, error_message: str)
+    """
+    try:
+        # Check if size is an integer
+        if not isinstance(size, int):
+            return False, "File size must be a valid integer"
+        
+        # Check for negative values
+        if size <= 0:
+            return False, "Invalid file size: File size must be greater than 0 bytes"
+        
+        # Check against maximum input validation limit (10GB)
+        max_size = settings.MAX_FILE_SIZE_INPUT_VALIDATION
+        if size > max_size:
+            max_size_gb = settings.MAX_FILE_SIZE_INPUT_VALIDATION_GB
+            return False, f"Invalid file size: File size exceeds maximum allowed limit of {max_size_gb}GB"
+        
+        return True, "File size is valid"
+        
+    except (OverflowError, ValueError, TypeError) as e:
+        return False, f"Invalid file size: Please provide a valid file size ({str(e)})"
+
+def validate_file_size_input(size: int) -> None:
+    """
+    Validate file size input and raise HTTPException if invalid
+    
+    Args:
+        size: File size to validate
+    
+    Raises:
+        HTTPException: If file size is invalid
+    """
+    is_valid, error_message = safe_size_validation(size)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error_message)
+
 def validate_file_safety(filename: str, content_type: str) -> tuple[bool, str]:
     """
     Validate file safety for upload to prevent malicious files
@@ -154,6 +199,17 @@ async def initiate_batch_upload(
     # --- NEW: Extract client IP address ---
     client_ip = get_client_ip(client_request)
     user_id = current_user.id if current_user else None
+    
+    # --- SECURITY: Input validation layer (BEFORE business logic) ---
+    # Validate all file sizes in batch for input safety
+    for i, file_info in enumerate(request.files):
+        try:
+            validate_file_size_input(file_info.size)
+        except HTTPException as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File {i+1} ('{file_info.filename}'): {e.detail}"
+            )
     
     # --- SECURITY: Validate all files in batch BEFORE processing ---
     for file_info in request.files:
