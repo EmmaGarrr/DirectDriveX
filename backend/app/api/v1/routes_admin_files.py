@@ -3,7 +3,7 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
 from app.services.admin_auth_service import get_current_admin, log_admin_activity, get_client_ip
 from app.models.admin import AdminUserInDB
-from app.models.file import FileMetadataInDB, StorageLocation, UploadStatus, BackupStatus
+from app.models.file import FileMetadataInDB, StorageLocation, UploadStatus, BackupStatus, sanitize_filename_for_display
 from app.db.mongodb import db
 from app.services.google_drive_service import gdrive_pool_manager
 from pydantic import BaseModel
@@ -267,6 +267,11 @@ async def list_files(
             file_doc["owner_email"] = owner["email"] if owner else "Unknown"
         else:
             file_doc["owner_email"] = "Anonymous"
+        
+        # --- NEW: XSS PROTECTION - Add safe display filenames ---
+        file_doc["safe_filename_for_display"] = sanitize_filename_for_display(file_doc.get("filename", ""))
+        if file_doc.get("original_filename"):
+            file_doc["safe_original_filename_for_display"] = sanitize_filename_for_display(file_doc.get("original_filename"))
         
         # Add file type based on MIME type
         content_type = file_doc.get("content_type", "")

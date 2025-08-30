@@ -68,6 +68,8 @@ class InitiateBatchResponse(BaseModel):
         gdrive_upload_url: str
         # We also return the original filename to help the frontend match them up.
         original_filename: str
+        # --- NEW: XSS PROTECTION - Safe display filename ---
+        safe_filename_for_display: str
 
     batch_id: str
     files: List[FileUploadInfo]

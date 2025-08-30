@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from datetime import datetime
 
 from app.models.batch import BatchMetadata, InitiateBatchRequest, InitiateBatchResponse
-from app.models.file import FileMetadataCreate, UploadStatus, FileMetadataInDB
+from app.models.file import FileMetadataCreate, UploadStatus, FileMetadataInDB, sanitize_filename_for_display
 from app.models.user import UserInDB
 from app.db.mongodb import db
 from app.services.auth_service import get_current_user_optional
@@ -111,83 +111,6 @@ def validate_file_safety(filename: str, content_type: str) -> tuple[bool, str]:
     
     return True, "File type is safe"
 
-# --- SECURITY: Filename sanitization functions (duplicated from routes_upload.py) ---
-def sanitize_filename(filename: str, max_length: int = 255) -> Tuple[str, bool]:
-    """
-    Sanitize filename to prevent path traversal attacks and ensure safe storage
-    
-    Args:
-        filename: Original filename from user
-        max_length: Maximum allowed filename length (default 255)
-    
-    Returns:
-        Tuple of (sanitized_filename: str, was_modified: bool)
-    """
-    if not filename or not isinstance(filename, str):
-        return generate_safe_default_filename(), True
-    
-    original_filename = filename
-    
-    # Step 1: Remove/replace path separators and traversal attempts
-    # Remove any path separators (forward slash, backslash)
-    sanitized = filename.replace('/', '_').replace('\\', '_')
-    
-    # Remove path traversal patterns
-    sanitized = sanitized.replace('..', '_')
-    sanitized = sanitized.replace('./', '_')
-    sanitized = sanitized.replace('.\\', '_')
-    
-    # Step 2: Remove control characters and dangerous characters
-    # Remove control characters (ASCII 0-31 and 127)
-    sanitized = ''.join(char for char in sanitized if ord(char) >= 32 and ord(char) != 127)
-    
-    # Remove other dangerous characters for file systems
-    dangerous_chars = '<>:"|?*'
-    for char in dangerous_chars:
-        sanitized = sanitized.replace(char, '_')
-    
-    # Step 3: Handle Windows reserved names
-    windows_reserved = [
-        'CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 
-        'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 
-        'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
-    ]
-    
-    filename_without_ext = os.path.splitext(sanitized)[0]
-    if filename_without_ext.upper() in windows_reserved:
-        sanitized = f"file_{sanitized}"
-    
-    # Step 4: Handle length restrictions
-    if len(sanitized) > max_length:
-        # Try to preserve file extension if possible
-        name, ext = os.path.splitext(sanitized)
-        if ext:
-            max_name_length = max_length - len(ext)
-            sanitized = name[:max_name_length] + ext
-        else:
-            sanitized = sanitized[:max_length]
-    
-    # Step 5: Ensure filename is not empty or just dots/underscores
-    sanitized = sanitized.strip('. ')
-    if not sanitized or sanitized in ['.', '..', '_', '__', '___']:
-        sanitized = generate_safe_default_filename()
-        return sanitized, True
-    
-    # Step 6: Ensure filename doesn't start with dot (hidden files)
-    if sanitized.startswith('.'):
-        sanitized = 'file_' + sanitized[1:]
-    
-    was_modified = sanitized != original_filename
-    return sanitized, was_modified
-
-def generate_safe_default_filename() -> str:
-    """
-    Generate a safe default filename when original is invalid
-    """
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    unique_id = str(uuid.uuid4())[:8]
-    return f"file_{timestamp}_{unique_id}.txt"
-
 router = APIRouter()
 
 @router.post("/initiate", response_model=InitiateBatchResponse)
@@ -222,7 +145,7 @@ async def initiate_batch_upload(
     
     # --- SECURITY: Sanitize all filenames in batch ---
     for file_info in request.files:
-        sanitized_filename, was_modified = sanitize_filename(file_info.filename)
+        sanitized_filename, was_modified = sanitize_filename_for_display(file_info.filename)
         if was_modified:
             print(f"SECURITY: Batch file sanitized from '{file_info.filename}' to '{sanitized_filename}'")
         # Store original filename for reference
@@ -304,7 +227,8 @@ async def initiate_batch_upload(
             InitiateBatchResponse.FileUploadInfo(
                 file_id=file_id,
                 gdrive_upload_url=gdrive_upload_url,
-                original_filename=file_info.filename
+                original_filename=file_info.filename,
+                safe_filename_for_display=sanitize_filename_for_display(file_info.filename)
             )
         )
         file_ids_for_batch.append(file_id)

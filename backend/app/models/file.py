@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field, validator
 from typing import List, Optional
 from enum import Enum
 import datetime
+import html
 
 # --- MODIFIED: Added Hetzner as a possible storage location ---
 class StorageLocation(str, Enum):
@@ -54,6 +55,17 @@ class FileMetadataBase(BaseModel):
                 raise ValueError(f"Filename contains unsafe character: {char}")
         
         return v
+    
+    # --- NEW: XSS-SAFE DISPLAY PROPERTIES ---
+    @property
+    def safe_filename_for_display(self) -> str:
+        """Get filename safely escaped for HTML display"""
+        return sanitize_filename_for_display(self.filename)
+    
+    @property 
+    def safe_original_filename_for_display(self) -> Optional[str]:
+        """Get original filename safely escaped for HTML display"""
+        return sanitize_filename_for_display_optional(self.original_filename)
 
 class FileMetadataCreate(FileMetadataBase):
     id: str = Field(..., alias="_id")
@@ -126,3 +138,47 @@ class InitiateUploadRequest(BaseModel):
         if v > 10 * 1024 * 1024 * 1024:  # 10GB
             raise ValueError('File size exceeds maximum allowed limit of 10GB')
         return v
+
+# --- NEW: XSS PREVENTION FUNCTIONS ---
+def sanitize_filename_for_display(filename: str) -> str:
+    """
+    Sanitize filename for safe HTML display by escaping dangerous characters.
+    
+    This function converts potentially dangerous HTML/JavaScript characters into
+    safe HTML entities that browsers will display as text instead of executing.
+    
+    Args:
+        filename: Original filename that may contain HTML/JavaScript
+        
+    Returns:
+        str: Safe filename with HTML characters escaped for display
+        
+    Examples:
+        >>> sanitize_filename_for_display("doc<script>alert('xss')</script>.pdf")
+        "doc&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;.pdf"
+        
+        >>> sanitize_filename_for_display("image<img src=x onerror=alert(1)>.jpg")
+        "image&lt;img src=x onerror=alert(1)&gt;.jpg"
+    """
+    if not filename:
+        return ""
+    
+    # Use Python's built-in html.escape() for comprehensive HTML escaping
+    # quote=True ensures both single and double quotes are escaped
+    safe_filename = html.escape(filename, quote=True)
+    
+    return safe_filename
+
+def sanitize_filename_for_display_optional(filename: Optional[str]) -> Optional[str]:
+    """
+    Sanitize optional filename for safe HTML display.
+    
+    Args:
+        filename: Optional filename that may be None
+        
+    Returns:
+        Optional[str]: Safe filename or None if input was None
+    """
+    if filename is None:
+        return None
+    return sanitize_filename_for_display(filename)

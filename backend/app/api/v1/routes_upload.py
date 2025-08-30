@@ -8,7 +8,7 @@ from typing import Optional, Tuple
 from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, Depends, Request
-from app.models.file import FileMetadataCreate, FileMetadataInDB, InitiateUploadRequest, UploadStatus
+from app.models.file import FileMetadataCreate, FileMetadataInDB, InitiateUploadRequest, UploadStatus, sanitize_filename_for_display
 from app.models.user import UserInDB
 from app.db.mongodb import db
 from app.services.auth_service import get_current_user_optional, get_current_user
@@ -327,7 +327,7 @@ async def initiate_upload(
     except Exception as e:
         print(f"[UPLOAD] Failed to schedule account stat refresh for {active_account.id}: {e}")
 
-    return {"file_id": file_id, "gdrive_upload_url": gdrive_upload_url}
+    return {"file_id": file_id, "gdrive_upload_url": gdrive_upload_url, "filename": request.filename, "safe_filename_for_display": sanitize_filename_for_display(request.filename)}
 
 @router.post("/upload/cancel/{file_id}")
 async def cancel_upload(file_id: str):
@@ -376,6 +376,7 @@ async def cancel_upload(file_id: str):
         "message": "Upload cancelled successfully", 
         "file_id": file_id,
         "filename": file_doc.get("filename"),
+        "safe_filename_for_display": sanitize_filename_for_display(file_doc.get("filename", "")),
         "cancelled_at": datetime.utcnow().isoformat()
     }
 
