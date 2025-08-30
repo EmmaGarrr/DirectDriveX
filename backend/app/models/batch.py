@@ -36,6 +36,7 @@ class InitiateBatchRequest(BaseModel):
     """
     class FileInfo(BaseModel):
         filename: str
+        original_filename: Optional[str] = None  # Store original filename for reference
         size: int
         content_type: str
     
