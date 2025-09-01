@@ -133,6 +133,113 @@ app.add_middleware(PriorityMiddleware)
 # Configure CORS with environment-based settings
 configure_cors(app)
 
+# --- SECURITY HEADERS MIDDLEWARE IMPLEMENTATION ---
+import logging
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """
+    Security Headers Middleware for DirectDriveX Application
+    
+    Automatically adds comprehensive HTTP security headers to all responses
+    to protect against common web vulnerabilities including:
+    - Clickjacking attacks (X-Frame-Options)
+    - MIME-type sniffing attacks (X-Content-Type-Options)
+    - XSS attacks (X-XSS-Protection, Content-Security-Policy)
+    - Information disclosure (Referrer-Policy)
+    
+    Headers are environment-aware with stricter policies in production.
+    """
+    
+    def __init__(self, app):
+        super().__init__(app)
+        self.logger = logging.getLogger(__name__)
+        
+        # Environment-based Content Security Policy configuration
+        if getattr(settings, 'ENVIRONMENT', 'development') == "production":
+            # PRODUCTION CSP: Strict security, no unsafe-eval
+            self.csp_policy = (
+                "default-src 'self'; "
+                "script-src 'self'; "
+                "style-src 'self' 'unsafe-inline'; "
+                "img-src 'self' data: https:; "
+                "font-src 'self'; "
+                "connect-src 'self'; "
+                "frame-ancestors 'none'; "
+                "base-uri 'self'; "
+                "form-action 'self'"
+            )
+        else:
+            # DEVELOPMENT CSP: More permissive for development tools
+            self.csp_policy = (
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+                "style-src 'self' 'unsafe-inline'; "
+                "img-src 'self' data: https: blob:; "
+                "font-src 'self' data:; "
+                "connect-src 'self' ws: wss:; "
+                "frame-ancestors 'none'; "
+                "base-uri 'self'"
+            )
+        
+        self.logger.info(f"SecurityHeadersMiddleware initialized for {getattr(settings, 'ENVIRONMENT', 'development')} environment")
+    
+    async def dispatch(self, request: Request, call_next) -> Response:
+        """
+        Process request and add security headers to response
+        
+        Args:
+            request: Incoming HTTP request
+            call_next: Next middleware/route handler in chain
+            
+        Returns:
+            Response: Original response with security headers added
+        """
+        
+        # Process request through next middleware/handler
+        response = await call_next(request)
+        
+        # Add comprehensive security headers to response
+        security_headers = {
+            # Clickjacking protection - prevent page embedding in frames
+            "X-Frame-Options": "DENY",
+            
+            # MIME-type sniffing protection - force browsers to respect content-type
+            "X-Content-Type-Options": "nosniff",
+            
+            # XSS protection - enable browser's built-in XSS filtering
+            "X-XSS-Protection": "1; mode=block",
+            
+            # Referrer policy - control referrer information sharing
+            "Referrer-Policy": "strict-origin-when-cross-origin",
+            
+            # Content Security Policy - comprehensive XSS and injection protection
+            "Content-Security-Policy": self.csp_policy,
+            
+            # Additional security headers for enhanced protection
+            "X-Permitted-Cross-Domain-Policies": "none",  # Prevent cross-domain policy abuse
+            "X-Download-Options": "noopen"               # Prevent file execution in IE
+        }
+        
+        # Apply all security headers to response
+        for header_name, header_value in security_headers.items():
+            response.headers[header_name] = header_value
+        
+        # Log security headers application for monitoring (DEBUG level only)
+        if self.logger.isEnabledFor(logging.DEBUG):
+            self.logger.debug(f"Applied security headers to {request.method} {request.url.path}")
+        
+        return response
+
+# Add SecurityHeadersMiddleware to FastAPI application
+# IMPORTANT: Add this AFTER existing middleware but BEFORE route includes
+app.add_middleware(SecurityHeadersMiddleware)
+
+# Log middleware registration
+logging.getLogger(__name__).info("SecurityHeadersMiddleware registered successfully")
+
 # --- Startup hooks for storage account health and pool sync ---
 @app.on_event("startup")
 async def startup_storage_management():
