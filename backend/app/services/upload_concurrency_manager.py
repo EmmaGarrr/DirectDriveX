@@ -24,7 +24,7 @@ class UploadConcurrencyManager:
         # Set memory limits based on environment
         if self.environment == 'production':
             self.max_memory_usage_percent = getattr(settings, 'PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_PROD', 80.0)
-            self.reserved_memory_bytes = 2 * 1024 * 1024 * 1024  # 2GB reserved for production
+            self.reserved_memory_bytes = 512 * 1024 * 1024  # 512MB reserved for production
         elif self.environment == 'staging':
             self.max_memory_usage_percent = getattr(settings, 'PARALLEL_UPLOAD_MAX_MEMORY_PERCENT_STAGING', 85.0)
             self.reserved_memory_bytes = 1.5 * 1024 * 1024 * 1024  # 1.5GB reserved for staging
@@ -124,7 +124,8 @@ class UploadConcurrencyManager:
             
             # Check if adding this upload would exceed limits
             total_allocated = sum(slot.memory_usage for slot in self.active_uploads.values())
-            available_memory = (4 * 1024 * 1024 * 1024) - self.reserved_memory_bytes
+            current_memory = psutil.virtual_memory()
+            available_memory = current_memory.available - self.reserved_memory_bytes
             
             return total_allocated + required_memory < available_memory
         except Exception:

@@ -7,8 +7,8 @@ logger = logging.getLogger(__name__)
 class ChunkBufferPool:
     """Manages a pool of reusable buffers for chunk processing to reduce memory allocation overhead"""
     
-    def __init__(self, 
-                 max_buffers: int = 50, 
+    def __init__(self,
+                 max_buffers: int = 15,
                  buffer_size: int = 16 * 1024 * 1024,  # 16MB default
                  max_buffer_size: int = 32 * 1024 * 1024):  # 32MB max
         
