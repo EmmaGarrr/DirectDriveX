@@ -22,9 +22,30 @@ from app.middleware.priority_middleware import PriorityMiddleware
 from app.services.upload_concurrency_manager import upload_concurrency_manager
 from app.services.memory_monitor import memory_monitor
 from app.services.parallel_chunk_processor import sequential_chunk_processor
+from app.services.streaming_chunk_processor import streaming_chunk_processor
 
 # Strict concurrency limiter for server stability
 BACKUP_TASK_SEMAPHORE = asyncio.Semaphore(1)
+
+# --- NEW: PROCESSOR SELECTION LOGIC ---
+def get_upload_processor():
+    """Select the appropriate upload processor based on configuration"""
+    if not getattr(settings, 'ENABLE_STREAMING_UPLOADS', False):
+        return sequential_chunk_processor
+    
+    # Check percentage-based rollout
+    streaming_percentage = getattr(settings, 'STREAMING_UPLOAD_PERCENTAGE', 0)
+    if streaming_percentage <= 0:
+        return sequential_chunk_processor
+    elif streaming_percentage >= 100:
+        return streaming_chunk_processor
+    else:
+        # Random selection based on percentage
+        import random
+        if random.random() < (streaming_percentage / 100):
+            return streaming_chunk_processor
+        else:
+            return sequential_chunk_processor
 
 # --- The rest of the main.py file is largely the same ---
 class ConnectionManager:
@@ -661,12 +682,14 @@ async def websocket_upload_proxy_parallel(websocket: WebSocket, file_id: str, gd
         db.files.update_one({"_id": file_id}, {"$set": {"status": "uploading"}})
         print(f"[DEBUG] ✅ File status updated")
         
-        # Start sequential processing
-        print(f"[DEBUG] 🚀 Starting sequential chunk processor...")
-        gdrive_id = await sequential_chunk_processor.process_upload_from_websocket(
+        # Select appropriate processor and start processing
+        processor = get_upload_processor()
+        processor_type = "streaming" if processor == streaming_chunk_processor else "sequential"
+        print(f"[DEBUG] 🚀 Starting {processor_type} chunk processor...")
+        gdrive_id = await processor.process_upload_from_websocket(
             websocket, file_id, gdrive_url, total_size
         )
-        print(f"[DEBUG] ✅ Parallel processing completed, GDrive ID: {gdrive_id}")
+        print(f"[DEBUG] ✅ {processor_type} processing completed, GDrive ID: {gdrive_id}")
         
         # Update database with success
         print(f"[DEBUG] 💾 Updating database with success...")
@@ -768,21 +791,40 @@ def read_root(): return {"message": "Welcome to the File Transfer API"}
 async def get_upload_system_status():
     """Get comprehensive status of the upload system"""
     try:
-        return {
+        # Get current processor configuration
+        current_processor = get_upload_processor()
+        processor_type = "streaming" if current_processor == streaming_chunk_processor else "sequential"
+        
+        # Build status response based on current processor
+        status = {
+            "processor_config": {
+                "current_processor": processor_type,
+                "streaming_enabled": getattr(settings, 'ENABLE_STREAMING_UPLOADS', False),
+                "streaming_percentage": getattr(settings, 'STREAMING_UPLOAD_PERCENTAGE', 0),
+                "parallel_enabled": getattr(settings, 'ENABLE_PARALLEL_UPLOADS', False)
+            },
             "concurrency_manager": upload_concurrency_manager.get_status(),
             "memory_monitor": memory_monitor.get_memory_status(),
-            "buffer_pool": sequential_chunk_processor.chunk_buffer_pool.get_pool_status(),
-            "sequential_processor": {
-                "max_concurrent_chunks": sequential_chunk_processor.max_concurrent_chunks,
-                "active_uploads": len(sequential_chunk_processor.upload_progress),
-                "chunk_semaphore_value": sequential_chunk_processor.chunk_semaphore._value
-            },
             "system_info": {
                 "total_memory_gb": round(psutil.virtual_memory().total / (1024**3), 2),
                 "available_memory_gb": round(psutil.virtual_memory().available / (1024**3), 2),
                 "memory_usage_percent": psutil.virtual_memory().percent
             }
         }
+        
+        # Add processor-specific status
+        if processor_type == "streaming":
+            status["streaming_processor"] = streaming_chunk_processor.get_processor_status()
+            status["buffer_pool"] = streaming_chunk_processor.get_chunk_buffer_pool_status()
+        else:
+            status["sequential_processor"] = {
+                "max_concurrent_chunks": sequential_chunk_processor.max_concurrent_chunks,
+                "active_uploads": len(sequential_chunk_processor.upload_progress),
+                "chunk_semaphore_value": sequential_chunk_processor.chunk_semaphore._value
+            }
+            status["buffer_pool"] = sequential_chunk_processor.chunk_buffer_pool.get_pool_status()
+        
+        return status
     except Exception as e:
         return {"error": f"Failed to get system status: {str(e)}"}
 
@@ -790,9 +832,15 @@ async def get_upload_system_status():
 async def get_upload_progress(file_id: str):
     """Get upload progress for a specific file"""
     try:
-        progress = sequential_chunk_processor.get_upload_progress(file_id)
-        if progress:
-            return progress
+        # Try to get progress from both processors
+        streaming_progress = await streaming_chunk_processor.get_upload_progress(file_id)
+        sequential_progress = sequential_chunk_processor.get_upload_progress(file_id)
+        
+        # Return the progress that exists
+        if streaming_progress:
+            return streaming_progress
+        elif sequential_progress:
+            return sequential_progress
         else:
             return {"error": "File not found or no active upload"}
     except Exception as e:

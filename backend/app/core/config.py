@@ -63,6 +63,11 @@ class Settings(BaseSettings):
     PARALLEL_UPLOAD_MAX_CONCURRENT_CHUNKS: int = 8  # Max 8 chunks simultaneously
     PARALLEL_UPLOAD_MAX_CONCURRENT_USERS: int = 20  # Max 20 concurrent users
     
+    # --- NEW: STREAMING UPLOAD FEATURE FLAG ---
+    ENABLE_STREAMING_UPLOADS: bool = False  # Disabled by default for safety
+    STREAMING_UPLOAD_PERCENTAGE: int = 0  # Percentage of users to use streaming (0-100)
+    STREAMING_CHUNK_SIZE_MB: int = 4  # 4MB chunks for streaming uploads
+    
     # --- ENVIRONMENT-BASED MEMORY LIMITS ---
     ENVIRONMENT: str = "development"  # Options: development, staging, production
     PARALLEL_UPLOAD_MAX_MEMORY_PERCENT: float = 80.0  # Default memory limit (legacy)
