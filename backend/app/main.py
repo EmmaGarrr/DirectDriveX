@@ -634,7 +634,17 @@ async def websocket_upload_proxy_parallel(websocket: WebSocket, file_id: str, gd
     print(f"[DEBUG] ✅ Upload slot acquired for file {file_id}")
     
     # Allocate memory for upload
-    estimated_memory = int(total_size * 0.1)  # 10% of file size
+    # Dynamic memory allocation based on file size
+    def calculate_memory_requirement(file_size: int) -> int:
+        """Smart memory calculation based on file size"""
+        if file_size < 100 * 1024 * 1024:  # Less than 100MB
+            return int(file_size * 0.2)  # 20% for small files
+        elif file_size < 1024 * 1024 * 1024:  # Less than 1GB
+            return int(file_size * 0.1)  # 10% for medium files (unchanged)
+        else:  # 1GB or larger
+            return min(int(file_size * 0.05), 100 * 1024 * 1024)  # 5% but max 100MB
+
+    estimated_memory = calculate_memory_requirement(total_size)
     print(f"[DEBUG] 💾 Allocating {estimated_memory // (1024*1024)} MB for file {file_id}")
     
     if not await memory_monitor.allocate_memory(file_id, estimated_memory):
