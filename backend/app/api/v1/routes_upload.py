@@ -254,7 +254,7 @@ async def initiate_upload(
     enable_limits = False
     
     if environment == 'production':
-        enable_limits = getattr(settings, 'ENABLE_UPLOAD_LIMITS_PROD', True)
+        enable_limits = getattr(settings, 'ENABLE_UPLOAD_LIMITS_PROD', False)
     elif environment == 'staging':
         enable_limits = getattr(settings, 'ENABLE_UPLOAD_LIMITS_STAGING', True)
     else:  # development
