@@ -142,26 +142,101 @@ class NotificationSystemService {
     }
   }
 
+  private getMockNotificationsData(filters: NotificationFilters): NotificationListResponse {
+    const notificationTypes: Array<'system' | 'email' | 'in_app' | 'scheduled'> = ['system', 'email', 'in_app', 'scheduled'];
+    const priorities: Array<'low' | 'medium' | 'high' | 'urgent'> = ['low', 'medium', 'high', 'urgent'];
+    const statuses: Array<'draft' | 'scheduled' | 'sent' | 'failed' | 'cancelled'> = ['draft', 'scheduled', 'sent', 'failed', 'cancelled'];
+    const targetTypes: Array<'all_users' | 'active_users' | 'inactive_users' | 'specific_users'> = ['all_users', 'active_users', 'inactive_users', 'specific_users'];
+
+    const total = Math.floor(Math.random() * 200) + 50;
+    const notifications: Notification[] = Array.from({ length: Math.min(filters.limit, total) }, (_, i) => {
+      const type = notificationTypes[i % notificationTypes.length];
+      const priority = priorities[i % priorities.length];
+      const status = statuses[i % statuses.length];
+      const targetType = targetTypes[i % targetTypes.length];
+
+      return {
+        _id: `notif_${Date.now()}_${i}`,
+        title: `Notification ${i + 1}`,
+        message: `This is a sample notification message for testing purposes. It contains important information that users need to know.`,
+        notification_type: type,
+        priority,
+        target_type: targetType,
+        status,
+        created_by: `admin_${Math.floor(Math.random() * 3) + 1}`,
+        created_at: new Date(Date.now() - i * 3600000).toISOString(),
+        delivery_stats: {
+          total_recipients: Math.floor(Math.random() * 1000) + 100,
+          successful_deliveries: Math.floor(Math.random() * 800) + 80,
+          failed_deliveries: Math.floor(Math.random() * 50) + 5,
+        },
+        subject: type === 'email' ? `Email Subject ${i + 1}` : undefined,
+        target_users: targetType === 'specific_users' ? [`user_${i + 1}`, `user_${i + 2}`] : undefined,
+        scheduled_at: status === 'scheduled' ? new Date(Date.now() + i * 3600000).toISOString() : undefined,
+      };
+    });
+
+    return {
+      notifications,
+      total: total,
+      page: filters.page,
+      limit: filters.limit,
+      total_pages: Math.ceil(total / filters.limit),
+    };
+  }
+
   async getNotifications(filters: NotificationFilters): Promise<NotificationListResponse> {
     try {
       console.log('Fetching notifications with filters:', filters);
       
+      // Check if user is authenticated
+      const token = adminAuthService.getAdminToken();
+      if (!token) {
+        console.warn('No admin token available, using mock data');
+        return this.getMockNotificationsData(filters);
+      }
+      
+      // Validate and clean filter parameters
+      const cleanFilters = {
+        page: Math.max(1, filters.page || 1),
+        limit: Math.max(1, Math.min(100, filters.limit || 20)),
+        status_filter: filters.status_filter || '',
+        type_filter: filters.type_filter || '',
+        priority_filter: filters.priority_filter || '',
+      };
+      
+      console.log('Cleaned filters:', cleanFilters);
+      
       // Real API call
       const queryParams = new URLSearchParams({
-        page: filters.page.toString(),
-        limit: filters.limit.toString(),
-        status_filter: filters.status_filter,
-        type_filter: filters.type_filter,
-        priority_filter: filters.priority_filter,
+        page: cleanFilters.page.toString(),
+        limit: cleanFilters.limit.toString(),
+        status_filter: cleanFilters.status_filter,
+        type_filter: cleanFilters.type_filter,
+        priority_filter: cleanFilters.priority_filter,
       });
       
-      const response = await fetch(`${this.API_URL}?${queryParams}`, {
+      const fullUrl = `${this.API_URL}?${queryParams}`;
+      const headers = this.getAuthHeaders();
+      
+      console.log('Making API request to:', fullUrl);
+      console.log('Request headers:', headers);
+      
+      const response = await fetch(fullUrl, {
         method: 'GET',
-        headers: this.getAuthHeaders(),
+        headers: headers,
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage += ` - ${errorData.message || errorData.detail || 'Unknown error'}`;
+          console.error('API Error Details:', errorData);
+        } catch (e) {
+          console.error('Could not parse error response');
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
@@ -176,46 +251,7 @@ class NotificationSystemService {
       toastService.error('Failed to load notifications. Using cached data.');
       
       // Return mock data as fallback for development
-      const notificationTypes: Array<'system' | 'email' | 'in_app' | 'scheduled'> = ['system', 'email', 'in_app', 'scheduled'];
-      const priorities: Array<'low' | 'medium' | 'high' | 'urgent'> = ['low', 'medium', 'high', 'urgent'];
-      const statuses: Array<'draft' | 'scheduled' | 'sent' | 'failed' | 'cancelled'> = ['draft', 'scheduled', 'sent', 'failed', 'cancelled'];
-      const targetTypes: Array<'all_users' | 'active_users' | 'inactive_users' | 'specific_users'> = ['all_users', 'active_users', 'inactive_users', 'specific_users'];
-
-      const total = Math.floor(Math.random() * 200) + 50;
-      const notifications: Notification[] = Array.from({ length: Math.min(filters.limit, total) }, (_, i) => {
-        const type = notificationTypes[i % notificationTypes.length];
-        const priority = priorities[i % priorities.length];
-        const status = statuses[i % statuses.length];
-        const targetType = targetTypes[i % targetTypes.length];
-
-        return {
-          _id: `notif_${Date.now()}_${i}`,
-          title: `Notification ${i + 1}`,
-          message: `This is a sample notification message for testing purposes. It contains important information that users need to know.`,
-          notification_type: type,
-          priority,
-          target_type: targetType,
-          status,
-          created_by: `admin_${Math.floor(Math.random() * 5) + 1}`,
-          created_at: new Date(Date.now() - i * 3600000).toISOString(),
-          delivery_stats: {
-            total_recipients: Math.floor(Math.random() * 1000) + 100,
-            successful_deliveries: Math.floor(Math.random() * 800) + 80,
-            failed_deliveries: Math.floor(Math.random() * 50) + 5,
-          },
-          subject: type === 'email' ? `Email Subject ${i + 1}` : undefined,
-          target_users: targetType === 'specific_users' ? [`user_${i + 1}`, `user_${i + 2}`] : undefined,
-          scheduled_at: status === 'scheduled' ? new Date(Date.now() + i * 3600000).toISOString() : undefined,
-        };
-      });
-
-      return {
-        notifications,
-        total,
-        page: filters.page,
-        limit: filters.limit,
-        total_pages: Math.ceil(total / filters.limit),
-      };
+      return this.getMockNotificationsData(filters);
     }
   }
 
