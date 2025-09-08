@@ -12,11 +12,11 @@ const nextConfig: NextConfig = {
     // Backend port for reference
     NEXT_PUBLIC_BACKEND_PORT: process.env.NEXT_PUBLIC_BACKEND_PORT || '5000',
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dir }) => {
     // Add alias resolution for @ path (needed for npm and Vercel)
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.resolve(__dirname, 'src'),
+      '@': path.resolve(dir || __dirname, 'src'),
     };
 
     // Ensure the alias is properly configured for both client and server
@@ -26,6 +26,12 @@ const nextConfig: NextConfig = {
         fs: false,
       };
     }
+
+    // Add more robust module resolution
+    config.resolve.modules = [
+      path.resolve(dir || __dirname, 'src'),
+      'node_modules',
+    ];
 
     if (process.env.NODE_ENV === "development") {
       config.module.rules.push({
