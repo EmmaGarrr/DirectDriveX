@@ -319,6 +319,10 @@ temp_uploads/
 *.key
 *.crt
 
+# Frontend environment files (contain sensitive configuration)
+frontend/src/environments/environment.ts
+frontend/src/environments/environment.prod.ts
+
 # ===== MONOREPO SPECIFIC =====
 # Lerna
 lerna-debug.log*

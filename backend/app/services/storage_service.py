@@ -90,26 +90,23 @@ class StorageService:
         if storage_data is None:
             storage_data = StorageService.calculate_user_storage(user_doc["_id"])
         
-        # Get storage limit (set default based on user role)
-        storage_limit_bytes = user_doc.get("storage_limit_bytes")
-        if storage_limit_bytes is None:
-            # Set default limits based on user role
-            user_role = user_doc.get("role", "regular") 
-            if user_role in ["admin", "superadmin"]:
-                storage_limit_bytes = 107374182400  # 100GB for admin users
-            else:
-                storage_limit_bytes = 10737418240   # 10GB for regular users
+        # Remove storage limits - set to None for unlimited
+        storage_limit_bytes = None  # Unlimited storage for all users
                 
         storage_used_bytes = storage_data["total_storage_used"]
         
-        # Calculate derived values
+        # Calculate only used storage (no limits)
         storage_used_gb = round(storage_used_bytes / (1024**3), 2)
-        storage_limit_gb = round(storage_limit_bytes / (1024**3), 2)
-        remaining_storage_bytes = max(0, storage_limit_bytes - storage_used_bytes)
-        remaining_storage_gb = round(remaining_storage_bytes / (1024**3), 2)
+        storage_limit_gb = None  # No limit
+        remaining_storage_bytes = None  # No remaining calculation
+        remaining_storage_gb = None  # No remaining calculation
         
         # Calculate percentage (avoid division by zero)
-        storage_percentage = round((storage_used_bytes / storage_limit_bytes) * 100, 1) if storage_limit_bytes > 0 else 0
+        storage_percentage = None  # No percentage calculation
+        
+        # Add authentication info
+        is_google_user = user_doc.get("is_google_user", False)
+        has_password = user_doc.get("hashed_password") is not None
         
         return UserProfileResponse(
             _id=user_doc["_id"],
@@ -124,5 +121,7 @@ class StorageService:
             remaining_storage_bytes=remaining_storage_bytes,
             remaining_storage_gb=remaining_storage_gb,
             file_type_breakdown=storage_data["file_type_breakdown"],
-            total_files=storage_data["total_files"]
+            total_files=storage_data["total_files"],
+            is_google_user=is_google_user,
+            has_password=has_password
         )

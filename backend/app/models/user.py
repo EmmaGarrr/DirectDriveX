@@ -18,7 +18,15 @@ class UserCreate(UserBase):
 
 class UserInDB(UserBase):
     id: str = Field(..., alias="_id")
-    hashed_password: str
+    hashed_password: Optional[str] = None  # Optional for Google OAuth users
+    google_id: Optional[str] = None  # Google user ID for OAuth users
+    name: Optional[str] = None  # User's full name
+    picture: Optional[str] = None  # Profile picture URL
+    is_google_user: Optional[bool] = False  # Flag indicating Google OAuth user
+    verified_email: Optional[bool] = False  # Email verification status
+    created_at: Optional[str] = None  # Account creation timestamp
+    last_login: Optional[str] = None  # Last login timestamp
+    is_active: Optional[bool] = True  # Account status
 
     class Config:
         populate_by_name = True
@@ -41,13 +49,27 @@ class UserProfileResponse(UserBase):
     id: str = Field(..., alias="_id")
     storage_used_bytes: int = 0
     storage_used_gb: float = 0.0
-    storage_limit_gb: float = 0.0
-    storage_percentage: float = 0.0
-    remaining_storage_bytes: int = 0
-    remaining_storage_gb: float = 0.0
+    storage_limit_gb: Optional[float] = None  # Optional for unlimited
+    storage_percentage: Optional[float] = None  # Optional for unlimited
+    remaining_storage_bytes: Optional[int] = None  # Optional for unlimited
+    remaining_storage_gb: Optional[float] = None  # Optional for unlimited
     file_type_breakdown: FileTypeBreakdown = Field(default_factory=FileTypeBreakdown)
     total_files: int = 0
+    is_google_user: Optional[bool] = False  # Flag indicating Google OAuth user
+    has_password: Optional[bool] = False    # Flag indicating if user has a password
     
     class Config:
         populate_by_name = True
         from_attributes = True
+
+# --- NEW: PASSWORD RESET MODELS ---
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    reset_token: str = Field(..., min_length=32, max_length=32)
+    new_password: str = Field(..., min_length=8)
+
+class PasswordResetResponse(BaseModel):
+    message: str
+    email: str

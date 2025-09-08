@@ -32,15 +32,28 @@ class PriorityQueueManager:
         self.request_counter = 0
         self.admin_workers = 2  # Number of admin workers
         self.user_workers = 3   # Number of user workers
-        self._start_workers()
+        self._workers_started = False  # Track if workers have been started
+        # Don't start workers during init - will start lazily when needed
     
-    def _start_workers(self):
+    def _ensure_workers_started(self):
+        """Start workers if they haven't been started yet"""
+        if not self._workers_started:
+            try:
+                # Only start workers if we're in an async context
+                loop = asyncio.get_running_loop()
+                self._start_workers(loop)
+                self._workers_started = True
+            except RuntimeError:
+                # No running loop, workers will start when needed
+                pass
+    
+    def _start_workers(self, loop):
         """Start background worker tasks"""
         for i in range(self.admin_workers):
-            asyncio.create_task(self._admin_worker(f"admin_worker_{i}"))
+            loop.create_task(self._admin_worker(f"admin_worker_{i}"))
         
         for i in range(self.user_workers):
-            asyncio.create_task(self._user_worker(f"user_worker_{i}"))
+            loop.create_task(self._user_worker(f"user_worker_{i}"))
         
         logger.info(f"Started {self.admin_workers} admin workers and {self.user_workers} user workers")
     
@@ -96,6 +109,9 @@ class PriorityQueueManager:
     
     def add_request(self, priority: int, request: Request) -> str:
         """Add a request to the appropriate queue"""
+        # Ensure workers are started
+        self._ensure_workers_started()
+        
         self.request_counter += 1
         request_id = f"req_{self.request_counter}_{priority}"
         

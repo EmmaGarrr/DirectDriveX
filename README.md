@@ -1,11 +1,11 @@
-# DirectDriveX
+# mfcnextgen
 
 A comprehensive cloud storage management platform with integrated frontend and backend systems.
 
 ## 🏗️ Project Structure
 
 ```
-DirectDriveX/
+mfcnextgen/
 ├── backend/                 # Python FastAPI Backend
 │   ├── app/                # Main application code
 │   ├── requirements.txt    # Python dependencies
@@ -24,16 +24,16 @@ DirectDriveX/
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+venv/Scripts/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-DirectDriveX/backend && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
 ```
 
 ### Frontend Setup
 ```bash
 cd frontend
 npm install
-ng serve
+npm run dev
 ```
 
 ### Docker Setup

@@ -34,6 +34,18 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
     return encoded_jwt
 
+def _convert_datetime_fields(user_data: dict) -> dict:
+    """Convert datetime objects to ISO format strings for UserInDB model"""
+    converted_data = user_data.copy()
+    
+    # Convert datetime fields to ISO format strings
+    datetime_fields = ['created_at', 'last_login']
+    for field in datetime_fields:
+        if field in converted_data and isinstance(converted_data[field], datetime):
+            converted_data[field] = converted_data[field].isoformat()
+    
+    return converted_data
+
 # This function remains for protected routes like /users/me
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
@@ -54,6 +66,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     if user is None:
         raise credentials_exception
     
+    # Convert datetime fields to strings before creating UserInDB
+    user = _convert_datetime_fields(user)
     return UserInDB(**user)
 
 # --- NEW: Function for optional authentication ---
@@ -101,7 +115,9 @@ async def get_current_user_optional(token: Optional[str] = Depends(oauth2_scheme
         if user is None:
             # Token is for a user that no longer exists
             return None
-            
+        
+        # Convert datetime fields to strings before creating UserInDB
+        user = _convert_datetime_fields(user)
         return UserInDB(**user)
     except JWTError:
         # Token is malformed, expired, or has an invalid signature.
@@ -125,7 +141,9 @@ async def try_get_current_user(token: str = Depends(oauth2_scheme)) -> Optional[
         user_data = db.users.find_one({"email": email})
         if user_data is None:
             return None
-            
+        
+        # Convert datetime fields to strings before creating UserInDB
+        user_data = _convert_datetime_fields(user_data)
         return UserInDB(**user_data)
     except (JWTError, AttributeError):
         # This will catch errors from an invalid token or if no token is provided

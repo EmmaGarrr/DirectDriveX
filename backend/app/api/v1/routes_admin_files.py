@@ -3,7 +3,7 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
 from app.services.admin_auth_service import get_current_admin, log_admin_activity, get_client_ip
 from app.models.admin import AdminUserInDB
-from app.models.file import FileMetadataInDB, StorageLocation, UploadStatus, BackupStatus
+from app.models.file import FileMetadataInDB, StorageLocation, UploadStatus, BackupStatus, sanitize_filename_for_display
 from app.db.mongodb import db
 from app.services.google_drive_service import gdrive_pool_manager
 from pydantic import BaseModel
@@ -12,6 +12,104 @@ from bson import ObjectId
 import mimetypes
 import io
 import zipfile
+
+# --- SECURITY: MongoDB Injection Prevention ---
+def sanitize_mongo_input(user_input):
+    """
+    Sanitize user input to prevent MongoDB injection attacks
+    
+    Args:
+        user_input: Raw input from user (string, dict, list, or other)
+    
+    Returns:
+        Sanitized input safe for MongoDB queries
+    """
+    if isinstance(user_input, str):
+        # Remove MongoDB operators and special characters
+        dangerous_patterns = [
+            '$ne', '$gt', '$lt', '$in', '$nin', '$exists', '$regex', 
+            '$where', '$expr', '$jsonSchema', '$mod', '$all', '$size',
+            '$elemMatch', '$not', '$nor', '$and', '$or', '$text',
+            '$geoIntersects', '$geoWithin', '$near', '$nearSphere'
+        ]
+        sanitized = user_input
+        for pattern in dangerous_patterns:
+            sanitized = sanitized.replace(pattern, '')
+        
+        # Remove other suspicious patterns
+        sanitized = sanitized.replace('function(', '').replace('eval(', '').replace('javascript:', '')
+        return sanitized.strip()
+    
+    elif isinstance(user_input, dict):
+        # Recursively sanitize dictionary inputs
+        sanitized_dict = {}
+        for key, value in user_input.items():
+            # Remove keys starting with $ (MongoDB operators)
+            if not key.startswith('$') and not key.startswith('.'):
+                clean_key = sanitize_mongo_input(key) if isinstance(key, str) else key
+                sanitized_dict[clean_key] = sanitize_mongo_input(value)
+        return sanitized_dict
+    
+    elif isinstance(user_input, list):
+        # Sanitize list inputs
+        return [sanitize_mongo_input(item) for item in user_input]
+    
+    else:
+        # For other types (int, float, bool, None), return as-is if safe
+        return user_input
+
+def validate_search_input(input_value, max_length=100):
+    """
+    Validate search input parameters for additional security
+    
+    Args:
+        input_value: The input to validate
+        max_length: Maximum allowed length for string inputs
+    
+    Returns:
+        tuple: (is_valid: bool, error_message: str)
+    """
+    if input_value is None:
+        return True, "Valid input"
+    
+    if not isinstance(input_value, str):
+        return False, "Search input must be a string"
+    
+    if len(input_value) > max_length:
+        return False, f"Search input too long (max {max_length} characters)"
+    
+    # Check for suspicious patterns
+    suspicious_patterns = ['javascript:', 'eval(', 'function(', '<script', 'document.', 'window.']
+    for pattern in suspicious_patterns:
+        if pattern.lower() in input_value.lower():
+            return False, "Invalid characters in search input"
+    
+    return True, "Valid input"
+
+def validate_email_input(email_input):
+    """
+    Validate email input for owner filtering
+    
+    Args:
+        email_input: Email string to validate
+    
+    Returns:
+        tuple: (is_valid: bool, error_message: str)
+    """
+    if not email_input:
+        return True, "Valid input"
+    
+    if not isinstance(email_input, str):
+        return False, "Email must be a string"
+    
+    if len(email_input) > 255:
+        return False, "Email too long"
+    
+    # Basic email format check
+    if '@' not in email_input or '.' not in email_input:
+        return False, "Invalid email format"
+    
+    return True, "Valid input"
 
 router = APIRouter()
 
@@ -66,10 +164,30 @@ async def list_files(
 ):
     """List all files with advanced filtering and search"""
     
+    # --- SECURITY: Validate and sanitize all user inputs ---
+    if search:
+        is_valid, error_msg = validate_search_input(search)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        search = sanitize_mongo_input(search)
+    
+    if owner_email:
+        is_valid, error_msg = validate_email_input(owner_email)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        owner_email = sanitize_mongo_input(owner_email)
+    
+    # Sanitize other inputs
+    file_type = sanitize_mongo_input(file_type) if file_type else None
+    storage_location = sanitize_mongo_input(storage_location) if storage_location else None
+    file_status = sanitize_mongo_input(file_status) if file_status else None
+    sort_by = sanitize_mongo_input(sort_by) if sort_by else "upload_date"
+    sort_order = sanitize_mongo_input(sort_order) if sort_order else "desc"
+    
     # Build query
     query = {}
     
-    # Search filter - search in filename
+    # Search filter - search in filename (now sanitized)
     if search:
         query["filename"] = {"$regex": re.escape(search), "$options": "i"}
     
@@ -110,9 +228,9 @@ async def list_files(
         if date_query:
             query["upload_date"] = date_query
     
-    # Owner filter
+    # Owner filter (now sanitized)
     if owner_email:
-        # Get user by email
+        # Get user by email (using sanitized input)
         user = db.users.find_one({"email": owner_email})
         if user:
             query["owner_id"] = user["_id"]
@@ -149,6 +267,11 @@ async def list_files(
             file_doc["owner_email"] = owner["email"] if owner else "Unknown"
         else:
             file_doc["owner_email"] = "Anonymous"
+        
+        # --- NEW: XSS PROTECTION - Add safe display filenames ---
+        file_doc["safe_filename_for_display"] = sanitize_filename_for_display(file_doc.get("filename", ""))
+        if file_doc.get("original_filename"):
+            file_doc["safe_original_filename_for_display"] = sanitize_filename_for_display(file_doc.get("original_filename"))
         
         # Add file type based on MIME type
         content_type = file_doc.get("content_type", "")
@@ -214,6 +337,9 @@ async def get_file_detail(
 ):
     """Get detailed file information"""
     
+    # --- SECURITY: Sanitize file_id parameter ---
+    file_id = sanitize_mongo_input(file_id)
+    
     file_doc = db.files.find_one({"_id": file_id})
     if not file_doc:
         raise HTTPException(
@@ -271,6 +397,9 @@ async def get_file_preview(
 ):
     """Get file preview (for images, videos, documents)"""
     
+    # --- SECURITY: Sanitize file_id parameter ---
+    file_id = sanitize_mongo_input(file_id)
+    
     file_doc = db.files.find_one({"_id": file_id})
     if not file_doc:
         raise HTTPException(
@@ -317,6 +446,10 @@ async def delete_file(
     current_admin: AdminUserInDB = Depends(get_current_admin)
 ):
     """Delete a file (admin only) - Deletes from Google Drive and marks as deleted in database"""
+    
+    # --- SECURITY: Sanitize file_id and reason parameters ---
+    file_id = sanitize_mongo_input(file_id)
+    reason = sanitize_mongo_input(reason) if reason else None
     
     print(f"🚀 [DELETE_FILE] ===== DELETION REQUEST RECEIVED =====")
     print(f"🚀 [DELETE_FILE] File ID: {file_id}")
@@ -488,13 +621,19 @@ async def bulk_file_action(
 ):
     """Perform bulk actions on multiple files"""
     
+    # --- SECURITY: Sanitize bulk action data ---
+    action_data.file_ids = [sanitize_mongo_input(file_id) for file_id in action_data.file_ids]
+    action_data.action = sanitize_mongo_input(action_data.action)
+    action_data.reason = sanitize_mongo_input(action_data.reason) if action_data.reason else None
+    action_data.target_location = sanitize_mongo_input(action_data.target_location) if action_data.target_location else None
+    
     if len(action_data.file_ids) > 100:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot perform bulk action on more than 100 files at once"
         )
     
-    # Verify all files exist
+    # Verify all files exist (using sanitized file IDs)
     existing_files = list(db.files.find({"_id": {"$in": action_data.file_ids}}, {"_id": 1, "filename": 1}))
     if len(existing_files) != len(action_data.file_ids):
         raise HTTPException(
@@ -716,6 +855,12 @@ async def execute_file_operation(
     current_admin: AdminUserInDB = Depends(get_current_admin)
 ):
     """Execute various file operations"""
+    
+    # --- SECURITY: Sanitize file_id and operation data ---
+    file_id = sanitize_mongo_input(file_id)
+    operation_data.operation = sanitize_mongo_input(operation_data.operation)
+    operation_data.target_location = sanitize_mongo_input(operation_data.target_location) if operation_data.target_location else None
+    operation_data.reason = sanitize_mongo_input(operation_data.reason) if operation_data.reason else None
     
     file_doc = db.files.find_one({"_id": file_id})
     if not file_doc:
@@ -1534,6 +1679,25 @@ async def list_drive_files(
 ):
     """List files that are stored on Google Drive (primary storage)"""
     
+    # --- SECURITY: Validate and sanitize all user inputs ---
+    if search:
+        is_valid, error_msg = validate_search_input(search)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        search = sanitize_mongo_input(search)
+    
+    if owner_email:
+        is_valid, error_msg = validate_email_input(owner_email)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        owner_email = sanitize_mongo_input(owner_email)
+    
+    # Sanitize other inputs
+    file_type = sanitize_mongo_input(file_type) if file_type else None
+    backup_status = sanitize_mongo_input(backup_status) if backup_status else None
+    sort_by = sanitize_mongo_input(sort_by) if sort_by else "upload_date"
+    sort_order = sanitize_mongo_input(sort_order) if sort_order else "desc"
+    
     # Build query for files stored on Google Drive
     query = {
         "storage_location": StorageLocation.GDRIVE,
@@ -1541,7 +1705,7 @@ async def list_drive_files(
         "deleted_at": {"$exists": False}  # Exclude deleted files
     }
     
-    # Search filter - search in filename
+    # Search filter - search in filename (now sanitized)
     if search:
         query["filename"] = {"$regex": re.escape(search), "$options": "i"}
     
@@ -1788,6 +1952,25 @@ async def list_hetzner_files(
 ):
     """List files that are backed up to Hetzner storage"""
     
+    # --- SECURITY: Validate and sanitize all user inputs ---
+    if search:
+        is_valid, error_msg = validate_search_input(search)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        search = sanitize_mongo_input(search)
+    
+    if owner_email:
+        is_valid, error_msg = validate_email_input(owner_email)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_msg)
+        owner_email = sanitize_mongo_input(owner_email)
+    
+    # Sanitize other inputs
+    file_type = sanitize_mongo_input(file_type) if file_type else None
+    backup_status = sanitize_mongo_input(backup_status) if backup_status else None
+    sort_by = sanitize_mongo_input(sort_by) if sort_by else "upload_date"
+    sort_order = sanitize_mongo_input(sort_order) if sort_order else "desc"
+    
     # Build query for files backed up to Hetzner (excluding deleted files)
     query = {
         "backup_status": BackupStatus.COMPLETED,
@@ -1795,7 +1978,7 @@ async def list_hetzner_files(
         "deleted_at": {"$exists": False}  # Exclude deleted files
     }
     
-    # Search filter - search in filename
+    # Search filter - search in filename (now sanitized)
     if search:
         query["filename"] = {"$regex": re.escape(search), "$options": "i"}
     
@@ -2026,284 +2209,66 @@ async def delete_all_hetzner_files(
     current_admin: AdminUserInDB = Depends(get_current_admin)
 ):
     """
-    DANGEROUS OPERATION: Delete ALL files from Hetzner storage
-    This will permanently remove all data from Hetzner backup storage
-    
-    force_delete: If True, skips storage scanning and deletes directly
+    Delete ALL files from Hetzner storage
+    This is a DANGEROUS operation - use with extreme caution!
     """
     try:
-        print(f"🚨 [DELETE_ALL_HETZNER] Admin {current_admin.email} requested complete Hetzner storage cleanup!")
+        print(f"🚨 [DELETE_ALL_HETZNER] Admin {current_admin.email} requested deletion of ALL Hetzner files!")
         print(f"🚨 [DELETE_ALL_HETZNER] Reason: {reason or 'No reason provided'}")
         print(f"🚨 [DELETE_ALL_HETZNER] Force delete: {force_delete}")
         
         from app.services.hetzner_service import HetznerService
         
-        if force_delete:
-            print(f"[DELETE_ALL_HETZNER] FORCE DELETE MODE: Skipping database check and storage scanning!")
-            hetzner_service = HetznerService()
-            deletion_result = await hetzner_service.delete_all_files_force()
-        else:
-            # Normal mode - check database first
-            hetzner_stats_before = db.files.count_documents({
-                "backup_status": BackupStatus.COMPLETED,
-                "backup_location": StorageLocation.HETZNER,
-                "deleted_at": {"$exists": False}
-            })
-            
-            if hetzner_stats_before == 0:
-                return {
-                    "message": "No files found in Hetzner storage - already empty",
-                    "deleted_files": 0,
-                    "deleted_dirs": 0,
-                    "errors": 0,
-                    "total_items": 0,
-                    "storage_cleaned": "0 B"
-                }
-            
-            print(f"[DELETE_ALL_HETZNER] Found {hetzner_stats_before} files in database before deletion")
-            
-            hetzner_service = HetznerService()
-            deletion_result = await hetzner_service.delete_all_files()
+        hetzner_service = HetznerService()
         
+        # Perform the deletion
         if force_delete:
-            # Force delete mode - skip database updates and use deletion result directly
-            print(f"[DELETE_ALL_HETZNER] FORCE DELETE MODE: Skipping database updates")
-            
-            await log_admin_activity(
-                admin_email=current_admin.email,
-                action="force_delete_all_hetzner_files",
-                details=f"Force deleted all files from Hetzner storage. Hetzner: {deletion_result.get('deleted_files', 0)} files, {deletion_result.get('deleted_dirs', 0)} dirs. Reason: {reason or 'Force storage cleanup'}",
-                ip_address=get_client_ip(request),
-                endpoint="/api/v1/admin/hetzner/delete-all-files"
-            )
-            
-            response_data = {
-                "message": deletion_result.get("message", "Force delete completed"),
-                "deleted_files": deletion_result.get("deleted_files", 0),
-                "deleted_dirs": deletion_result.get("deleted_dirs", 0),
-                "errors": deletion_result.get("errors", 0),
-                "total_items": deletion_result.get("total_items", 0),
-                "database_records_updated": 0,  # No database updates in force mode
-                "storage_cleaned": "Force delete completed",
-                "storage_info_before": deletion_result.get("storage_info_before", {}),
-                "storage_info_after": deletion_result.get("storage_info_after", {})
-            }
+            result = await hetzner_service.delete_all_files_force()
         else:
-            # Normal mode - update database records
-            update_result = db.files.update_many(
-                {
-                    "backup_status": BackupStatus.COMPLETED,
-                    "backup_location": StorageLocation.HETZNER,
-                    "deleted_at": {"$exists": False}
-                },
-                {
-                    "$set": {
-                        "deleted_at": datetime.utcnow(),
-                        "status": "deleted",
-                        "deleted_by": current_admin.email,
-                        "deletion_reason": f"bulk_delete_all_hetzner_files: {reason or 'Complete storage cleanup'}"
-                    }
-                }
-            )
-            
-            print(f"[DELETE_ALL_HETZNER] Database update result: {update_result.modified_count} files marked as deleted")
-            
-            await log_admin_activity(
-                admin_email=current_admin.email,
-                action="delete_all_hetzner_files",
-                details=f"Deleted all files from Hetzner storage. Hetzner: {deletion_result.get('deleted_files', 0)} files, {deletion_result.get('deleted_dirs', 0)} dirs, Database: {update_result.modified_count} records marked as deleted. Reason: {reason or 'Complete storage cleanup'}",
-                ip_address=get_client_ip(request),
-                endpoint="/api/v1/admin/hetzner/delete-all-files"
-            )
-            
-            response_data = {
-                "message": deletion_result.get("message", "Hetzner storage cleanup completed"),
-                "deleted_files": deletion_result.get("deleted_files", 0),
-                "deleted_dirs": deletion_result.get("deleted_dirs", 0),
-                "errors": deletion_result.get("errors", 0),
-                "total_items": deletion_result.get("total_items", 0),
-                "database_records_updated": update_result.modified_count,
-                "storage_cleaned": f"{hetzner_stats_before} files removed from backup storage",
-                "storage_info_before": deletion_result.get("storage_info_before", {}),
-                "storage_info_after": deletion_result.get("storage_info_after", {})
-            }
+            result = await hetzner_service.delete_all_files()
         
-        print(f"✅ [DELETE_ALL_HETZNER] Complete Hetzner storage cleanup finished: {response_data}")
-        return response_data
+        # Log the complete deletion activity
+        await log_admin_activity(
+            admin_email=current_admin.email,
+            action="delete_all_hetzner_files",
+            details=f"Deleted ALL files from Hetzner storage. Reason: {reason or 'No reason provided'}. Force delete: {force_delete}. Result: {result}",
+            ip_address=get_client_ip(request),
+            endpoint="/api/v1/admin/hetzner/delete-all-files"
+        )
+        
+        return {
+            "message": result.get("message", "All files deleted successfully"),
+            "deleted_files": result.get("deleted_files", 0),
+            "deleted_dirs": result.get("deleted_dirs", 0),
+            "errors": result.get("errors", 0),
+            "total_items": result.get("total_items", 0),
+            "storage_cleaned": result.get("storage_cleaned", "0 B"),
+            "storage_info_before": result.get("storage_info_before", {}),
+            "storage_info_after": result.get("storage_info_after", {})
+        }
         
     except Exception as e:
         error_msg = f"Failed to delete all Hetzner files: {str(e)}"
         print(f"!!! [DELETE_ALL_HETZNER] {error_msg}")
         
-        try:
-            await log_admin_activity(
-                admin_email=current_admin.email,
-                action="delete_all_hetzner_files_failed",
-                details=f"Failed to delete all Hetzner files: {str(e)}",
-                ip_address=get_client_ip(request),
-                endpoint="/api/v1/admin/hetzner/delete-all-files"
-            )
-        except:
-            pass
+        # Log the failed activity
+        await log_admin_activity(
+            admin_email=current_admin.email,
+            action="delete_all_hetzner_files",
+            details=f"Failed to delete all Hetzner files. Reason: {reason or 'No reason provided'}. Error: {str(e)}",
+            ip_address=get_client_ip(request),
+            endpoint="/api/v1/admin/hetzner/delete-all-files",
+            status="failed"
+        )
         
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=500,
             detail=error_msg
         )
 
-@router.post("/hetzner/parallel-cleanup")
-async def parallel_hetzner_cleanup(
-    request: Request,
-    reason: Optional[str] = Query(None),
-    current_admin: AdminUserInDB = Depends(get_current_admin)
-):
-    """
-    HYBRID PARALLEL APPROACH: Fast parallel scanning + parallel deletion + database cleanup
-    Uses 5 workers for both scanning and deletion
-    Also cleans database records for complete cleanup
-    Reduces 10+ minutes to ~3-4 minutes total
-    """
-    try:
-        print(f"🚀 [PARALLEL_HETZNER] Admin {current_admin.email} requested parallel Hetzner storage cleanup!")
-        print(f"🚀 [PARALLEL_HETZNER] Reason: {reason or 'No reason provided'}")
-        print(f"🚀 [PARALLEL_HETZNER] Using 5 workers for scanning + 5 workers for deletion + database cleanup")
-        
-        from app.services.hetzner_service import HetznerService
-        
-        hetzner_service = HetznerService()
-        
-        # STEP 1: Fast parallel cleanup from Hetzner storage
-        cleanup_result = await hetzner_service.parallel_storage_cleanup()
-        
-        # STEP 2: Clean database records
-        print(f"[PARALLEL_HETZNER] Cleaning database records...")
-        update_result = db.files.update_many(
-            {
-                "backup_status": BackupStatus.COMPLETED,
-                "backup_location": StorageLocation.HETZNER,
-                "deleted_at": {"$exists": False}
-            },
-            {
-                "$set": {
-                    "deleted_at": datetime.utcnow(),
-                    "status": "deleted",
-                    "deleted_by": current_admin.email,
-                    "deletion_reason": f"parallel_cleanup: {reason or 'Fast parallel storage cleanup'}"
-                }
-            }
-        )
-        
-        print(f"[PARALLEL_HETZNER] Database cleanup result: {update_result.modified_count} records marked as deleted")
-        
-        # Log the complete parallel cleanup activity
-        await log_admin_activity(
-            admin_email=current_admin.email,
-            action="parallel_hetzner_cleanup_complete",
-            details=f"Complete parallel cleanup: Hetzner: {cleanup_result.get('deleted_files', 0)} files, {cleanup_result.get('deleted_dirs', 0)} dirs, Time: {cleanup_result.get('total_time', 0):.2f}s, Workers: {cleanup_result.get('workers_used', 5)}, Database: {update_result.modified_count} records cleaned. Reason: {reason or 'Fast parallel storage cleanup'}",
-            ip_address=get_client_ip(request),
-            endpoint="/api/v1/admin/hetzner/parallel-cleanup"
-        )
-        
-        response_data = {
-            "message": f"Complete parallel cleanup finished: {cleanup_result.get('deleted_files', 0)} files deleted in {cleanup_result.get('total_time', 0):.2f}s",
-            "deleted_files": cleanup_result.get("deleted_files", 0),
-            "deleted_dirs": cleanup_result.get("deleted_dirs", 0),
-            "errors": cleanup_result.get("errors", 0),
-            "total_items": cleanup_result.get("total_items", 0),
-            "scan_time": cleanup_result.get("scan_time", 0),
-            "delete_time": cleanup_result.get("delete_time", 0),
-            "total_time": cleanup_result.get("total_time", 0),
-            "parallel_mode": cleanup_result.get("parallel_mode", True),
-            "workers_used": cleanup_result.get("workers_used", 5),
-            "performance_improvement": "5x faster than sequential operations",
-            "database_records_cleaned": update_result.modified_count,
-            "complete_cleanup": True
-        }
-        
-        print(f"🚀 [PARALLEL_HETZNER] Complete parallel Hetzner storage cleanup finished: {response_data}")
-        return response_data
-        
-    except Exception as e:
-        error_msg = f"Failed to perform parallel Hetzner cleanup: {str(e)}"
-        print(f"!!! [PARALLEL_HETZNER] {error_msg}")
-        
-        try:
-            await log_admin_activity(
-                admin_email=current_admin.email,
-                action="parallel_hetzner_cleanup_failed",
-                details=f"Failed to perform parallel Hetzner cleanup: {str(e)}",
-                ip_address=get_client_ip(request),
-                endpoint="/api/v1/admin/hetzner/parallel-cleanup"
-            )
-        except:
-            pass
-        
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_msg
-        )
 
-@router.get("/hetzner/storage-info")
-async def get_hetzner_storage_info(
-    request: Request,
-    current_admin: AdminUserInDB = Depends(get_current_admin)
-):
-    """
-    Get real-time storage information from Hetzner using parallel scanning
-    This endpoint automatically uses 5 workers for faster scanning
-    """
-    try:
-        print(f"[HETZNER_STORAGE_INFO] Admin {current_admin.email} requested Hetzner storage info")
-        
-        from app.services.hetzner_service import HetznerService
-        
-        hetzner_service = HetznerService()
-        
-        # Use the new parallel scanning method for faster results
-        print(f"[HETZNER_STORAGE_INFO] Using parallel scanning with 5 workers for faster results")
-        storage_info = await hetzner_service.auto_parallel_scan_with_progress()
-        
-        print(f"[HETZNER_STORAGE_INFO] Parallel scan completed: {storage_info}")
-        
-        # Log the activity
-        await log_admin_activity(
-            admin_email=current_admin.email,
-            action="get_hetzner_storage_info",
-            details=f"Retrieved Hetzner storage info using parallel scanning. Found {storage_info.get('total_files', 0)} files, {storage_info.get('total_size_formatted', '0 B')}",
-            ip_address=get_client_ip(request),
-            endpoint="/api/v1/admin/hetzner/storage-info"
-        )
-        
-        return {
-            "total_files": storage_info.get("total_files", 0),
-            "total_size": storage_info.get("total_size", 0),
-            "total_size_formatted": storage_info.get("total_size_formatted", "0 B"),
-            "status": storage_info.get("status", "completed"),
-            "progress": storage_info.get("progress", 100),
-            "message": storage_info.get("message", "Storage info retrieved"),
-            "parallel_mode": storage_info.get("parallel_mode", True),
-            "workers_used": storage_info.get("workers_used", 5)
-        }
-        
-    except Exception as e:
-        error_msg = f"Failed to get Hetzner storage info: {str(e)}"
-        print(f"!!! [HETZNER_STORAGE_INFO] {error_msg}")
-        
-        try:
-            await log_admin_activity(
-                admin_email=current_admin.email,
-                action="get_hetzner_storage_info_failed",
-                details=f"Failed to get Hetzner storage info: {str(e)}",
-                ip_address=get_client_ip(request),
-                endpoint="/api/v1/admin/hetzner/storage-info"
-            )
-        except:
-            pass
-        
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_msg
-        )
+
+
 
 # ================================
 # BACKUP MANAGEMENT ENDPOINTS
