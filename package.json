@@ -1,0 +1,13 @@
+{
+  "name": "directdrivex",
+  "version": "1.0.0",
+  "description": "DirectDriveX - File Management System",
+  "scripts": {
+    "build": "cd frontend && npm install --legacy-peer-deps && npm run build",
+    "dev": "cd frontend && npm run dev",
+    "start": "cd frontend && npm start"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
