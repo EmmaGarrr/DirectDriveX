@@ -15,7 +15,7 @@ import {
   Loader2,
   AlertTriangle,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 import { authService, User } from "@/services/authService";
 import { toastService } from "@/services/toastService";
 import { UploadService } from "@/services/uploadService";

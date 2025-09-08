@@ -25,20 +25,20 @@ export function NotificationsTab({ notifications, filters, setFilters, paginatio
     <div className="space-y-6">
       <div className="p-4 bg-white/80 dark:bg-slate-800/80 rounded-lg shadow-md">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <select value={filters.status} onChange={e => setFilters({ ...filters, status: e.target.value })} className="w-full p-2 border rounded-md bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600">
+          <select value={filters.status_filter} onChange={e => setFilters({ ...filters, status_filter: e.target.value })} className="w-full p-2 border rounded-md bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600">
             <option value="">All Statuses</option>
             <option value="draft">Draft</option>
             <option value="scheduled">Scheduled</option>
             <option value="sent">Sent</option>
             <option value="failed">Failed</option>
           </select>
-          <select value={filters.type} onChange={e => setFilters({ ...filters, type: e.target.value })} className="w-full p-2 border rounded-md bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600">
+          <select value={filters.type_filter} onChange={e => setFilters({ ...filters, type_filter: e.target.value })} className="w-full p-2 border rounded-md bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600">
             <option value="">All Types</option>
             <option value="system">System</option>
             <option value="email">Email</option>
             <option value="in_app">In-App</option>
           </select>
-          <select value={filters.priority} onChange={e => setFilters({ ...filters, priority: e.target.value })} className="w-full p-2 border rounded-md bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600">
+          <select value={filters.priority_filter} onChange={e => setFilters({ ...filters, priority_filter: e.target.value })} className="w-full p-2 border rounded-md bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600">
             <option value="">All Priorities</option>
             <option value="low">Low</option>
             <option value="medium">Medium</option>

@@ -18,6 +18,17 @@ export const mockFileTypeAnalytics: FileTypeAnalytics = {
     { _id: 'audio', count: 1000, total_size: 0.5 * 1024 * 1024 * 1024 * 1024, percentage: 8.1, size_formatted: '0.5 TB' },
   ],
   total_files: 12345,
+  backup_distribution: {
+    'backed_up': 11234,
+    'transferring': 123,
+    'failed': 45,
+    'pending': 943
+  },
+  account_distribution: [
+    { account_id: 'account_1', count: 5000, total_size: 7.5 * 1024 * 1024 * 1024 * 1024, size_formatted: '7.5 TB' },
+    { account_id: 'account_2', count: 4000, total_size: 4.2 * 1024 * 1024 * 1024 * 1024, size_formatted: '4.2 TB' },
+    { account_id: 'account_3', count: 3345, total_size: 3.5 * 1024 * 1024 * 1024 * 1024, size_formatted: '3.5 TB' }
+  ],
 };
 
 const formatBytes = (bytes: number): string => {

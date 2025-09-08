@@ -1,5 +1,5 @@
 export type NotificationStatus = 'draft' | 'scheduled' | 'sent' | 'failed' | 'cancelled';
-export type NotificationType = 'system' | 'email' | 'in_app';
+export type NotificationType = 'system' | 'email' | 'in_app' | 'scheduled';
 export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type TargetType = 'all_users' | 'active_users' | 'inactive_users' | 'specific_users';
 
@@ -65,9 +65,11 @@ export interface UserGroupPreview {
 }
 
 export interface NotificationFilters {
-  status: string;
-  type: string;
-  priority: string;
+  status_filter: string;
+  type_filter: string;
+  priority_filter: string;
+  page: number;
+  limit: number;
 }
 
 export interface UseNotificationSystemReturn {

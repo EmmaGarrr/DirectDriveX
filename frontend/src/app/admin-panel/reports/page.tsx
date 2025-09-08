@@ -7,7 +7,7 @@ import { ReportTemplatesTab } from "@/components/admin/reports/ReportTemplatesTa
 import { CustomReportsTab } from "@/components/admin/reports/CustomReportsTab";
 import { ScheduledReportsTab } from "@/components/admin/reports/ScheduledReportsTab";
 import { BarChart3, FileText, Plus, Calendar } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../../lib/utils";
 
 export default function ReportsExportPage() {
   const {

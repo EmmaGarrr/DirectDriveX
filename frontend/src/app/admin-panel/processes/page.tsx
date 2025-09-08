@@ -2,7 +2,7 @@
 
 import { useProcessManagement } from "@/hooks/useProcessManagement";
 import { ProcessCard } from "@/components/admin/processes/ProcessCard";
-import { Cogs, LayerGroup, ListOl, PlayCircle, Users, Crown, Tasks, Database, CheckCircle, Sync, AlertTriangle } from "lucide-react";
+import { Settings, Layers, List, PlayCircle, Users, Crown, CheckSquare, Database, CheckCircle, RefreshCw, AlertTriangle } from "lucide-react";
 
 export default function BackgroundProcessesPage() {
   const {
@@ -30,7 +30,7 @@ export default function BackgroundProcessesPage() {
       <div className="p-8 text-white rounded-2xl bg-gradient-to-br from-slate-600 to-slate-800 shadow-xl">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-4">
-            <Cogs className="w-8 h-8" />
+            <Settings className="w-8 h-8" />
             <div>
               <h2 className="text-3xl font-bold">Background Process Management</h2>
               <p className="opacity-90">Monitor and manage background processes with priority queuing</p>
@@ -42,7 +42,7 @@ export default function BackgroundProcessesPage() {
               <div className="text-xs opacity-70">Auto-refresh: {activeProcesses.length > 0 ? '30s' : '1m'}</div>
             </div>
             <button onClick={manualRefresh} disabled={isRefreshing} className="px-4 py-2 bg-white/20 border border-white/30 rounded-lg flex items-center gap-2 hover:bg-white/30 disabled:opacity-60">
-              <Sync className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               {isRefreshing ? 'Refreshing...' : 'Manual Refresh'}
             </button>
           </div>
@@ -51,7 +51,7 @@ export default function BackgroundProcessesPage() {
 
       {priorityInfo && (
         <div className="p-6 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-slate-400/20 rounded-2xl shadow-lg">
-          <h3 className="flex items-center gap-3 mb-5 text-lg font-semibold"><LayerGroup /> Priority System Status</h3>
+          <h3 className="flex items-center gap-3 mb-5 text-lg font-semibold"><Layers /> Priority System Status</h3>
           <div className="grid gap-4 md:grid-cols-3">
             <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-700/50"><span className="font-medium">Admin Workers:</span><span className="font-bold text-red-600">{priorityInfo.admin_workers}</span></div>
             <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-700/50"><span className="font-medium">User Workers:</span><span className="font-bold text-emerald-600">{priorityInfo.user_workers}</span></div>
@@ -63,7 +63,7 @@ export default function BackgroundProcessesPage() {
       {queueStatus && (
         <div>
           <div className="flex items-center justify-between pb-4 mb-6 border-b-2 border-slate-200 dark:border-slate-700">
-            <h3 className="flex items-center gap-3 text-2xl font-semibold"><ListOl /> Queue Status</h3>
+            <h3 className="flex items-center gap-3 text-2xl font-semibold"><List /> Queue Status</h3>
           </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <div className="p-6 transition-all border-l-4 border-red-500 rounded-lg shadow-md bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl hover:shadow-xl hover:-translate-y-1">
@@ -87,7 +87,7 @@ export default function BackgroundProcessesPage() {
 
       <div>
         <div className="flex items-center justify-between pb-4 mb-6 border-b-2 border-slate-200 dark:border-slate-700">
-          <h3 className="flex items-center gap-3 text-2xl font-semibold"><Tasks /> Active Processes</h3>
+          <h3 className="flex items-center gap-3 text-2xl font-semibold"><CheckSquare /> Active Processes</h3>
           <button onClick={triggerQuotaRefresh} className="px-4 py-2 text-sm font-medium text-white rounded-md bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2">
             <Database className="w-4 h-4" /> Trigger Quota Refresh
           </button>

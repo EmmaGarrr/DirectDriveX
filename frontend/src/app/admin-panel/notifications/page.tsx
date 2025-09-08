@@ -7,7 +7,7 @@ import { NotificationsTab } from '@/components/admin/notifications/Notifications
 import { TemplatesTab } from '@/components/admin/notifications/TemplatesTab';
 import { CreateNotificationTab } from '@/components/admin/notifications/CreateNotificationTab';
 import { Bell, LayoutDashboard, List, FileText, PlusCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../../../lib/utils';
 
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -17,11 +17,29 @@ const tabs = [
 ];
 
 export default function NotificationSystemPage() {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  
   const {
-    loading, stats, notifications, templates, filters, pagination, activeTab, createNotificationForm,
-    setActiveTab, setFilters, setPage, refreshData, createNotification, createTemplate,
-    deleteNotification, sendNotificationNow, useTemplate, previewUserGroup, setCreateNotificationForm
+    loading, stats, notifications, templates, filters, totalPages, currentPage, createForm,
+    updateFilters, loadStats, loadNotifications, loadTemplates, createNotification, createTemplate,
+    deleteNotification, sendNotification, applyTemplate, previewUserGroup, setCreateForm
   } = useNotificationSystem();
+
+  // Wrapper function to handle type compatibility
+  const handleSetFilters = (newFilters: any) => {
+    updateFilters(newFilters);
+  };
+
+  // Wrapper function for template usage
+  const handleUseTemplate = (template: any) => {
+    applyTemplate(template.template_id || template._id);
+  };
+
+  // Wrapper function for user group preview
+  const handlePreviewUserGroup = async (targetType: any) => {
+    await previewUserGroup(targetType);
+    return null; // Return null to match expected return type
+  };
 
   return (
     <div className="space-y-6">
@@ -57,9 +75,9 @@ export default function NotificationSystemPage() {
 
       <div className="mt-6">
         {activeTab === 'dashboard' && <DashboardTab stats={stats} />}
-        {activeTab === 'notifications' && <NotificationsTab notifications={notifications} filters={filters} setFilters={setFilters} pagination={pagination} setPage={setPage} onAction={(action, id) => action === 'delete' ? deleteNotification(id) : sendNotificationNow(id)} onCreate={() => setActiveTab('create')} />}
-        {activeTab === 'templates' && <TemplatesTab templates={templates} onCreate={createTemplate} onUse={useTemplate} />}
-        {activeTab === 'create' && <CreateNotificationTab form={createNotificationForm} setForm={setCreateNotificationForm} onCreate={createNotification} onPreview={previewUserGroup} />}
+        {activeTab === 'notifications' && <NotificationsTab notifications={notifications} filters={filters} setFilters={handleSetFilters} pagination={{ totalPages, currentPage }} setPage={(page) => updateFilters({ page })} onAction={(action, id) => action === 'delete' ? deleteNotification(id) : sendNotification(id)} onCreate={() => setActiveTab('create')} />}
+        {activeTab === 'templates' && <TemplatesTab templates={templates} onCreate={createTemplate} onUse={handleUseTemplate} />}
+        {activeTab === 'create' && <CreateNotificationTab form={createForm} setForm={setCreateForm} onCreate={createNotification} onPreview={handlePreviewUserGroup} />}
       </div>
     </div>
   );

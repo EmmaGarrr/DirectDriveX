@@ -47,8 +47,8 @@ export interface NotificationTemplate {
   name: string;
   subject?: string;
   content: string;
-  notification_type: string;
-  priority: string;
+  notification_type: 'system' | 'email' | 'in_app' | 'scheduled';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
   is_active: boolean;
   created_by: string;
   created_at: string;
@@ -69,7 +69,7 @@ export interface CreateNotificationRequest {
 export interface NotificationFilters {
   status_filter: string;
   type_filter: string;
-  priority_filter: string;
+  priority_filter: 'low' | 'medium' | 'high' | 'urgent' | '';
   page: number;
   limit: number;
 }

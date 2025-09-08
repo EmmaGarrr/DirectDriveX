@@ -6,7 +6,7 @@ import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 
 export default function AdminPanelLayout({
   children,

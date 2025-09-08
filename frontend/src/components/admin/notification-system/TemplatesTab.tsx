@@ -83,7 +83,11 @@ export function TemplatesTab({
       return;
     }
 
-    const success = await onCreateTemplate(createForm);
+    const success = await onCreateTemplate({
+      ...createForm,
+      notification_type: createForm.notification_type as 'system' | 'email' | 'in_app' | 'scheduled',
+      priority: createForm.priority as 'low' | 'medium' | 'high' | 'urgent'
+    });
     if (success) {
       setCreateForm({
         name: '',
