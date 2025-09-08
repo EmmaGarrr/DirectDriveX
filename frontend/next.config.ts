@@ -28,11 +28,21 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BACKEND_PORT: process.env.NEXT_PUBLIC_BACKEND_PORT || '5000',
   },
   
-  webpack: (config, { isServer, dir }) => {
-    // Add alias resolution for @ path (needed for npm and Vercel)
+  webpack: (config, { isServer, dir, buildId }) => {
+    // Get the correct base directory
+    const baseDir = dir || __dirname;
+    const srcPath = path.resolve(baseDir, 'src');
+    
+    // Add comprehensive alias resolution for @ path
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.resolve(dir || __dirname, 'src'),
+      '@': srcPath,
+      '@/lib': path.resolve(srcPath, 'lib'),
+      '@/components': path.resolve(srcPath, 'components'),
+      '@/hooks': path.resolve(srcPath, 'hooks'),
+      '@/services': path.resolve(srcPath, 'services'),
+      '@/types': path.resolve(srcPath, 'types'),
+      '@/app': path.resolve(srcPath, 'app'),
     };
 
     // Ensure the alias is properly configured for both client and server
@@ -42,12 +52,15 @@ const nextConfig: NextConfig = {
         fs: false,
         path: false,
         os: false,
+        crypto: false,
+        stream: false,
+        util: false,
       };
     }
 
     // Add more robust module resolution
     config.resolve.modules = [
-      path.resolve(dir || __dirname, 'src'),
+      srcPath,
       'node_modules',
     ];
 
@@ -56,6 +69,16 @@ const nextConfig: NextConfig = {
 
     // Add better error handling for missing modules
     config.resolve.symlinks = false;
+    
+    // Add resolve plugins for better module resolution
+    config.resolve.plugins = config.resolve.plugins || [];
+    
+    // Add a custom resolver plugin to handle @ aliases more robustly
+    const { NormalModuleReplacementPlugin } = require('webpack');
+    config.plugins.push(
+      new NormalModuleReplacementPlugin(/^@\/lib\/utils$/, path.resolve(srcPath, 'lib', 'utils.ts')),
+      new NormalModuleReplacementPlugin(/^@\/utils$/, path.resolve(srcPath, 'utils.ts'))
+    );
 
     if (process.env.NODE_ENV === "development") {
       config.module.rules.push({
