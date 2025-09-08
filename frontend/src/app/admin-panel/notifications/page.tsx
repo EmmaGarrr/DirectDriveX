@@ -7,7 +7,7 @@ import { NotificationsTab } from '@/components/admin/notifications/Notifications
 import { TemplatesTab } from '@/components/admin/notifications/TemplatesTab';
 import { CreateNotificationTab } from '@/components/admin/notifications/CreateNotificationTab';
 import { Bell, LayoutDashboard, List, FileText, PlusCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../../../lib/utils';
 
 const tabs = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
