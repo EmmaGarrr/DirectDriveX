@@ -33,10 +33,11 @@ const nextConfig: NextConfig = {
     const baseDir = dir || __dirname;
     const srcPath = path.resolve(baseDir, 'src');
     
-    // Add comprehensive alias resolution for @ path
+    // Add comprehensive alias resolution for @ path and src path
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': srcPath,
+      'src': srcPath,
       '@/lib': path.resolve(srcPath, 'lib'),
       '@/components': path.resolve(srcPath, 'components'),
       '@/hooks': path.resolve(srcPath, 'hooks'),
