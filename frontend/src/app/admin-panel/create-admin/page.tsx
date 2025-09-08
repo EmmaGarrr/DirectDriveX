@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -112,6 +113,11 @@ export default function CreateAdminPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -209,7 +215,7 @@ export default function CreateAdminPage() {
   }, [success, error]);
 
   // Show loading state during initialization
-  if (isInitializing) {
+  if (isInitializing || !isClient) {
     return (
       <div className="max-w-lg p-4 mx-auto">
         <div className="flex items-center justify-center p-8">
@@ -227,7 +233,11 @@ export default function CreateAdminPage() {
           <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-500" />
           <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">Access Denied</h2>
           <p className="mt-2 text-slate-600 dark:text-slate-400">Only superadmin users can create new admin accounts.</p>
-          <button onClick={() => router.push('/admin-panel')} className="px-4 py-2 mt-6 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+          <button 
+            type="button"
+            onClick={() => router.push('/admin-panel')} 
+            className="px-4 py-2 mt-6 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+          >
             Back to Dashboard
           </button>
         </div>
