@@ -1,4 +1,0 @@
-# Ignore everything except frontend for deployment
-*
-!frontend/
-!frontend/**
