@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
   },
   
   webpack: (config, { isServer, dir, buildId }) => {
-    // Get the correct base directory
+    // Get the correct base directory - handle Vercel's build environment
     const baseDir = dir || __dirname;
     const srcPath = path.resolve(baseDir, 'src');
     
@@ -79,6 +79,39 @@ const nextConfig: NextConfig = {
       new NormalModuleReplacementPlugin(/^@\/lib\/utils$/, path.resolve(srcPath, 'lib', 'utils.ts')),
       new NormalModuleReplacementPlugin(/^@\/utils$/, path.resolve(srcPath, 'utils.ts'))
     );
+
+    // Add a more robust custom resolver for Vercel
+    config.resolve.plugins.push({
+      apply: (resolver: any) => {
+        resolver.hooks.resolve.tapAsync('VercelPathResolver', (request: any, resolveContext: any, callback: any) => {
+          if (request.request && request.request.startsWith('@/')) {
+            const relativePath = request.request.substring(2);
+            const absolutePath = path.resolve(srcPath, relativePath);
+            
+            // Try different extensions
+            const extensions = ['.ts', '.tsx', '.js', '.jsx', '.json'];
+            for (const ext of extensions) {
+              const fullPath = absolutePath + ext;
+              if (require('fs').existsSync(fullPath)) {
+                const newRequest = {
+                  ...request,
+                  request: fullPath,
+                };
+                return resolver.doResolve(resolver.hooks.resolve, newRequest, null, resolveContext, callback);
+              }
+            }
+            
+            // If no extension found, try the original path
+            const newRequest = {
+              ...request,
+              request: absolutePath,
+            };
+            return resolver.doResolve(resolver.hooks.resolve, newRequest, null, resolveContext, callback);
+          }
+          return callback();
+        });
+      }
+    });
 
     if (process.env.NODE_ENV === "development") {
       config.module.rules.push({
