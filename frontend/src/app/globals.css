@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
-
 @layer base {
   :root {
 
@@ -55,8 +53,7 @@
 
     --chart-5: 27 87% 67%;
 
-    --radius: 0.5rem
-  ;
+    --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -72,7 +69,100 @@
 
     --sidebar-border: 220 13% 91%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%}
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* ===================================== */
+    /* NEW DESIGN SYSTEM VARIABLES (Phase 1) */
+    /* ===================================== */
+    
+    /* Primary Colors */
+    --ds-primary: 214 96% 56%;
+    --ds-primary-foreground: 0 0% 98%;
+    
+    /* Secondary Colors */
+    --ds-secondary: 240 5% 96%;
+    --ds-secondary-foreground: 240 6% 10%;
+    
+    /* Accent Colors */
+    --ds-accent: 240 5% 96%;
+    --ds-accent-foreground: 240 6% 10%;
+    
+    /* Destructive Colors */
+    --ds-destructive: 0 84% 60%;
+    --ds-destructive-foreground: 0 0% 98%;
+    
+    /* Muted Colors */
+    --ds-muted: 240 5% 96%;
+    --ds-muted-foreground: 240 4% 46%;
+    
+    /* Base Colors */
+    --ds-background: 0 0% 100%;
+    --ds-foreground: 240 10% 4%;
+    
+    /* Card Colors */
+    --ds-card: 0 0% 100%;
+    --ds-card-foreground: 240 10% 4%;
+    
+    /* Popover Colors */
+    --ds-popover: 0 0% 100%;
+    --ds-popover-foreground: 240 10% 4%;
+    
+    /* Border Colors */
+    --ds-border: 240 6% 90%;
+    --ds-input: 240 6% 90%;
+    
+    /* Ring Colors */
+    --ds-ring: 214 96% 56%;
+    
+    /* Chart Colors */
+    --ds-chart-1: 12 76% 61%;
+    --ds-chart-2: 173 58% 39%;
+    --ds-chart-3: 197 37% 24%;
+    --ds-chart-4: 43 74% 66%;
+    --ds-chart-5: 27 87% 67%;
+    
+    /* Radius */
+    --ds-radius: 0.5rem;
+    
+    /* Spacing Scale */
+    --ds-spacing-xs: 0.5rem;
+    --ds-spacing-sm: 0.75rem;
+    --ds-spacing-md: 1rem;
+    --ds-spacing-lg: 1.5rem;
+    --ds-spacing-xl: 2rem;
+    --ds-spacing-2xl: 3rem;
+    
+    /* Typography Scale */
+    --ds-text-xs: 0.75rem;
+    --ds-text-sm: 0.875rem;
+    --ds-text-base: 1rem;
+    --ds-text-lg: 1.125rem;
+    --ds-text-xl: 1.25rem;
+    --ds-text-2xl: 1.5rem;
+    --ds-text-3xl: 1.875rem;
+    --ds-text-4xl: 2.25rem;
+    --ds-text-5xl: 3rem;
+    
+    /* Font Weights */
+    --ds-font-light: 300;
+    --ds-font-normal: 400;
+    --ds-font-medium: 500;
+    --ds-font-semibold: 600;
+    --ds-font-bold: 700;
+    --ds-font-extrabold: 800;
+    
+    /* Shadow Scale */
+    --ds-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --ds-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --ds-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --ds-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --ds-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    /* Animation Duration */
+    --ds-animation-fast: 150ms;
+    --ds-animation-normal: 300ms;
+    --ds-animation-slow: 500ms;
+  }
   .dark {
 
     --background: 0 0% 3.9%;
@@ -121,8 +211,7 @@
 
     --chart-4: 280 65% 60%;
 
-    --chart-5: 340 75% 55%
-  ;
+    --chart-5: 340 75% 55%;
 
     --sidebar-background: 240 5.9% 10%;
 
@@ -138,9 +227,100 @@
 
     --sidebar-border: 240 3.7% 15.9%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%}
-}
+    --sidebar-ring: 217.2 91.2% 59.8%;
 
+    /* ======================================= */
+    /* NEW DESIGN SYSTEM VARIABLES - DARK MODE */
+    /* ======================================= */
+    
+    /* Primary Colors */
+    --ds-primary: 214 96% 56%;
+    --ds-primary-foreground: 0 0% 98%;
+    
+    /* Secondary Colors */
+    --ds-secondary: 240 5% 15%;
+    --ds-secondary-foreground: 240 5% 95%;
+    
+    /* Accent Colors */
+    --ds-accent: 240 5% 15%;
+    --ds-accent-foreground: 240 5% 95%;
+    
+    /* Destructive Colors */
+    --ds-destructive: 0 63% 31%;
+    --ds-destructive-foreground: 0 0% 98%;
+    
+    /* Muted Colors */
+    --ds-muted: 240 5% 15%;
+    --ds-muted-foreground: 240 4% 64%;
+    
+    /* Base Colors */
+    --ds-background: 240 10% 4%;
+    --ds-foreground: 240 5% 95%;
+    
+    /* Card Colors */
+    --ds-card: 240 10% 4%;
+    --ds-card-foreground: 240 5% 95%;
+    
+    /* Popover Colors */
+    --ds-popover: 240 10% 4%;
+    --ds-popover-foreground: 240 5% 95%;
+    
+    /* Border Colors */
+    --ds-border: 240 4% 16%;
+    --ds-input: 240 4% 16%;
+    
+    /* Ring Colors */
+    --ds-ring: 214 96% 56%;
+    
+    /* Chart Colors */
+    --ds-chart-1: 220 70% 50%;
+    --ds-chart-2: 160 60% 45%;
+    --ds-chart-3: 30 80% 55%;
+    --ds-chart-4: 280 65% 60%;
+    --ds-chart-5: 340 75% 55%;
+    
+    /* Radius */
+    --ds-radius: 0.5rem;
+    
+    /* Spacing Scale */
+    --ds-spacing-xs: 0.5rem;
+    --ds-spacing-sm: 0.75rem;
+    --ds-spacing-md: 1rem;
+    --ds-spacing-lg: 1.5rem;
+    --ds-spacing-xl: 2rem;
+    --ds-spacing-2xl: 3rem;
+    
+    /* Typography Scale */
+    --ds-text-xs: 0.75rem;
+    --ds-text-sm: 0.875rem;
+    --ds-text-base: 1rem;
+    --ds-text-lg: 1.125rem;
+    --ds-text-xl: 1.25rem;
+    --ds-text-2xl: 1.5rem;
+    --ds-text-3xl: 1.875rem;
+    --ds-text-4xl: 2.25rem;
+    --ds-text-5xl: 3rem;
+    
+    /* Font Weights */
+    --ds-font-light: 300;
+    --ds-font-normal: 400;
+    --ds-font-medium: 500;
+    --ds-font-semibold: 600;
+    --ds-font-bold: 700;
+    --ds-font-extrabold: 800;
+    
+    /* Shadow Scale */
+    --ds-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --ds-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+    --ds-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --ds-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+    --ds-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+    
+    /* Animation Duration */
+    --ds-animation-fast: 150ms;
+    --ds-animation-normal: 300ms;
+    --ds-animation-slow: 500ms;
+  }
 
 
 @layer base {
@@ -150,4 +330,6 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
 }
