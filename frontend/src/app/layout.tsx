@@ -38,8 +38,10 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="alternate icon" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.svg" />
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#3B82F6" />
         <link rel="manifest" href="/site.webmanifest" />
+        <meta name="theme-color" content="#3B82F6" />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider

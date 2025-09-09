@@ -3,11 +3,26 @@
   "outputDirectory": ".next",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "nextjs",
+  "public": true,
   "functions": {
     "app/**/*": {
       "maxDuration": 30
     }
   },
+  "rewrites": [
+    {
+      "source": "/site.webmanifest",
+      "destination": "/site.webmanifest"
+    },
+    {
+      "source": "/favicon.svg",
+      "destination": "/favicon.svg"
+    },
+    {
+      "source": "/google.svg",
+      "destination": "/google.svg"
+    }
+  ],
   "headers": [
     {
       "source": "/site.webmanifest",
