@@ -28,11 +28,12 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BACKEND_PORT: process.env.NEXT_PUBLIC_BACKEND_PORT || '5000',
   },
   
-  webpack: (config, { isServer }) => {
-    // Simple and reliable alias configuration for Vercel
+  webpack: (config, { isServer, dev }) => {
+    // Enhanced alias configuration for Vercel compatibility
+    const srcPath = path.join(process.cwd(), 'src');
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.resolve(__dirname, 'src'),
+      '@': srcPath,
     };
 
     // Client-side fallbacks
