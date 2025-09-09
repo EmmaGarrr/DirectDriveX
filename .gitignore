@@ -283,8 +283,7 @@ $RECYCLE.BIN/
 .nfs*
 
 # ===== PROJECT SPECIFIC =====
-# Logs
-logs/
+
 *.log
 
 # Database files
