@@ -28,25 +28,14 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BACKEND_PORT: process.env.NEXT_PUBLIC_BACKEND_PORT || '5000',
   },
   
-  webpack: (config, { isServer, dir, buildId }) => {
-    // Get the correct base directory - handle Vercel's build environment
-    const baseDir = dir || __dirname;
-    const srcPath = path.resolve(baseDir, 'src');
-    
-    // Add comprehensive alias resolution for @ path and src path
+  webpack: (config, { isServer }) => {
+    // Simple and reliable alias configuration for Vercel
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': srcPath,
-      'src': srcPath,
-      '@/lib': path.resolve(srcPath, 'lib'),
-      '@/components': path.resolve(srcPath, 'components'),
-      '@/hooks': path.resolve(srcPath, 'hooks'),
-      '@/services': path.resolve(srcPath, 'services'),
-      '@/types': path.resolve(srcPath, 'types'),
-      '@/app': path.resolve(srcPath, 'app'),
+      '@': path.resolve(__dirname, 'src'),
     };
 
-    // Ensure the alias is properly configured for both client and server
+    // Client-side fallbacks
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -59,69 +48,6 @@ const nextConfig: NextConfig = {
       };
     }
 
-    // Add more robust module resolution
-    config.resolve.modules = [
-      srcPath,
-      'node_modules',
-    ];
-
-    // Ensure proper file extensions are resolved
-    config.resolve.extensions = ['.ts', '.tsx', '.js', '.jsx', '.json'];
-
-    // Add better error handling for missing modules
-    config.resolve.symlinks = false;
-    
-    // Add resolve plugins for better module resolution
-    config.resolve.plugins = config.resolve.plugins || [];
-    
-    // Add a custom resolver plugin to handle @ aliases more robustly
-    const { NormalModuleReplacementPlugin } = require('webpack');
-    config.plugins.push(
-      new NormalModuleReplacementPlugin(/^@\/lib\/utils$/, path.resolve(srcPath, 'lib', 'utils.ts')),
-      new NormalModuleReplacementPlugin(/^@\/utils$/, path.resolve(srcPath, 'utils.ts'))
-    );
-
-    // Add a more robust custom resolver for Vercel
-    config.resolve.plugins.push({
-      apply: (resolver: any) => {
-        resolver.hooks.resolve.tapAsync('VercelPathResolver', (request: any, resolveContext: any, callback: any) => {
-          if (request.request && request.request.startsWith('@/')) {
-            const relativePath = request.request.substring(2);
-            const absolutePath = path.resolve(srcPath, relativePath);
-            
-            // Try different extensions
-            const extensions = ['.ts', '.tsx', '.js', '.jsx', '.json'];
-            for (const ext of extensions) {
-              const fullPath = absolutePath + ext;
-              if (require('fs').existsSync(fullPath)) {
-                const newRequest = {
-                  ...request,
-                  request: fullPath,
-                };
-                return resolver.doResolve(resolver.hooks.resolve, newRequest, null, resolveContext, callback);
-              }
-            }
-            
-            // If no extension found, try the original path
-            const newRequest = {
-              ...request,
-              request: absolutePath,
-            };
-            return resolver.doResolve(resolver.hooks.resolve, newRequest, null, resolveContext, callback);
-          }
-          return callback();
-        });
-      }
-    });
-
-    if (process.env.NODE_ENV === "development") {
-      config.module.rules.push({
-        test: /\.(jsx|tsx)$/,
-        exclude: /node_modules/,
-        enforce: "pre",
-        use: "@dyad-sh/nextjs-webpack-component-tagger",
-      });
-    }
     return config;
   },
   
