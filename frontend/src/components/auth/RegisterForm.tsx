@@ -414,9 +414,13 @@ function RegisterFormContent() {
           aria-label="Sign up with Google"
         >
           <img
-            src="/assets/images/google.svg"
+            src="/google.svg"
             alt="Google"
             className="w-5 h-5 mr-3"
+            onError={(e) => {
+              console.error('Failed to load Google logo:', e);
+              e.currentTarget.style.display = 'none';
+            }}
           />
           Continue with Google
         </button>

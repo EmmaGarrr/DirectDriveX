@@ -7,5 +7,16 @@
     "app/**/*": {
       "maxDuration": 30
     }
-  }
+  },
+  "headers": [
+    {
+      "source": "/site.webmanifest",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        }
+      ]
+    }
+  ]
 }
