@@ -53,7 +53,7 @@ const nextConfig: NextConfig = {
   },
   
   // Ensure proper output configuration for Vercel
-  output: 'standalone',
+  // output: 'standalone', // Commented out to fix static file serving
   
   // Add proper image optimization
   images: {

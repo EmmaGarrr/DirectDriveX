@@ -15,19 +15,30 @@ export function BatchDownloadCard({ batchDetails }: BatchDownloadCardProps) {
   const zipDownloadUrl = batchUploadService.getZipDownloadUrl(batchDetails.batch_id);
 
   return (
-    <div className="w-full max-w-2xl p-6 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b border-cyan-500/20 pb-4 gap-4">
-        <h2 className="text-2xl font-bold text-bolt-white">Files Ready for Download</h2>
+    <div className="w-full max-w-4xl p-6 sm:p-8 bg-white rounded-2xl shadow-2xl shadow-bolt-black/10 border border-bolt-cyan/20">
+      <div className="text-center">
+        <div className="inline-block p-4 mb-4 bg-gradient-to-br from-bolt-blue/10 to-bolt-cyan/10 rounded-2xl">
+          <Download className="w-12 h-12 text-bolt-blue" strokeWidth={1.5} />
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-bolt-black break-words">
+          Files Ready for Download
+        </h1>
+        <p className="mt-2 text-sm sm:text-base text-bolt-cyan font-medium">
+          {batchDetails.files.length} file{batchDetails.files.length !== 1 ? 's' : ''} • Batch Download
+        </p>
+      </div>
+
+      <div className="mt-8 space-y-4">
         <a
           href={zipDownloadUrl}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-bolt-blue to-bolt-purple text-white font-semibold text-sm rounded-lg hover:shadow-lg hover:shadow-bolt-cyan/20 hover:-translate-y-0.5 transition-all duration-300 shrink-0"
+          className="w-full flex items-center justify-center gap-3 text-lg font-bold py-4 rounded-xl text-white bg-gradient-to-r from-bolt-blue to-bolt-purple hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
         >
-          <Download className="w-4 h-4" />
-          Download All (ZIP)
+          <Download className="w-6 h-6" />
+          Download All Files (ZIP)
         </a>
       </div>
 
-      <div className="space-y-3">
+      <div className="mt-8 space-y-3">
         {batchDetails.files.map((file) => (
           <FileListItem key={file._id} file={file} />
         ))}
