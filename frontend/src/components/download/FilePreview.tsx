@@ -23,6 +23,7 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
   const [pdfError, setPdfError] = useState(false);
   const [previewMetadata, setPreviewMetadata] = useState<any>(null);
   const [imageLoading, setImageLoading] = useState(previewType === 'image' || previewType === 'thumbnail');
+  const [documentLoading, setDocumentLoading] = useState(previewType === 'document');
   const [retryCount, setRetryCount] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -42,6 +43,11 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
     // Set image loading state for image previews
     if (previewType === 'image' || previewType === 'thumbnail') {
       setImageLoading(true);
+    }
+    
+    // Set document loading state for document previews
+    if (previewType === 'document') {
+      setDocumentLoading(true);
     }
     
     loadPreviewMetadata();
@@ -136,6 +142,10 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
     }
   };
 
+  const handleDocumentLoad = () => {
+    setDocumentLoading(false);
+  };
+
   const retry = () => {
     setError(null);
     setImageError(false);
@@ -145,6 +155,11 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
     // Reset image loading state for image previews
     if (previewType === 'image' || previewType === 'thumbnail') {
       setImageLoading(true);
+    }
+    
+    // Reset document loading state for document previews
+    if (previewType === 'document') {
+      setDocumentLoading(true);
     }
     
     setRetryCount(prev => prev + 1);
@@ -285,11 +300,22 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
           );
         }
         return (
-          <div className="w-full h-[80vh] rounded-2xl shadow-2xl shadow-bolt-black/20 overflow-hidden">
+          <div className="w-full h-[80vh] rounded-2xl shadow-2xl shadow-bolt-black/20 overflow-hidden relative">
+            {documentLoading && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 rounded-2xl backdrop-blur-sm">
+                <div className="flex flex-col items-center space-y-3">
+                  <div className="relative">
+                    <Loader2 className="w-8 h-8 text-bolt-blue animate-spin" />
+                  </div>
+                  <p className="text-sm font-medium text-bolt-blue">Loading document preview...</p>
+                </div>
+              </div>
+            )}
             <iframe 
               src={previewUrl} 
               className="w-full h-full border-0" 
               title={`Preview of ${fileName}`}
+              onLoad={handleDocumentLoad}
               onError={handlePdfError}
             />
           </div>

@@ -529,6 +529,147 @@ The download page was showing preview messages for ALL file types, even those th
 
 ---
 
+## Issue 8: Document Loading State Missing in File Preview
+
+**Date**: 2025-09-11  
+**Component**: FilePreview.tsx  
+**Files Affected**:
+
+- `frontend/src/components/download/FilePreview.tsx`
+
+### Problem Description
+
+When users clicked "Preview document" for PDF files, there was no loading indicator while the document was being fetched and rendered from the backend. Users experienced an empty space with no visual feedback during the document loading process, creating a poor user experience and making it seem like the preview wasn't working.
+
+### Root Cause Analysis
+
+1. **Missing Loading State Management**: The FilePreview component had loading states for images (`imageLoading`) but no equivalent for documents
+2. **No Visual Feedback**: Document previews used iframes without loading overlays
+3. **Poor User Experience**: Users couldn't tell if the document was loading or if the preview was broken
+4. **Inconsistent Implementation**: Images had proper loading indicators but documents did not
+
+### Solution Applied
+
+#### 1. Added Document Loading State
+
+- **New State Variable**: Added `documentLoading` state initialized based on preview type
+- **State Initialization**: `useState(previewType === 'document')`
+- **State Management**: Proper state updates during preview lifecycle
+
+#### 2. Enhanced useEffect for Document Loading
+
+- **Initial State Setting**: Set `documentLoading` to true when document preview starts
+- **State Cleanup**: Proper state management during component lifecycle
+- **Consistent Pattern**: Follows same pattern as image loading state
+
+#### 3. Created Document Load Handler
+
+- **Load Event Handler**: Added `handleDocumentLoad()` function
+- **State Update**: Sets `documentLoading` to false when iframe loads
+- **Event Integration**: Connected to iframe's `onLoad` event
+
+#### 4. Implemented Document Loading Overlay
+
+- **Visual Design**: Created loading overlay matching image loading overlay style
+- **Layout**: Absolute positioning over iframe container with proper z-index
+- **Content**: Spinner with "Loading document preview..." text
+- **Styling**: Semi-transparent white background with blur effect
+
+#### 5. Enhanced Document Preview Rendering
+
+- **Container Positioning**: Made document container `relative` for overlay support
+- **Conditional Rendering**: Added loading overlay that appears when `documentLoading` is true
+- **Event Handling**: Added `onLoad={handleDocumentLoad}` to iframe element
+- **Error Handling**: Maintained existing `onError={handlePdfError}` functionality
+
+#### 6. Updated Retry Logic
+
+- **State Reset**: Added document loading state reset in retry function
+- **Consistent Behavior**: Ensures loading indicator appears when retrying document preview
+- **Comprehensive Reset**: Resets all loading states appropriately
+
+### Code Changes Summary
+
+```typescript
+// Added new state variable
+const [documentLoading, setDocumentLoading] = useState(previewType === 'document');
+
+// Updated useEffect to set document loading state
+useEffect(() => {
+  // ... existing code ...
+  if (previewType === 'document') {
+    setDocumentLoading(true);
+  }
+  // ... existing code ...
+}, [fileId, previewType]);
+
+// Added document load handler
+const handleDocumentLoad = () => {
+  setDocumentLoading(false);
+};
+
+// Updated document case in renderPreview
+case 'document':
+  return (
+    <div className="w-full h-[80vh] rounded-2xl shadow-2xl shadow-bolt-black/20 overflow-hidden relative">
+      {documentLoading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 rounded-2xl backdrop-blur-sm">
+          <div className="flex flex-col items-center space-y-3">
+            <div className="relative">
+              <Loader2 className="w-8 h-8 text-bolt-blue animate-spin" />
+            </div>
+            <p className="text-sm font-medium text-bolt-blue">Loading document preview...</p>
+          </div>
+        </div>
+      )}
+      <iframe 
+        src={previewUrl} 
+        className="w-full h-full border-0" 
+        title={`Preview of ${fileName}`}
+        onLoad={handleDocumentLoad}
+        onError={handlePdfError}
+      />
+    </div>
+  );
+
+// Updated retry function
+const retry = () => {
+  // ... existing code ...
+  if (previewType === 'document') {
+    setDocumentLoading(true);
+  }
+  // ... existing code ...
+};
+```
+
+### Testing Verification
+
+- ✅ Document loading state properly initializes when preview starts
+- ✅ Loading overlay appears immediately when "Preview document" is clicked
+- ✅ Loading overlay automatically disappears when document is fully loaded
+- ✅ Error handling still works correctly with loading states
+- ✅ Retry functionality properly resets document loading state
+- ✅ Visual design matches existing image loading overlay style
+- ✅ Loading indicator provides clear user feedback during document loading
+
+### Related Issues
+
+- Issue 7: File Preview Visibility for Non-Previewable Files
+- Issue 4: Audio Preview Seeking Not Working
+- Issue 6: Audio State Management During Seeking
+
+---
+
+## Summary for Issue 8
+
+**Problem**: Document previews showed no loading indicator, leaving users with empty space during document loading
+
+**Solution**: Added comprehensive loading state management with visual feedback overlay for document previews
+
+**Outcome**: Professional user experience with clear loading indicators that match existing UI patterns
+
+---
+
 ## Template for Future Issues
 
 When adding new issues, use this template:
