@@ -22,7 +22,7 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
   const [audioError, setAudioError] = useState(false);
   const [pdfError, setPdfError] = useState(false);
   const [previewMetadata, setPreviewMetadata] = useState<any>(null);
-  const [imageLoading, setImageLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(previewType === 'image' || previewType === 'thumbnail');
   const [retryCount, setRetryCount] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -38,6 +38,12 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
 
     setLoading(true);
     setError(null);
+    
+    // Set image loading state for image previews
+    if (previewType === 'image' || previewType === 'thumbnail') {
+      setImageLoading(true);
+    }
+    
     loadPreviewMetadata();
   }, [fileId, previewType]);
 
@@ -135,7 +141,12 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
     setImageError(false);
     setAudioError(false);
     setPdfError(false);
-    setImageLoading(false);
+    
+    // Reset image loading state for image previews
+    if (previewType === 'image' || previewType === 'thumbnail') {
+      setImageLoading(true);
+    }
+    
     setRetryCount(prev => prev + 1);
     if (previewType === 'text') {
       loadTextContent();
@@ -152,7 +163,7 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="flex flex-col items-center space-y-4">
                 <Loader2 className="w-8 h-8 text-bolt-blue animate-spin" />
-                <p className="text-sm text-bolt-cyan">Loading image preview...</p>
+                <p className="text-sm text-bolt-blue">Loading image preview...</p>
               </div>
             </div>
           </div>
@@ -171,9 +182,9 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
   };
 
   const renderPreview = () => {
-    if (loading) {
-      return <SkeletonLoader type={previewType} />;
-    }
+    // if (loading) {
+    //   return <SkeletonLoader type={previewType} />;
+    // } 
 
     if (error) {
       return (
@@ -221,19 +232,22 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
           );
         }
         return (
-          <div className="flex justify-center">
+          <div className="flex justify-center relative min-h-[50vh]">
             {imageLoading && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 rounded-2xl">
-                <div className="flex flex-col items-center space-y-2">
-                  <Loader2 className="w-6 h-6 text-bolt-blue animate-spin" />
-                  <p className="text-sm text-bolt-cyan">Loading image...</p>
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 rounded-2xl backdrop-blur-sm">
+                <div className="flex flex-col items-center space-y-3">
+                  <div className="relative">
+                    <Loader2 className="w-8 h-8 text-bolt-blue animate-spin" />
+                  </div>
+                  <p className="text-sm font-medium text-bolt-blue">Loading image preview...</p>
                 </div>
               </div>
             )}
             <img 
               src={previewUrl} 
               alt={`Preview of ${fileName}`} 
-              className="max-w-full max-h-[70vh] rounded-2xl shadow-2xl shadow-bolt-black/20 relative"
+              className="max-w-full max-h-[70vh] rounded-2xl shadow-2xl shadow-bolt-black/20 transition-opacity duration-300"
+              style={{ opacity: imageLoading ? 0.3 : 1 }}
               onLoad={() => setImageLoading(false)}
               onLoadStart={() => setImageLoading(true)}
               onError={handleImageError}

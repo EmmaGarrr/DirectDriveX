@@ -1,8 +1,7 @@
 # DirectDriveX Design System
 
 ## Overview
-This design system ensures visual consistency across all pages of the DirectDriveX application. It defines standardized design tokens, component patterns, and implementation guidelines using Tailwind CSS exclusively.
-
+This design system ensures visual consistency across all pages of the DirectDriveX application. It defines standardized design tokens, component patterns, and implementation guidelines using Tailwind CSS exclusively.!!!!!
 ## Design Tokens
 
 ### Colors
