@@ -454,6 +454,81 @@ const [wasPlayingBeforeSeek, setWasPlayingBeforeSeek] = useState(false);
 
 ---
 
+## Issue 7: File Preview Visibility for Non-Previewable Files
+
+**Date**: 2025-09-11  
+**Component**: DownloadCard.tsx  
+**Files Affected**:
+
+- `frontend/src/components/download/DownloadCard.tsx`
+
+### Problem Description
+
+The download page was showing preview messages for ALL file types, even those that don't support preview functionality. Users saw "Preview is not available for this file type" messages for files like ZIP, RAR, EXE, and Office documents, creating a confusing user experience.
+
+### Root Cause Analysis
+
+1. **Conditional Logic Issue**: The DownloadCard component used a ternary operator that showed an else block with preview messages when `previewMeta.preview_available` was false
+2. **Unnecessary UI Elements**: Non-previewable files were still getting preview-related UI elements instead of just showing the download button
+3. **Poor User Experience**: Users were presented with preview options that weren't functional, leading to confusion
+
+### Solution Applied
+
+#### 1. Simplified Conditional Rendering
+
+- **Before**: Used ternary operator with else block showing preview messages
+- **After**: Changed to conditional rendering with `&&` operator
+- **Purpose**: Only show preview button when preview is actually available
+
+#### 2. Removed Preview Messages for Non-Previewable Files
+
+- **Removed**: The entire else block that showed "Preview is not available for this file type" messages
+- **Result**: Clean UI with only download button for non-previewable files
+- **Benefit**: Users see only relevant options for their file type
+
+### Code Changes Summary
+
+```typescript
+// BEFORE (lines 68-85)
+{previewMeta.preview_available ? (
+  <button>Preview button with toggle functionality</button>
+) : (
+  <div className="p-4 text-center bg-gradient-to-br from-bolt-cyan/10 to-bolt-blue/10 rounded-xl border border-bolt-blue/20">
+    <p className="text-sm text-bolt-cyan">{previewMeta.message || 'Preview is not available for this file type.'}</p>
+  </div>
+)}
+
+// AFTER (lines 68-81)
+{previewMeta.preview_available && (
+  <button>Preview button with toggle functionality</button>
+)}
+```
+
+### Testing Verification
+
+- ✅ Previewable files (images, videos, audio, PDF, text) show both preview and download buttons
+- ✅ Non-previewable files (ZIP, RAR, EXE, Office docs) show only download button
+- ✅ No preview messages appear for unsupported file types
+- ✅ Download functionality works for all file types
+- ✅ Preview toggle functionality works correctly for supported file types
+
+### Related Issues
+
+- Issue 4: Audio Preview Seeking Not Working
+- Issue 6: Audio State Management During Seeking
+
+---
+
+## Summary for Issue 7
+
+**Problem**: Download page showed unnecessary preview messages for non-previewable file types
+
+**Solution**: Simplified conditional rendering to only show preview options when available
+
+**Outcome**: Clean, intuitive UI where users only see relevant options for their file type
+
+---
+
 ## Template for Future Issues
 
 When adding new issues, use this template:
