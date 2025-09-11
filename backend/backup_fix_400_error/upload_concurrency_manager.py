@@ -49,90 +49,11 @@ class UploadConcurrencyManager:
         
         print(f"UploadConcurrencyManager initialized for {self.environment} environment with max {self.max_concurrent_users} concurrent users, {self.max_memory_usage_percent}% memory limit")
     
-    def _validate_state(self) -> bool:
-        """Validate the internal state of the concurrency manager"""
-        try:
-            # Check semaphores
-            if not hasattr(self, 'global_upload_semaphore'):
-                print("ERROR: Global upload semaphore missing")
-                return False
-            
-            if not hasattr(self, 'global_download_semaphore'):
-                print("ERROR: Global download semaphore missing")
-                return False
-            
-            # Check active uploads
-            if not hasattr(self, 'active_uploads'):
-                print("ERROR: Active uploads tracking missing")
-                return False
-            
-            # Validate active uploads
-            for file_id, slot in self.active_uploads.items():
-                if not isinstance(slot, UploadSlot):
-                    print(f"ERROR: Invalid slot type for {file_id}")
-                    return False
-                
-                if slot.file_size <= 0:
-                    print(f"ERROR: Invalid file size for {file_id}")
-                    return False
-            
-            # Check user semaphores
-            if not hasattr(self, 'user_upload_semaphores'):
-                print("ERROR: User upload semaphores missing")
-                return False
-            
-            return True
-        
-        except Exception as e:
-            print(f"ERROR: State validation failed: {e}")
-            return False
-    
-    def _cleanup_corrupted_state(self):
-        """Clean up any corrupted state"""
-        try:
-            # Reset corrupted semaphores
-            if not hasattr(self, 'global_upload_semaphore') or self.global_upload_semaphore._value > self.max_concurrent_users:
-                self.global_upload_semaphore = asyncio.Semaphore(self.max_concurrent_users)
-                print("Reset global upload semaphore")
-            
-            # Clear corrupted active uploads
-            if not hasattr(self, 'active_uploads'):
-                self.active_uploads = {}
-            else:
-                # Remove invalid slots
-                corrupted_slots = []
-                for file_id, slot in self.active_uploads.items():
-                    if not isinstance(slot, UploadSlot) or slot.file_size <= 0:
-                        corrupted_slots.append(file_id)
-                
-                for file_id in corrupted_slots:
-                    del self.active_uploads[file_id]
-                    print(f"Removed corrupted slot: {file_id}")
-            
-            # Reset user semaphores
-            if not hasattr(self, 'user_upload_semaphores'):
-                self.user_upload_semaphores = {}
-            
-            print("State cleanup completed")
-            
-        except Exception as e:
-            print(f"ERROR: State cleanup failed: {e}")
-    
     async def acquire_upload_slot(self, user_id: str, file_id: str, file_size: int) -> bool:
         """Check if user can start new upload and acquire slot"""
-        # Validate state before processing
-        if not self._validate_state():
-            print("WARNING: State validation failed, attempting cleanup...")
-            self._cleanup_corrupted_state()
-            
-            # Try validation again after cleanup
-            if not self._validate_state():
-                raise RuntimeError("Failed to validate upload concurrency manager state after cleanup")
-        
         async with self._lock:
             # Check memory availability first
-            required_memory = int(file_size * 0.1)  # Estimate 10% of file size
-            if not self._can_allocate_memory(required_memory):
+            if not self._can_allocate_memory(file_size):
                 return False
             
             # Check user limits (max 5 concurrent uploads per user)
@@ -169,35 +90,13 @@ class UploadConcurrencyManager:
                 return True
                 
             except Exception as e:
-                # If anything fails, release what we acquired and re-raise the exception
-                global_released = False
-                user_released = False
-                
-                try:
-                    if hasattr(self, 'global_upload_semaphore') and self.global_upload_semaphore._value < self.max_concurrent_users:
-                        self.global_upload_semaphore.release()
-                        global_released = True
-                except Exception as release_e:
-                    print(f"Warning: Failed to release global semaphore: {release_e}")
-                
-                try:
-                    if user_sem and user_sem._value < 5:
-                        user_sem.release()
-                        user_released = True
-                except Exception as release_e:
-                    print(f"Warning: Failed to release user semaphore: {release_e}")
-                
-                # Log detailed error information
-                print(f"Upload slot acquisition failed:")
-                print(f"  Exception: {type(e).__name__}: {e}")
-                print(f"  User ID: {user_id}")
-                print(f"  File ID: {file_id}")
-                print(f"  File size: {file_size}")
-                print(f"  Global semaphore released: {global_released}")
-                print(f"  User semaphore released: {user_released}")
-                
-                # Re-raise the exception instead of masking it
-                raise
+                # If anything fails, release what we acquired
+                if self.global_upload_semaphore._value < self.max_concurrent_users:
+                    self.global_upload_semaphore.release()
+                if user_sem._value < 5:
+                    user_sem.release()
+                print(f"Failed to acquire upload slot: {e}")
+                return False
     
     async def release_upload_slot(self, user_id: str, file_id: str):
         """Release upload slot and cleanup resources"""
