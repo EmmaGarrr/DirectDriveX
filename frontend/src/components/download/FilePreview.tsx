@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { EnhancedVideoPlayer } from './EnhancedVideoPlayer';
-import { EnhancedAudioPlayer } from './EnhancedAudioPlayer';
 import { fileService } from '@/services/fileService';
 import { analyticsService } from '@/services/analyticsService';
 import { AlertTriangle, RefreshCw, FileText, Image, Music, File, FileImage, Download, Loader2 } from 'lucide-react';
@@ -300,7 +299,16 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
             </div>
           );
         }
-        return <EnhancedAudioPlayer src={previewUrl} fileName={fileName} fileId={fileId} />;
+        return (
+          <div className="w-full max-w-2xl mx-auto">
+            <audio 
+              controls 
+              src={previewUrl} 
+              className="w-full h-16 shadow-lg rounded-xl"
+              onError={handleAudioError}
+            />
+          </div>
+        );
       
       case 'document':
         if (pdfError) {
