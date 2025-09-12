@@ -117,6 +117,7 @@ export class AuthService {
 
     const data = await response.json();
     localStorage.setItem('access_token', data.access_token);
+    window.dispatchEvent(new CustomEvent('authStateChanged'));
     return data;
   }
 
@@ -357,6 +358,7 @@ export class AuthService {
   logout(): void {
     try {
       localStorage.removeItem('access_token');
+      window.dispatchEvent(new CustomEvent('authStateChanged'));
       window.location.reload();
     } catch {
       // Handle case where localStorage is not available
