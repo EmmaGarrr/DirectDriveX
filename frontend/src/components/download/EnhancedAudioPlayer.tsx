@@ -77,18 +77,25 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
   }, [fileId]);
 
   const togglePlay = async () => {
-    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    if (!audio) return;
     
     try {
-      if (audioRef.current.paused) {
-        await audioRef.current.play();
+      // Check if audio is ready to play
+      if (audio.readyState < 2) { // HAVE_FUTURE_DATA = 2
+        console.warn('Audio not ready for playback');
+        return;
+      }
+
+      if (audio.paused) {
+        await audio.play();
         if (fileId && typeof window !== 'undefined') {
-          analyticsService.trackVideoControl(fileId, 'play', audioRef.current.currentTime);
+          analyticsService.trackVideoControl(fileId, 'play', audio.currentTime);
         }
       } else {
-        audioRef.current.pause();
+        audio.pause();
         if (fileId && typeof window !== 'undefined') {
-          analyticsService.trackVideoControl(fileId, 'pause', audioRef.current.currentTime);
+          analyticsService.trackVideoControl(fileId, 'pause', audio.currentTime);
         }
       }
     } catch (error) {
@@ -100,11 +107,22 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
   };
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!audioRef.current || !duration) return;
-    const seekTime = (e.nativeEvent.offsetX / e.currentTarget.offsetWidth) * duration;
-    audioRef.current.currentTime = seekTime;
-    if (fileId && typeof window !== 'undefined') {
-      analyticsService.trackVideoControl(fileId, 'seek', seekTime);
+    const audio = audioRef.current;
+    if (!audio || !duration) return;
+
+    try {
+      // Calculate seek time with bounds checking
+      const seekTime = Math.max(0, Math.min(duration, (e.nativeEvent.offsetX / e.currentTarget.offsetWidth) * duration));
+      
+      // Update current time
+      audio.currentTime = seekTime;
+      
+      // Track analytics if available
+      if (fileId && typeof window !== 'undefined') {
+        analyticsService.trackVideoControl(fileId, 'seek', seekTime);
+      }
+    } catch (error) {
+      console.error('Seek operation failed:', error);
     }
   };
 
@@ -124,20 +142,51 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
   };
 
   const restart = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    try {
+      // Check if audio is ready
+      if (!audio.duration || isNaN(audio.duration) || !isFinite(audio.duration)) {
+        console.warn('Audio duration not available for restart operation');
+        return;
+      }
+
+      // Reset to beginning
+      audio.currentTime = 0;
+      
+      // Track analytics if available
       if (fileId && typeof window !== 'undefined') {
         analyticsService.trackVideoControl(fileId, 'restart', 0);
       }
+    } catch (error) {
+      console.error('Restart operation failed:', error);
     }
   };
 
   const skip = (time: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime += time;
-      if (fileId && typeof window !== 'undefined') {
-        analyticsService.trackVideoControl(fileId, time > 0 ? 'skip_forward' : 'skip_backward', audioRef.current.currentTime);
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    try {
+      // Check if audio is ready and has duration
+      if (!audio.duration || isNaN(audio.duration) || !isFinite(audio.duration)) {
+        console.warn('Audio duration not available for skip operation');
+        return;
       }
+
+      // Calculate new time with bounds checking
+      const newTime = Math.max(0, Math.min(audio.duration, audio.currentTime + time));
+      
+      // Update current time
+      audio.currentTime = newTime;
+      
+      // Track analytics if available
+      if (fileId && typeof window !== 'undefined') {
+        analyticsService.trackVideoControl(fileId, time > 0 ? 'skip_forward' : 'skip_backward', newTime);
+      }
+    } catch (error) {
+      console.error('Skip operation failed:', error);
     }
   };
 
@@ -219,7 +268,7 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
           <div className="flex items-center gap-2">
             {/* Skip backward */}
             <button 
-              onClick={(e) => { e.stopPropagation(); skip(-10); }} 
+              onClick={() => skip(-10)} 
               className="p-2 bg-bolt-cyan/20 rounded-full backdrop-blur-md hover:bg-bolt-cyan/30 transition-all duration-200 hover:scale-110"
               title="Skip backward 10s"
             >
@@ -228,7 +277,7 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
 
             {/* Play/Pause */}
             <button 
-              onClick={(e) => { e.stopPropagation(); togglePlay(); }} 
+              onClick={togglePlay} 
               className="p-3 bg-bolt-blue/80 rounded-full backdrop-blur-md hover:bg-bolt-blue transition-all duration-200 hover:scale-110 shadow-lg"
               title={isPlaying ? "Pause" : "Play"}
             >
@@ -237,7 +286,7 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
 
             {/* Skip forward */}
             <button 
-              onClick={(e) => { e.stopPropagation(); skip(10); }} 
+              onClick={() => skip(10)} 
               className="p-2 bg-bolt-cyan/20 rounded-full backdrop-blur-md hover:bg-bolt-cyan/30 transition-all duration-200 hover:scale-110"
               title="Skip forward 10s"
             >
@@ -246,7 +295,7 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
 
             {/* Restart */}
             <button 
-              onClick={(e) => { e.stopPropagation(); restart(); }} 
+              onClick={restart} 
               className="p-2 bg-bolt-cyan/20 rounded-full backdrop-blur-md hover:bg-bolt-cyan/30 transition-all duration-200 hover:scale-110"
               title="Restart"
             >
@@ -258,7 +307,7 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
             {/* Volume control */}
             <div className="flex items-center gap-2">
               <button 
-                onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                onClick={toggleMute}
                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
                 title={isMuted ? "Unmute" : "Mute"}
               >
@@ -270,7 +319,7 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
                 max="1" 
                 step="0.01" 
                 value={isMuted ? 0 : volume} 
-                onChange={(e) => { e.stopPropagation(); handleVolumeChange(e); }} 
+                onChange={handleVolumeChange} 
                 className="w-24 h-1 accent-bolt-blue bg-bolt-black/40 rounded-full"
                 title="Volume"
               />
