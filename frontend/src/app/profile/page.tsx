@@ -18,19 +18,22 @@ import {
   AlertTriangle,
   RefreshCw,
   Zap,
+  Cloud,
+  Download,
+  Upload,
+  Share2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { authService, User as AuthUser, PasswordChangeData } from "@/services/authService";
 import { toastService } from "@/services/toastService";
 
 // Premium features list
 const premiumFeatures = [
   "Unlimited storage",
-  "ZIP download for multiple files", 
+  "ZIP download for multiple files",
   "Batch upload capabilities",
   "Advanced sharing options",
-  "Priority customer support",
-  "Secure cloud storage with Google Drive integration"
 ];
 
 export default function ProfilePage() {
@@ -57,14 +60,16 @@ export default function ProfilePage() {
   const [hideNewPassword, setHideNewPassword] = useState(true);
   const [hideConfirmPassword, setHideConfirmPassword] = useState(true);
   const [passwordUpdateLoading, setPasswordUpdateLoading] = useState(false);
-  
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isModalClosing, setIsModalClosing] = useState(false);
+
   const router = useRouter();
 
   // Load user profile from AuthService
   const loadUserProfile = async () => {
     setProfileLoading(true);
     setProfileError(false);
-    
+
     try {
       const userData = await authService.loadUserProfile();
       setUser(userData);
@@ -74,14 +79,14 @@ export default function ProfilePage() {
         router.push('/login');
         return;
       }
-      
+
       setProfileError(true);
       toastService.error('Failed to load profile. Please try again.', 2500);
     } finally {
       setProfileLoading(false);
     }
   };
-  
+
   // Check authentication and load profile on mount
   useEffect(() => {
     // CRITICAL: Check authentication first
@@ -89,11 +94,11 @@ export default function ProfilePage() {
       router.push('/login');
       return;
     }
-    
+
     // CRITICAL: Always load fresh user data from API
     loadUserProfile();
   }, []);
-  
+
   // Retry loading profile
   const retryLoadProfile = () => {
     loadUserProfile();
@@ -106,7 +111,7 @@ export default function ProfilePage() {
     }
     return '';
   };
-  
+
   const getNewPasswordErrorMessage = (): string => {
     if (!passwordForm.newPassword) {
       return 'New password is required';
@@ -116,7 +121,7 @@ export default function ProfilePage() {
     }
     return '';
   };
-  
+
   const getConfirmPasswordErrorMessage = (): string => {
     if (!passwordForm.confirmPassword) {
       return 'Please confirm your new password';
@@ -126,21 +131,24 @@ export default function ProfilePage() {
     }
     return '';
   };
-  
+
   // Form handlers
   const handlePasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPasswordForm(prev => ({ ...prev, [name]: value }));
-    
+
     // Clear error when user starts typing
     if (passwordErrors[name as keyof typeof passwordErrors]) {
       setPasswordErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
-  
+
   const handlePasswordInputBlur = (field: keyof typeof passwordForm) => {
+    // Skip validation if modal is closing
+    if (isModalClosing) return;
+
     setPasswordTouched(prev => ({ ...prev, [field]: true }));
-    
+
     // Validate on blur
     let error = '';
     if (field === 'currentPassword') {
@@ -150,46 +158,47 @@ export default function ProfilePage() {
     } else if (field === 'confirmPassword') {
       error = getConfirmPasswordErrorMessage();
     }
-    
+
     setPasswordErrors(prev => ({ ...prev, [field]: error }));
   };
-  
+
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Mark all fields as touched
     setPasswordTouched({
       currentPassword: true,
       newPassword: true,
       confirmPassword: true
     });
-    
+
     // Validate form
     const errors = {
       currentPassword: getCurrentPasswordErrorMessage(),
       newPassword: getNewPasswordErrorMessage(),
       confirmPassword: getConfirmPasswordErrorMessage()
     };
-    
+
     setPasswordErrors(errors);
-    
+
     if (Object.values(errors).some(error => error !== '')) {
       return;
     }
-    
+
     setPasswordUpdateLoading(true);
     try {
       const passwordData: PasswordChangeData = {
         current_password: passwordForm.currentPassword,
         new_password: passwordForm.newPassword
       };
-      
+
       await authService.changePassword(passwordData);
       toastService.success('Password changed successfully!', 2500);
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setPasswordErrors({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setPasswordTouched({ currentPassword: false, newPassword: false, confirmPassword: false });
       setIsChangingPassword(false);
+      setIsPasswordModalOpen(false);
     } catch (error: any) {
       console.error('Password change error:', error);
       toastService.error(error.message || 'Failed to change password', 2500);
@@ -201,42 +210,42 @@ export default function ProfilePage() {
   // Utility functions matching Angular exactly
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 B';
-    
+
     const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    
+
     if (i >= sizes.length) {
       return `${(bytes / Math.pow(1024, sizes.length - 1)).toFixed(2)} ${sizes[sizes.length - 1]}`;
     }
-    
+
     return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 2)} ${sizes[i]}`;
   };
-  
+
   const getMemberSinceDate = (): string => {
     if (!user) return 'Loading...';
-    
+
     if (user.created_at) {
       return new Date(user.created_at).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long'
       });
     }
-    
+
     return new Date().toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long'
     });
   };
-  
+
   const getAccountType = (): string => {
     return 'Basic';
   };
-  
+
   // Navigation functions
   const navigateHome = () => {
     router.push('/');
   };
-  
+
   const handleLogout = async () => {
     const confirmLogout = confirm('Are you sure you want to logout?');
     if (confirmLogout) {
@@ -246,17 +255,18 @@ export default function ProfilePage() {
       router.push('/');
     }
   };
-  
+
   const togglePasswordChange = () => {
-    setIsChangingPassword(!isChangingPassword);
-    if (!isChangingPassword) {
+    setIsPasswordModalOpen(!isPasswordModalOpen);
+    if (!isPasswordModalOpen) {
       // Reset form when opening
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setPasswordErrors({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setPasswordTouched({ currentPassword: false, newPassword: false, confirmPassword: false });
+      setIsModalClosing(false);
     }
   };
-  
+
   const handleFeatureComingSoon = (feature: string) => {
     toastService.info(`${feature} feature coming soon`, 2500);
   };
@@ -266,32 +276,97 @@ export default function ProfilePage() {
 
   const renderLoadingState = () => (
     <div className="space-y-6 animate-pulse">
-      <div className={cn(cardClasses, "flex items-center space-x-4")}>
-        <div className="w-12 h-12 bg-bolt-light-blue rounded-full"></div>
-        <div className="flex-1 space-y-2">
-          <div className="h-4 bg-bolt-light-blue rounded w-3/4"></div>
-          <div className="h-3 bg-bolt-light-blue rounded w-1/2"></div>
+      {/* Page Header Skeleton */}
+      <div className="mb-8 space-y-2">
+        <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+      </div>
+
+      {/* User Overview Card Skeleton */}
+      <div className={cn(cardClasses, "flex flex-col md:flex-row items-center justify-between gap-4")}>
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+          <div className="flex-1 space-y-2">
+            <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-5 bg-gray-200 rounded-full w-24"></div>
+          </div>
+        </div>
+        <div className="h-10 bg-gray-200 rounded-lg w-32"></div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Storage Usage Card Skeleton */}
+        <div className={cn(cardClasses, "space-y-4")}>
+          <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+          <div className="border-t border-gray-200 pt-4">
+            <div className="h-4 bg-gray-200 rounded w-1/3 mb-3"></div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+                <div className="h-3 bg-gray-200 rounded w-16"></div>
+              </div>
+              <div className="flex justify-between">
+                <div className="h-3 bg-gray-200 rounded w-1/5"></div>
+                <div className="h-3 bg-gray-200 rounded w-14"></div>
+              </div>
+              <div className="flex justify-between">
+                <div className="h-3 bg-gray-200 rounded w-1/6"></div>
+                <div className="h-3 bg-gray-200 rounded w-12"></div>
+              </div>
+              <div className="flex justify-between">
+                <div className="h-3 bg-gray-200 rounded w-1/5"></div>
+                <div className="h-3 bg-gray-200 rounded w-10"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Account Information Card Skeleton */}
+        <div className={cn(cardClasses, "space-y-4")}>
+          <div className="h-6 bg-gray-200 rounded w-2/5"></div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/5"></div>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className={cn(cardClasses, "space-y-4")}>
-          <div className="h-6 bg-bolt-light-blue rounded w-1/2"></div>
-          <div className="h-4 bg-bolt-light-blue rounded w-full"></div>
-          <div className="h-4 bg-bolt-light-blue rounded w-full"></div>
-          <div className="h-4 bg-bolt-light-blue rounded w-5/6"></div>
-        </div>
-        <div className={cn(cardClasses, "space-y-4")}>
-          <div className="h-6 bg-bolt-light-blue rounded w-1/2"></div>
-          <div className="h-4 bg-bolt-light-blue rounded w-full"></div>
-          <div className="h-4 bg-bolt-light-blue rounded w-full"></div>
-          <div className="h-4 bg-bolt-light-blue rounded w-5/6"></div>
+
+      {/* Premium Features Card Skeleton */}
+      <div className={cn(cardClasses, "md:col-span-2")}>
+        <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+        <div className="h-3 bg-gray-200 rounded w-2/3 mb-4"></div>
+        <div className="grid sm:grid-cols-2 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center space-x-2 border border-gray-200 rounded-lg p-3">
+              <div className="w-4 h-4 bg-gray-200 rounded"></div>
+              <div className="h-3 bg-gray-200 rounded flex-1"></div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 
   const renderErrorState = () => (
-    <div className={cardClasses}>
+    <>
+      {/* Page Header Skeleton */}
+      <div className="mb-8 space-y-2 animate-pulse">
+        <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+      </div>
+      <div className={cardClasses}>
       <div className="text-center py-8">
         <AlertTriangle className="w-10 h-10 text-bolt-blue mx-auto mb-4" />
         <h3 className="text-xl font-semibold text-bolt-black mb-2">
@@ -309,21 +384,39 @@ export default function ProfilePage() {
         </button>
       </div>
     </div>
+    </>
   );
 
   const renderProfile = () => (
-    <div className="space-y-6">
+    <>
+      {/* Page Header */}
+      <div className="mb-8 space-y-2">
+        <h1 className="text-3xl font-bold text-bolt-black">User Profile</h1>
+        <p className="text-bolt-medium-black">
+          Manage your account settings and storage
+        </p>
+      </div>
+      
+      <div className="space-y-6">
       {/* User Overview Card */}
-      <div className={cn(cardClasses, "flex items-center space-x-4")}>
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-bolt-blue to-bolt-mid-blue flex items-center justify-center">
-          <User className="w-6 h-6 text-white" />
+      <div className={cn(cardClasses, "flex flex-col md:flex-row items-center justify-between gap-4")}>
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-bolt-blue to-bolt-mid-blue flex items-center justify-center">
+            <User className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-bolt-black">{user?.email || "Loading..."}</h3>
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-blue-300 text-white mt-1">
+              ⭐ {getAccountType()} Account
+            </span>
+          </div>
         </div>
-        <div>
-          <h3 className="text-lg font-semibold text-bolt-black">{user?.email || "Loading..."}</h3>
-          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-blue-300 text-white mt-1">
-            ⭐ {getAccountType()} Account
-          </span>
-        </div>
+        <button
+          onClick={togglePasswordChange}
+          className="px-3 py-1 text-sm bg-bolt-blue text-white rounded-lg hover:bg-bolt-blue/90 transition-colors h-10"
+        >
+          Change Password
+        </button>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -378,18 +471,18 @@ export default function ProfilePage() {
             </h3>
           </div>
           <div className="space-y-3 text-sm">
-                      <div>
-            <label className="text-sm text-gray-500 font-medium">Email Address</label>
-            <p className="text-bolt-black">{user?.email || "Loading..."}</p>
-          </div>
-          <div>
-            <label className="text-sm text-gray-500 font-medium">Account Type</label>
-            <p className="text-bolt-black">{getAccountType()} Account</p>
-          </div>
-          <div>
-            <label className="text-sm text-gray-500 font-medium">Member Since</label>
-            <p className="text-bolt-black">{getMemberSinceDate()}</p>
-          </div>
+            <div>
+              <label className="text-sm text-gray-500 font-medium">Email Address</label>
+              <p className="text-bolt-black">{user?.email || "Loading..."}</p>
+            </div>
+            <div>
+              <label className="text-sm text-gray-500 font-medium">Account Type</label>
+              <p className="text-bolt-black">{getAccountType()} Account</p>
+            </div>
+            <div>
+              <label className="text-sm text-gray-500 font-medium">Member Since</label>
+              <p className="text-bolt-black">{getMemberSinceDate()}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -406,30 +499,49 @@ export default function ProfilePage() {
           You have access to all premium features.
         </p>
         <div className="grid sm:grid-cols-2 gap-3">
-          {premiumFeatures.map((feature) => (
-            <div
-              key={feature}
-              className="flex items-center space-x-2 border border-border rounded-lg p-3"
-            >
-              <CheckCircle className="w-4 h-4 text-bolt-cyan" />
-              <span className="text-sm text-bolt-black">{feature}</span>
-            </div>
-          ))}
+          {premiumFeatures.map((feature, index) => {
+            const icons = [Cloud, Download, Upload, Share2];
+            const IconComponent = icons[index];
+            return (
+              <div
+                key={feature}
+                className="flex items-center space-x-2 border border-slate-200 rounded-lg p-3"
+              >
+                <IconComponent className="w-4 h-4 text-bolt-blue" />
+                <span className="text-sm text-bolt-black">{feature}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
+    </div>
+    </>
+  );
 
-      {/* Password Change Form */}
-      {isChangingPassword && (
-        <div className={cn(cardClasses, "md:col-span-2")}>
-          <div className="flex items-center space-x-2 mb-4">
-            <h3 className="text-lg font-semibold text-bolt-black">
-              Change Password
-            </h3>
-          </div>
+  return (
+    <div className="min-h-screen">
+      <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-slate-50 to-white font-[family-name:var(--font-geist-sans)] -z-10" />
+      <main className="relative z-10 max-w-6xl mx-auto px-4 py-8">
+        {profileLoading
+          ? renderLoadingState()
+          : profileError
+            ? renderErrorState()
+            : renderProfile()}
+      </main>
+
+      {/* Password Change Popup - Moved outside render functions */}
+      <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
+        <DialogContent className="sm:max-w-md backdrop-blur-md bg-white border border-white/20 rounded-2xl shadow-xl p-6 data-[state=open]:slide-in-from-top-[48%] data-[state=closed]:slide-out-to-top-[48%]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2 text-bolt-black">
+              <Lock className="w-5 h-5" />
+              <span>Change Password</span>
+            </DialogTitle>
+          </DialogHeader>
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             {/* Current Password Field */}
             <div className="space-y-2">
-              <label htmlFor="currentPassword" className="text-sm font-medium text-slate-900">
+              <label htmlFor="currentPassword" className="text-sm font-medium text-slate-900 block">
                 Current Password
               </label>
               <div className="input-with-icon relative">
@@ -439,7 +551,7 @@ export default function ProfilePage() {
                   type={hideCurrentPassword ? "password" : "text"}
                   value={passwordForm.currentPassword}
                   onChange={handlePasswordInputChange}
-                  onBlur={() => handlePasswordInputBlur('currentPassword')}
+                  // onBlur={() => handlePasswordInputBlur('currentPassword')}
                   placeholder="Enter current password"
                   className={cn(
                     "w-full h-11 pl-10 pr-12 py-2 text-sm text-slate-900 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-bolt-blue/20 focus:border-bolt-blue transition-colors",
@@ -448,7 +560,6 @@ export default function ProfilePage() {
                       : "border-slate-300"
                   )}
                   autoComplete="current-password"
-                  required
                 />
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <button
@@ -466,10 +577,10 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-            
+
             {/* New Password Field */}
             <div className="space-y-2">
-              <label htmlFor="newPassword" className="text-sm font-medium text-slate-900">
+              <label htmlFor="newPassword" className="text-sm font-medium text-slate-900 block">
                 New Password
               </label>
               <div className="input-with-icon relative">
@@ -479,7 +590,7 @@ export default function ProfilePage() {
                   type={hideNewPassword ? "password" : "text"}
                   value={passwordForm.newPassword}
                   onChange={handlePasswordInputChange}
-                  onBlur={() => handlePasswordInputBlur('newPassword')}
+                  // onBlur={() => handlePasswordInputBlur('newPassword')}
                   placeholder="Enter new password"
                   className={cn(
                     "w-full h-11 pl-10 pr-12 py-2 text-sm text-slate-900 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-bolt-blue/20 focus:border-bolt-blue transition-colors",
@@ -488,7 +599,6 @@ export default function ProfilePage() {
                       : "border-slate-300"
                   )}
                   autoComplete="new-password"
-                  required
                 />
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <button
@@ -506,10 +616,10 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-            
+
             {/* Confirm New Password Field */}
             <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-900">
+              <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-900 block">
                 Confirm New Password
               </label>
               <div className="input-with-icon relative">
@@ -519,7 +629,7 @@ export default function ProfilePage() {
                   type={hideConfirmPassword ? "password" : "text"}
                   value={passwordForm.confirmPassword}
                   onChange={handlePasswordInputChange}
-                  onBlur={() => handlePasswordInputBlur('confirmPassword')}
+                  // onBlur={() => handlePasswordInputBlur('confirmPassword')}
                   placeholder="Confirm new password"
                   className={cn(
                     "w-full h-11 pl-10 pr-12 py-2 text-sm text-slate-900 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-bolt-blue/20 focus:border-bolt-blue transition-colors",
@@ -528,7 +638,6 @@ export default function ProfilePage() {
                       : "border-slate-300"
                   )}
                   autoComplete="new-password"
-                  required
                 />
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <button
@@ -546,126 +655,38 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-            
-            {/* Submit Button */}
-            <div className="flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={togglePasswordChange}
-                className="px-10 bg-gray-300 rounded-md text-bolt-black py-2"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={passwordUpdateLoading || Object.values(passwordErrors).some(error => error !== '')}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white cursor-pointer font-medium px-8 py-2 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-              >
-                {passwordUpdateLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Updating...
-                  </>
-                ) : (
-                  "Update Password"
-                )}
-              </button>
-            </div>
           </form>
-        </div>
-      )}
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Security & Privacy Card */}
-        <div className={cn(cardClasses, "space-y-4")}>
-          <div className="flex items-center space-x-3">
-            <Lock className="w-5 h-5 text-bolt-blue" />
-            <h3 className="text-lg font-semibold text-bolt-black">
-              Security & Privacy
-            </h3>
-          </div>
-          <div className="space-y-2">
+          {/* Submit Buttons */}
+          <div className="flex justify-end space-x-3 pt-4">
             <button
-              onClick={togglePasswordChange}
-              className="w-full flex items-center text-left p-3 rounded-lg hover:bg-slate-50 transition-colors border border-gray-300 shadow-sm"
+              type="button"
+              onClick={() => {
+                setIsModalClosing(true);
+                setIsPasswordModalOpen(false);
+              }}
+              className="px-10 bg-gray-300 rounded-md text-bolt-black py-2 rounded-xl"
             >
-              <Lock className="w-4 h-4 mr-3 text-bolt-blue" />
-              <span className="text-sm text-bolt-black">
-                {isChangingPassword ? "Cancel Password Change" : "Change Password"}
-              </span>
+              Cancel
             </button>
             <button
-              onClick={() => handleFeatureComingSoon('Two-Factor Authentication')}
-              disabled
-              className="w-full flex items-center text-left p-3 rounded-lg hover:bg-slate-50 transition-colors border border-gray-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
+              onClick={handlePasswordSubmit}
+              disabled={passwordUpdateLoading || Object.values(passwordErrors).some(error => error !== '')}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 text-white cursor-pointer font-medium px-10 py-2 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
             >
-              <Lock className="w-4 h-4 mr-3 text-bolt-blue" />
-              <span className="text-sm text-bolt-black">
-                Two-Factor Authentication
-              </span>
-            </button>
-            <button
-              onClick={() => handleFeatureComingSoon('Download My Data')}
-              disabled
-              className="w-full flex items-center text-left p-3 rounded-lg hover:bg-slate-50 transition-colors border border-gray-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Loader2 className="w-4 h-4 mr-3 text-bolt-blue" />
-              <span className="text-sm text-bolt-black">
-                Download My Data
-              </span>
+              {passwordUpdateLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Updating...
+                </>
+              ) : (
+                "Update"
+              )}
             </button>
           </div>
-        </div>
-
-        {/* Quick Actions Card */}
-        <div className={cn(cardClasses, "space-y-4")}>
-          <div className="flex items-center space-x-3">
-            <Zap className="w-5 h-5 text-bolt-blue" />
-            <h3 className="text-lg font-semibold text-bolt-black">
-              Quick Actions
-            </h3>
-          </div>
-          <div className="space-y-3">
-            <button 
-              onClick={navigateHome}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium px-8 py-2 rounded-xl transition-all"
-            >
-              Back to Home
-            </button>
-            <button 
-              onClick={navigateHome}
-              className="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-bolt-blue border border-bolt-blue hover:bg-bolt-blue/10 rounded-lg transition-colors"
-            >
-              Manage Files
-            </button>
-            <button 
-              onClick={handleLogout}
-              className="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-red-600 border border-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen">
-      <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-bolt-white to-bolt-light-blue -z-10" />
-      <main className="relative z-10 max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8 space-y-2">
-          <h1 className="text-3xl font-bold text-bolt-black">User Profile</h1>
-          <p className="text-bolt-medium-black">
-            Manage your account settings and storage
-          </p>
-        </div>
-        {profileLoading
-          ? renderLoadingState()
-          : profileError
-          ? renderErrorState()
-          : renderProfile()}
-      </main>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
