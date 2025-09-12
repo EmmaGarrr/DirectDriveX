@@ -670,6 +670,36 @@ const retry = () => {
 
 ---
 
+## Issue 9: Text Loading State Implementation
+
+- **Date**: 2025-01-09
+- **Status**: Completed
+- **Component**: FilePreview.tsx  
+- **Description**: Text file previews need loading state to show loading indicators while text content loads from backend, similar to image and document loading states
+- **Root Cause**: Currently, text previews show empty space while loading, providing poor user experience
+- **Solution Applied**: Implement text loading state following the same pattern as images and documents
+- **Code Changes**: 
+  - Add `textLoading` state variable: `const [textLoading, setTextLoading] = useState(previewType === 'text');`
+  - Update useEffect to set initial text loading state when previewType is 'text'
+  - Modify `loadTextContent` function to manage loading state from start to finish with `setTextLoading(false)` in finally block
+  - Add loading overlay to text preview case with consistent styling and message "Loading text preview..."
+  - Update retry function to reset text loading state for retry attempts
+- **Testing**: Implementation follows proven pattern from image and document loading states
+- **Related Issues**: Issue 8 (Document Loading State) - same pattern used for consistency
+- **Verification**: Code committed, consistent loading experience now available across all preview types (image, document, text)
+
+---
+
+## Summary for Issue 9
+
+**Problem**: Text previews showed empty space while loading from backend, providing poor user experience
+
+**Solution**: Implemented text loading state with visual overlay following the same pattern as image and document loading states
+
+**Outcome**: Consistent loading experience across all preview types with clear visual feedback during text content loading
+
+---
+
 ## Template for Future Issues
 
 When adding new issues, use this template:
