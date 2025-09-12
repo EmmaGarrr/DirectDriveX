@@ -24,6 +24,7 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
   const [previewMetadata, setPreviewMetadata] = useState<any>(null);
   const [imageLoading, setImageLoading] = useState(previewType === 'image' || previewType === 'thumbnail');
   const [documentLoading, setDocumentLoading] = useState(previewType === 'document');
+  const [textLoading, setTextLoading] = useState(previewType === 'text');
   const [retryCount, setRetryCount] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -48,6 +49,11 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
     // Set document loading state for document previews
     if (previewType === 'document') {
       setDocumentLoading(true);
+    }
+    
+    // Set text loading state for text previews
+    if (previewType === 'text') {
+      setTextLoading(true);
     }
     
     loadPreviewMetadata();
@@ -115,6 +121,7 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
       setError('Failed to load text content');
     } finally {
       setLoading(false);
+      setTextLoading(false);
     }
   };
 
@@ -160,6 +167,11 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
     // Reset document loading state for document previews
     if (previewType === 'document') {
       setDocumentLoading(true);
+    }
+    
+    // Reset text loading state for text previews
+    if (previewType === 'text') {
+      setTextLoading(true);
     }
     
     setRetryCount(prev => prev + 1);
@@ -324,7 +336,17 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
       case 'text':
         return (
           <div className="w-full max-w-4xl mx-auto">
-            <div className="p-6 border shadow-lg bg-bolt-black/5 rounded-2xl border-bolt-cyan/20">
+            <div className="p-6 border shadow-lg bg-bolt-black/5 rounded-2xl border-bolt-cyan/20 relative">
+              {textLoading && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 rounded-2xl backdrop-blur-sm">
+                  <div className="flex flex-col items-center space-y-3">
+                    <div className="relative">
+                      <Loader2 className="w-8 h-8 text-bolt-blue animate-spin" />
+                    </div>
+                    <p className="text-sm font-medium text-bolt-blue">Loading text preview...</p>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center gap-2 mb-4">
                 <FileText className="w-5 h-5 text-bolt-blue" />
                 <h3 className="font-semibold text-bolt-black">Text Preview</h3>
