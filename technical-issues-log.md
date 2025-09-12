@@ -700,6 +700,212 @@ const retry = () => {
 
 ---
 
+## Issue 10: Image Loading Indicator Race Condition
+
+**Date**: 2025-01-12  
+**Component**: FilePreview.tsx  
+**Files Affected**:
+
+- `frontend/src/components/download/FilePreview.tsx`
+
+### Problem Description
+
+When users clicked "Preview image", the loading indicator appeared for a very short time and then disappeared immediately, leaving a black space before the image actually rendered. The loading indicator should remain visible until the image is completely rendered, providing continuous visual feedback throughout the loading process.
+
+### Root Cause Analysis
+
+1. **Race Condition**: The `loadPreviewMetadata()` function called `setLoading(false)` immediately after metadata loaded (line 81), but this happened before the image actually started loading via the `<img>` element
+2. **Conflicting State Changes**: The image element's `onLoadStart` and `onLoad` events created conflicting state changes with the metadata loading completion
+3. **Premature State Update**: Loading state was set to `false` at metadata completion rather than at actual image rendering completion
+4. **Poor Image Loading Lifecycle Management**: The system didn't properly account for the full image loading lifecycle (metadata → request → download → decode → render)
+
+### Solution Applied
+
+#### 1. Smart Metadata Loading Logic
+
+Modified `loadPreviewMetadata()` to use type-aware loading state management:
+
+```typescript
+// Before: Premature setLoading(false) for all types
+} else {
+  setLoading(false);  // ❌ Caused race condition for images
+}
+
+// After: Type-aware loading state management  
+} else if (previewType === 'image' || previewType === 'thumbnail') {
+  // For images, let the image element handle loading state via onLoadStart/onLoad
+  // Don't call setLoading(false) here to prevent race condition
+  console.log('[Image Loading] Metadata loaded, waiting for image to start loading...');
+} else {
+  setLoading(false);  // ✅ Only for non-image types
+}
+```
+
+#### 2. Enhanced Image Event Handlers
+
+Created dedicated image loading event handlers with proper state management:
+
+```typescript
+const handleImageLoadStart = () => {
+  console.log('[Image Loading] Image started loading for:', fileId);
+  setLoadingWithMinimumTime(true);
+};
+
+const handleImageLoad = () => {
+  console.log('[Image Loading] Image fully loaded for:', fileId);
+  setLoadingWithMinimumTime(false);
+};
+
+const handleImageError = () => {
+  console.error('[Image Loading] Image preview failed for:', fileId);
+  setError('Unable to load image preview. Please try downloading the file.');
+  setLoadingWithMinimumTime(false); // Ensure loading state is cleared on error
+};
+```
+
+#### 3. Minimum Loading Time System
+
+Implemented minimum loading time to prevent flickering for quickly loading images:
+
+```typescript
+// Minimum loading time to prevent flickering (800ms)
+const MIN_LOADING_TIME = 800;
+
+const setLoadingWithMinimumTime = (shouldLoad: boolean) => {
+  if (shouldLoad) {
+    setLoadingStartTime(Date.now());
+    setLoading(true);
+  } else {
+    const elapsed = Date.now() - loadingStartTime;
+    const remaining = Math.max(0, MIN_LOADING_TIME - elapsed);
+    
+    if (remaining > 0) {
+      setTimeout(() => setLoading(false), remaining);
+    } else {
+      setLoading(false);
+    }
+  }
+};
+```
+
+#### 4. Updated Image Element Event Binding
+
+Modified the image element to use the enhanced event handlers:
+
+```typescript
+<img 
+  src={previewUrl} 
+  alt={`Preview of ${fileName}`} 
+  className="max-w-full max-h-[70vh] rounded-2xl shadow-2xl shadow-bolt-black/20 transition-opacity duration-300"
+  style={{ opacity: loading ? 0.3 : 1 }}
+  onLoad={handleImageLoad}
+  onLoadStart={handleImageLoadStart}
+  onError={handleImageError}
+/>
+```
+
+#### 5. Comprehensive Debug Logging
+
+Added extensive logging to track loading state changes and timing:
+
+```typescript
+const setLoadingWithMinimumTime = (shouldLoad: boolean) => {
+  console.log(`[Image Loading] setLoadingWithMinimumTime called with: ${shouldLoad}, current loading state: ${loading}`);
+  
+  if (shouldLoad) {
+    setLoadingStartTime(Date.now());
+    setLoading(true);
+    console.log(`[Image Loading] Loading started at ${loadingStartTime}`);
+  } else {
+    const elapsed = Date.now() - loadingStartTime;
+    const remaining = Math.max(0, MIN_LOADING_TIME - elapsed);
+    
+    console.log(`[Image Loading] Loading duration: ${elapsed}ms, minimum required: ${MIN_LOADING_TIME}ms`);
+    
+    if (remaining > 0) {
+      console.log(`[Image Loading] Waiting ${remaining}ms to meet minimum loading time`);
+      setTimeout(() => {
+        console.log(`[Image Loading] Loading completed after minimum time`);
+        setLoading(false);
+        setLoadingStartTime(null);
+      }, remaining);
+    } else {
+      console.log(`[Image Loading] Loading completed immediately (elapsed: ${elapsed}ms)`);
+      setLoading(false);
+      setLoadingStartTime(null);
+    }
+  }
+};
+```
+
+### Code Changes Summary
+
+```typescript
+// Added new state variable for loading timing
+const [loadingStartTime, setLoadingStartTime] = useState<number | null>(null);
+
+// Minimum loading time constant
+const MIN_LOADING_TIME = 800;
+
+// Enhanced loading function with minimum time
+const setLoadingWithMinimumTime = (shouldLoad: boolean) => { /* implementation */ };
+
+// Updated metadata loading logic
+const loadPreviewMetadata = async () => {
+  // ... existing logic ...
+  if (previewType === 'text') {
+    await loadTextContent();
+  } else if (previewType === 'image' || previewType === 'thumbnail') {
+    // For images, let the image element handle loading state via onLoadStart/onLoad
+    console.log('[Image Loading] Metadata loaded, waiting for image to start loading...');
+  } else {
+    setLoading(false);
+  }
+  // ... existing logic ...
+};
+
+// New image-specific event handlers
+const handleImageLoadStart = () => { /* implementation */ };
+const handleImageLoad = () => { /* implementation */ };
+const handleImageError = () => { /* implementation */ };
+
+// Updated useEffect to use new loading function
+useEffect(() => {
+  setLoadingWithMinimumTime(true);
+  setError(null);
+  loadPreviewMetadata();
+}, [fileId, previewType]);
+```
+
+### Testing Verification
+
+- ✅ Loading indicator remains visible until image is fully rendered
+- ✅ No more "black space" between loading indicator disappearance and image appearance
+- ✅ Minimum loading time prevents flickering for quickly loading images
+- ✅ Debug logging provides comprehensive visibility into loading state changes
+- ✅ Error handling properly clears loading state on image load failures
+- ✅ Retry functionality works correctly with new loading state management
+- ✅ All other preview types (document, text, video, audio) continue to work as expected
+- ✅ Professional user experience with smooth loading transitions
+
+### Related Issues
+
+- Issue 8: Document Loading State Missing in File Preview (similar pattern)
+- Issue 9: Text Loading State Implementation (similar pattern)
+- Issue 4: Audio Preview Seeking Not Working (state management)
+
+---
+
+## Summary for Issue 10
+
+**Problem**: Image loading indicator disappeared prematurely due to race condition between metadata loading completion and actual image loading start
+
+**Solution**: Implemented smart loading state management with type-aware metadata handling, dedicated image event handlers, minimum loading time system, and comprehensive debug logging
+
+**Outcome**: Loading indicator now remains visible until image is completely rendered, eliminating black space and providing professional user experience
+
+---
+
 ## Template for Future Issues
 
 When adding new issues, use this template:

@@ -14,6 +14,28 @@ interface FilePreviewProps {
   contentType?: string;
 }
 
+// Unified loading indicator component
+const PreviewLoadingIndicator = ({ previewType }: { previewType: string }) => {
+  const getLoadingMessage = () => {
+    switch (previewType) {
+      case 'image': return 'Loading image preview...';
+      case 'thumbnail': return 'Loading image preview...';
+      case 'document': return 'Loading document preview...';
+      case 'text': return 'Loading text preview...';
+      default: return 'Loading preview...';
+    }
+  };
+  
+  return (
+    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 rounded-2xl backdrop-blur-sm">
+      <div className="flex flex-col items-center space-y-3">
+        <Loader2 className="w-8 h-8 text-bolt-blue animate-spin" />
+        <p className="text-sm font-medium text-bolt-blue">{getLoadingMessage()}</p>
+      </div>
+    </div>
+  );
+};
+
 export function FilePreview({ fileId, fileName, previewType, contentType }: FilePreviewProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,14 +44,49 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
   const [audioError, setAudioError] = useState(false);
   const [pdfError, setPdfError] = useState(false);
   const [previewMetadata, setPreviewMetadata] = useState<any>(null);
-  const [imageLoading, setImageLoading] = useState(previewType === 'image' || previewType === 'thumbnail');
-  const [documentLoading, setDocumentLoading] = useState(previewType === 'document');
-  const [textLoading, setTextLoading] = useState(previewType === 'text');
   const [retryCount, setRetryCount] = useState(0);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [loadingStartTime, setLoadingStartTime] = useState<number | null>(null);
 
   // Simple, reliable URL handling
   const previewUrl = fileService.getPreviewStreamUrl(fileId);
+
+  // Minimum loading time to prevent flickering (800ms)
+  const MIN_LOADING_TIME = 800;
+
+  const setLoadingWithMinimumTime = (shouldLoad: boolean) => {
+    console.log(`[Image Loading] setLoadingWithMinimumTime called with: ${shouldLoad}, current loading state: ${loading}`);
+    
+    if (shouldLoad) {
+      // Start loading
+      setLoadingStartTime(Date.now());
+      setLoading(true);
+      console.log(`[Image Loading] Loading started at ${loadingStartTime}`);
+    } else {
+      // End loading with minimum time
+      if (loadingStartTime) {
+        const elapsed = Date.now() - loadingStartTime;
+        const remaining = Math.max(0, MIN_LOADING_TIME - elapsed);
+        
+        console.log(`[Image Loading] Loading duration: ${elapsed}ms, minimum required: ${MIN_LOADING_TIME}ms`);
+        
+        if (remaining > 0) {
+          console.log(`[Image Loading] Waiting ${remaining}ms to meet minimum loading time`);
+          setTimeout(() => {
+            console.log(`[Image Loading] Loading completed after minimum time`);
+            setLoading(false);
+            setLoadingStartTime(null);
+          }, remaining);
+        } else {
+          console.log(`[Image Loading] Loading completed immediately (elapsed: ${elapsed}ms)`);
+          setLoading(false);
+          setLoadingStartTime(null);
+        }
+      } else {
+        console.log(`[Image Loading] Loading completed (no start time recorded)`);
+        setLoading(false);
+      }
+    }
+  };
 
   useEffect(() => {
     if (!fileId) {
@@ -38,23 +95,8 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
       return;
     }
 
-    setLoading(true);
+    setLoadingWithMinimumTime(true);
     setError(null);
-    
-    // Set image loading state for image previews
-    if (previewType === 'image' || previewType === 'thumbnail') {
-      setImageLoading(true);
-    }
-    
-    // Set document loading state for document previews
-    if (previewType === 'document') {
-      setDocumentLoading(true);
-    }
-    
-    // Set text loading state for text previews
-    if (previewType === 'text') {
-      setTextLoading(true);
-    }
     
     loadPreviewMetadata();
   }, [fileId, previewType]);
@@ -74,7 +116,12 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
       // Load text content for text files
       if (previewType === 'text') {
         await loadTextContent();
+      } else if (previewType === 'image' || previewType === 'thumbnail') {
+        // For images, let the image element handle loading state via onLoadStart/onLoad
+        // Don't call setLoading(false) here to prevent race condition
+        console.log('[Image Loading] Metadata loaded, waiting for image to start loading...');
       } else {
+        // For other types (video, audio, document), loading is complete after metadata
         setLoading(false);
       }
     } catch (err) {
@@ -90,7 +137,11 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
         suggested_action: 'download',
         message: 'Preview metadata not available from server'
       });
-      setLoading(false);
+      
+      // Only set loading to false if it's not an image type
+      if (previewType !== 'image' && previewType !== 'thumbnail') {
+        setLoading(false);
+      }
     }
   };
 
@@ -121,16 +172,26 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
       setError('Failed to load text content');
     } finally {
       setLoading(false);
-      setTextLoading(false);
     }
   };
 
   const handleImageError = () => {
-    console.error('Image preview failed for:', fileId);
+    console.error('[Image Loading] Image preview failed for:', fileId);
     setError('Unable to load image preview. Please try downloading the file.');
+    setLoadingWithMinimumTime(false); // Ensure loading state is cleared on error
     if (fileId && typeof window !== 'undefined') {
       analyticsService.trackPreviewError(fileId, 'image_load_error', 'Failed to load image preview');
     }
+  };
+
+  const handleImageLoadStart = () => {
+    console.log('[Image Loading] Image started loading for:', fileId);
+    setLoadingWithMinimumTime(true);
+  };
+
+  const handleImageLoad = () => {
+    console.log('[Image Loading] Image fully loaded for:', fileId);
+    setLoadingWithMinimumTime(false);
   };
 
   const handleAudioError = () => {
@@ -150,7 +211,7 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
   };
 
   const handleDocumentLoad = () => {
-    setDocumentLoading(false);
+    setLoading(false);
   };
 
   const retry = () => {
@@ -159,20 +220,7 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
     setAudioError(false);
     setPdfError(false);
     
-    // Reset image loading state for image previews
-    if (previewType === 'image' || previewType === 'thumbnail') {
-      setImageLoading(true);
-    }
-    
-    // Reset document loading state for document previews
-    if (previewType === 'document') {
-      setDocumentLoading(true);
-    }
-    
-    // Reset text loading state for text previews
-    if (previewType === 'text') {
-      setTextLoading(true);
-    }
+    setLoadingWithMinimumTime(true);
     
     setRetryCount(prev => prev + 1);
     if (previewType === 'text') {
@@ -180,38 +228,7 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
     }
   };
 
-  // Skeleton loader component
-  const SkeletonLoader = ({ type = 'image' }: { type?: string }) => {
-    if (type === 'image') {
-      return (
-        <div className="flex justify-center">
-          <div className="relative w-full h-64 max-w-2xl overflow-hidden bg-bolt-cyan/10 rounded-2xl">
-            <div className="absolute inset-0 bg-gradient-to-r from-bolt-cyan/20 via-bolt-blue/20 to-bolt-cyan/20 animate-pulse"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex flex-col items-center space-y-4">
-                <Loader2 className="w-8 h-8 text-bolt-blue animate-spin" />
-                <p className="text-sm text-bolt-blue">Loading image preview...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="p-8 text-center border bg-bolt-cyan/10 rounded-xl border-bolt-cyan/20">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="w-8 h-8 text-bolt-blue animate-spin" />
-          <p className="text-bolt-cyan">Loading preview...</p>
-        </div>
-      </div>
-    );
-  };
-
-  const renderPreview = () => {
-    // if (loading) {
-    //   return <SkeletonLoader type={previewType} />;
-    // } 
+  const renderPreview = () => { 
 
     if (error) {
       return (
@@ -260,23 +277,14 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
         }
         return (
           <div className="flex justify-center relative min-h-[50vh]">
-            {imageLoading && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 rounded-2xl backdrop-blur-sm">
-                <div className="flex flex-col items-center space-y-3">
-                  <div className="relative">
-                    <Loader2 className="w-8 h-8 text-bolt-blue animate-spin" />
-                  </div>
-                  <p className="text-sm font-medium text-bolt-blue">Loading image preview...</p>
-                </div>
-              </div>
-            )}
+            {loading && <PreviewLoadingIndicator previewType={previewType} />}
             <img 
               src={previewUrl} 
               alt={`Preview of ${fileName}`} 
               className="max-w-full max-h-[70vh] rounded-2xl shadow-2xl shadow-bolt-black/20 transition-opacity duration-300"
-              style={{ opacity: imageLoading ? 0.3 : 1 }}
-              onLoad={() => setImageLoading(false)}
-              onLoadStart={() => setImageLoading(true)}
+              style={{ opacity: loading ? 0.3 : 1 }}
+              onLoad={handleImageLoad}
+              onLoadStart={handleImageLoadStart}
               onError={handleImageError}
             />
           </div>
@@ -313,16 +321,7 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
         }
         return (
           <div className="w-full h-[80vh] rounded-2xl shadow-2xl shadow-bolt-black/20 overflow-hidden relative">
-            {documentLoading && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 rounded-2xl backdrop-blur-sm">
-                <div className="flex flex-col items-center space-y-3">
-                  <div className="relative">
-                    <Loader2 className="w-8 h-8 text-bolt-blue animate-spin" />
-                  </div>
-                  <p className="text-sm font-medium text-bolt-blue">Loading document preview...</p>
-                </div>
-              </div>
-            )}
+            {loading && <PreviewLoadingIndicator previewType={previewType} />}
             <iframe 
               src={previewUrl} 
               className="w-full h-full border-0" 
@@ -337,16 +336,7 @@ export function FilePreview({ fileId, fileName, previewType, contentType }: File
         return (
           <div className="w-full max-w-4xl mx-auto">
             <div className="p-6 border shadow-lg bg-bolt-black/5 rounded-2xl border-bolt-cyan/20 relative">
-              {textLoading && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/90 rounded-2xl backdrop-blur-sm">
-                  <div className="flex flex-col items-center space-y-3">
-                    <div className="relative">
-                      <Loader2 className="w-8 h-8 text-bolt-blue animate-spin" />
-                    </div>
-                    <p className="text-sm font-medium text-bolt-blue">Loading text preview...</p>
-                  </div>
-                </div>
-              )}
+              {loading && <PreviewLoadingIndicator previewType={previewType} />}
               <div className="flex items-center gap-2 mb-4">
                 <FileText className="w-5 h-5 text-bolt-blue" />
                 <h3 className="font-semibold text-bolt-black">Text Preview</h3>
