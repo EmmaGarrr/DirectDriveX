@@ -336,3 +336,9 @@ common/autoinstallers/*/node_modules/
 
 # Nx
 .nx/
+
+# Playwright
+PLAYWRIGHT-MCP-COMPLETE-SETUP.md
+playwright-mcp-config.json
+test-mcp.js
+.playwright-mcp
