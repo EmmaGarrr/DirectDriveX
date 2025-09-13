@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { HotjarService } from '@/lib/hotjar';
 import { HotjarTracking } from '@/lib/hotjarTracking';
@@ -9,16 +9,9 @@ interface HotjarProviderProps {
   children: React.ReactNode;
 }
 
-export function HotjarProvider({ children }: HotjarProviderProps) {
+function HotjarTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const hotjarService = HotjarService.getInstance();
-
-    // Initialize Hotjar on client-side
-    hotjarService.initialize();
-  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -34,6 +27,17 @@ export function HotjarProvider({ children }: HotjarProviderProps) {
     // Track state changes
     hotjarService.stateChange(pathname);
   }, [pathname, searchParams]);
+
+  return null;
+}
+
+export function HotjarProvider({ children }: HotjarProviderProps) {
+  useEffect(() => {
+    const hotjarService = HotjarService.getInstance();
+
+    // Initialize Hotjar on client-side
+    hotjarService.initialize();
+  }, []);
 
   // Track user authentication state changes
   useEffect(() => {
@@ -79,5 +83,12 @@ export function HotjarProvider({ children }: HotjarProviderProps) {
     };
   }, []);
 
-  return <>{children}</>;
+  return (
+    <>
+      <Suspense fallback={null}>
+        <HotjarTracker />
+      </Suspense>
+      {children}
+    </>
+  );
 }
