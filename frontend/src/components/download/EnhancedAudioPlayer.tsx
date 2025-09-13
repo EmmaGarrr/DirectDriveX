@@ -204,7 +204,7 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
   };
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto group overflow-hidden rounded-2xl shadow-2xl shadow-bolt-black/20 bg-gradient-to-br from-bolt-black to-bolt-black/90">
+    <div className="relative w-full max-w-4xl mx-auto group overflow-hidden rounded-2xl shadow-md bg-bolt-white border border-gray-200">
       {/* Hidden audio element */}
       <audio 
         ref={audioRef} 
@@ -214,7 +214,7 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
       />
 
       {/* Visual waveform/visualization area */}
-      <div className="relative h-32 bg-gradient-to-b from-bolt-black/60 to-bolt-black/40 flex items-center justify-center overflow-hidden">
+      <div className="relative h-32 bg-gray-50 flex items-center justify-center overflow-hidden">
         {/* Animated waveform visualization */}
         <div className="flex items-center gap-1 h-16">
           {Array.from({ length: 40 }, (_, i) => (
@@ -234,7 +234,7 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
         
         {/* Loading overlay */}
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-bolt-black/60">
+          <div className="absolute inset-0 flex items-center justify-center bg-white/80">
             <Loader2 className="w-8 h-8 text-bolt-blue animate-spin" />
           </div>
         )}
@@ -245,7 +245,7 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
         {/* Progress bar */}
         <div className="relative">
           <div 
-            className="w-full h-2 bg-bolt-black/40 rounded-full cursor-pointer pointer-events-auto"
+            className="w-full h-2 bg-gray-200 rounded-full cursor-pointer pointer-events-auto"
             onClick={(e) => { e.stopPropagation(); handleSeek(e); }}
           >
             <div 
@@ -257,7 +257,7 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
           </div>
           
           {/* Time display */}
-          <div className="flex justify-between items-center mt-2 text-sm text-gray-300">
+          <div className="flex justify-between items-center mt-2 text-sm text-gray-600">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
@@ -296,7 +296,7 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
             {/* Restart */}
             <button 
               onClick={restart} 
-              className="p-2 bg-bolt-cyan/20 rounded-full backdrop-blur-md hover:bg-bolt-cyan/30 transition-all duration-200 hover:scale-110"
+              className="p-2 bg-bolt-blue rounded-full transition-all duration-200 hover:scale-110"
               title="Restart"
             >
               <RotateCcw className="w-4 h-4 text-white" />
@@ -320,13 +320,13 @@ export function EnhancedAudioPlayer({ src, fileName, fileId }: EnhancedAudioPlay
                 step="0.01" 
                 value={isMuted ? 0 : volume} 
                 onChange={handleVolumeChange} 
-                className="w-24 h-1 accent-bolt-blue bg-bolt-black/40 rounded-full"
+                className="w-24 h-1 accent-bolt-blue bg-gray-200 rounded-full"
                 title="Volume"
               />
             </div>
 
             {/* File name */}
-            <div className="text-sm font-medium text-white truncate max-w-xs bg-bolt-black/40 px-3 py-1 rounded">
+            <div className="text-sm font-medium text-gray-700 truncate max-w-xs bg-gray-100 px-3 py-1 rounded">
               {fileName}
             </div>
           </div>

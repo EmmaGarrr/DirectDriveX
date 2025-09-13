@@ -100,7 +100,7 @@ export function EnhancedVideoPlayer({ src, fileName, fileId }: EnhancedVideoPlay
   };
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto group overflow-hidden rounded-2xl shadow-2xl shadow-bolt-black/20 bg-gradient-to-br from-bolt-black to-bolt-black/90" onClick={togglePlay}>
+    <div className="relative w-full max-w-4xl mx-auto group overflow-hidden rounded-2xl shadow-lg bg-black/10 border border-gray-200" onClick={togglePlay}>
       <video 
         ref={videoRef} 
         src={src} 
@@ -109,7 +109,7 @@ export function EnhancedVideoPlayer({ src, fileName, fileId }: EnhancedVideoPlay
       />
       
       {/* Center play button overlay */}
-      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
+      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
         <div className="flex items-center gap-6">
           <button 
             onClick={(e) => { e.stopPropagation(); skip(-10); }} 
