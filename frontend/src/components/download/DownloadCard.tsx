@@ -5,7 +5,7 @@ import { FileMeta, PreviewMeta } from '@/types/download';
 import { FilePreview } from './FilePreview';
 import { fileService } from '@/services/fileService';
 import { analyticsService } from '@/services/analyticsService';
-import { Download, Eye, X, File as FileIcon } from 'lucide-react';
+import { Download, Eye, X, File as FileIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DownloadCardProps {
@@ -15,6 +15,7 @@ interface DownloadCardProps {
 
 export function DownloadCard({ fileMeta, previewMeta }: DownloadCardProps) {
   const [showPreview, setShowPreview] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
@@ -40,13 +41,34 @@ export function DownloadCard({ fileMeta, previewMeta }: DownloadCardProps) {
     }
   };
 
-  const handleDownloadClick = () => {
+  const handleDownloadClick = async () => {
+    if (isDownloading) return;
+    
+    setIsDownloading(true);
+    
     if (fileId && typeof window !== 'undefined') {
       analyticsService.trackDownloadInitiated(
         fileId,
         previewMeta.preview_available,
         previewMeta.preview_type
       );
+    }
+
+    try {
+      const response = await fetch(downloadUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileMeta.filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download failed:', error);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -84,15 +106,23 @@ export function DownloadCard({ fileMeta, previewMeta }: DownloadCardProps) {
           </div>
         )}
 
-        <a
-          href={downloadUrl}
-          download={fileMeta.filename}
+        <button
           onClick={handleDownloadClick}
-          className="w-full flex items-center justify-center gap-3 text-lg font-bold py-4 rounded-xl text-white bg-gradient-to-r from-bolt-blue to-bolt-purple hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+          disabled={isDownloading}
+          className="w-full flex items-center justify-center gap-3 text-lg font-bold py-4 rounded-xl text-white bg-gradient-to-r from-bolt-blue to-bolt-purple hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
         >
-          <Download className="w-6 h-6" />
-          Download File
-        </a>
+          {isDownloading ? (
+            <>
+              <Loader2 className="w-6 h-6 animate-spin" />
+              Downloading...
+            </>
+          ) : (
+            <>
+              <Download className="w-6 h-6" />
+              Download File
+            </>
+          )}
+        </button>
       </div>
 
       {showPreview && previewMeta.preview_available && fileId && (
