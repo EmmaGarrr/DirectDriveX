@@ -72,7 +72,56 @@ export default {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
-  			}
+  			},
+  			
+  			// =====================================
+  			// NEW DESIGN SYSTEM COLORS (Phase 1)
+  			// =====================================
+  			// Commented sections for new design system
+  			// Uncomment when migrating components to new system
+  			
+  			// ds: {
+  			// 	primary: {
+  			// 		DEFAULT: 'hsl(var(--ds-primary))',
+  			// 		foreground: 'hsl(var(--ds-primary-foreground))'
+  			// 	},
+  			// 	secondary: {
+  			// 		DEFAULT: 'hsl(var(--ds-secondary))',
+  			// 		foreground: 'hsl(var(--ds-secondary-foreground))'
+  			// 	},
+  			// 	accent: {
+  			// 		DEFAULT: 'hsl(var(--ds-accent))',
+  			// 		foreground: 'hsl(var(--ds-accent-foreground))'
+  			// 	},
+  			// 	destructive: {
+  			// 		DEFAULT: 'hsl(var(--ds-destructive))',
+  			// 		foreground: 'hsl(var(--ds-destructive-foreground))'
+  			// 	},
+  			// 	muted: {
+  			// 		DEFAULT: 'hsl(var(--ds-muted))',
+  			// 		foreground: 'hsl(var(--ds-muted-foreground))'
+  			// 	},
+  			// 	background: 'hsl(var(--ds-background))',
+  			// 	foreground: 'hsl(var(--ds-foreground))',
+  			// 	card: {
+  			// 		DEFAULT: 'hsl(var(--ds-card))',
+  			// 		foreground: 'hsl(var(--ds-card-foreground))'
+  			// 	},
+  			// 	popover: {
+  			// 		DEFAULT: 'hsl(var(--ds-popover))',
+  			// 		foreground: 'hsl(var(--ds-popover-foreground))'
+  			// 	},
+  			// 	border: 'hsl(var(--ds-border))',
+  			// 	input: 'hsl(var(--ds-input))',
+  			// 	ring: 'hsl(var(--ds-ring))',
+  			// 	chart: {
+  			// 		'1': 'hsl(var(--ds-chart-1))',
+  			// 		'2': 'hsl(var(--ds-chart-2))',
+  			// 		'3': 'hsl(var(--ds-chart-3))',
+  			// 		'4': 'hsl(var(--ds-chart-4))',
+  			// 		'5': 'hsl(var(--ds-chart-5))'
+  			// 	}
+  			// },
   		},
       fontFamily: {
         sans: ['var(--font-inter)', 'sans-serif'],
@@ -83,7 +132,16 @@ export default {
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			sm: 'calc(var(--radius) - 4px)',
+  			
+  			// =====================================
+  			// NEW DESIGN SYSTEM RADIUS (Phase 1)
+  			// =====================================
+  			// Uncomment when migrating components to new system
+  			
+  			// 'ds-lg': 'var(--ds-radius)',
+  			// 'ds-md': 'calc(var(--ds-radius) - 2px)',
+  			// 'ds-sm': 'calc(var(--ds-radius) - 4px)'
   		},
   		keyframes: {
   			'accordion-down': {
@@ -148,7 +206,30 @@ export default {
           '0%, 100%': { transform: 'translateX(0)' },
           '25%': { transform: 'translateX(-5px)' },
           '75%': { transform: 'translateX(5px)' },
-        }
+        },
+        
+        // =====================================
+        // NEW DESIGN SYSTEM ANIMATIONS (Phase 1)
+        // =====================================
+        // Uncomment when migrating components to new system
+        
+        // 'ds-fade-in': {
+        //   '0%': { opacity: '0' },
+        //   '100%': { opacity: '1' },
+        // },
+        // 'ds-slide-in': {
+        //   '0%': { transform: 'translateY(-10px)', opacity: '0' },
+        //   '100%': { transform: 'translateY(0)', opacity: '1' },
+        // },
+        // 'ds-scale-in': {
+        //   '0%': { transform: 'scale(0.95)', opacity: '0' },
+        //   '100%': { transform: 'scale(1)', opacity: '1' },
+        // },
+        // 'ds-bounce-in': {
+        //   '0%': { transform: 'scale(0.8)', opacity: '0' },
+        //   '50%': { transform: 'scale(1.05)' },
+        //   '100%': { transform: 'scale(1)', opacity: '1' },
+        // }
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
@@ -163,6 +244,16 @@ export default {
         'shimmer': 'shimmer 3s ease-in-out infinite',
         'pattern-move': 'patternMove 20s linear infinite',
         'shake': 'shake 0.4s ease-in-out',
+        
+        // =====================================
+        // NEW DESIGN SYSTEM ANIMATIONS (Phase 1)
+        // =====================================
+        // Uncomment when migrating components to new system
+        
+        // 'ds-fade-in': 'ds-fade-in var(--ds-animation-normal) ease-out',
+        // 'ds-slide-in': 'ds-slide-in var(--ds-animation-normal) ease-out',
+        // 'ds-scale-in': 'ds-scale-in var(--ds-animation-normal) ease-out',
+        // 'ds-bounce-in': 'ds-bounce-in var(--ds-animation-normal) ease-out',
   		}
   	}
   },

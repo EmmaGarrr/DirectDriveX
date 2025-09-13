@@ -87,7 +87,7 @@ export function DownloadCard({ fileMeta, previewMeta }: DownloadCardProps) {
       </div>
 
       <div className="mt-8 space-y-4">
-        {previewMeta.preview_available ? (
+        {previewMeta.preview_available && (
           <button
             onClick={handlePreviewToggle}
             className={cn(
@@ -100,10 +100,6 @@ export function DownloadCard({ fileMeta, previewMeta }: DownloadCardProps) {
             {showPreview ? <X className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             {showPreview ? 'Hide Preview' : `Preview ${previewMeta.preview_type}`}
           </button>
-        ) : (
-          <div className="p-4 text-center bg-gradient-to-br from-bolt-cyan/10 to-bolt-blue/10 rounded-xl border border-bolt-blue/20">
-            <p className="text-sm text-bolt-cyan">{previewMeta.message || 'Preview is not available for this file type.'}</p>
-          </div>
         )}
 
         <button
