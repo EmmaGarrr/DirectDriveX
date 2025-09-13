@@ -236,7 +236,7 @@ class FileService {
     if (!fileId || typeof fileId !== 'string') {
       return '#';
     }
-    return `${this.API_URL}/download/stream/${fileId}`;
+    return `/api/download/stream/${fileId}`;
   }
 
   getPreviewStreamUrl(fileId: string): string {

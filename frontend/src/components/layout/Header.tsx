@@ -68,6 +68,7 @@ export function Header() {
 
     window.addEventListener("storage", checkAuthState);
     window.addEventListener("focus", checkAuthState);
+    window.addEventListener("authStateChanged", checkAuthState);
 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -78,6 +79,7 @@ export function Header() {
     return () => {
       window.removeEventListener("storage", checkAuthState);
       window.removeEventListener("focus", checkAuthState);
+      window.removeEventListener("authStateChanged", checkAuthState);
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
@@ -121,19 +123,19 @@ export function Header() {
             href="/profile"
             onClick={closeMobileMenu}
             className={cn(
-              "flex items-center justify-center space-x-2 bg-bolt-blue text-white rounded-xl hover:bg-bolt-mid-blue shadow-sm transition-all duration-300 hover:scale-105",
+              "flex items-center justify-center space-x-2 bg-bolt-blue text-white rounded-xl hover:bg-bolt-mid-blue shadow-sm transition-all duration-300",
               isMobile ? "w-full h-[56px]" : "w-[140px] h-[44px]"
             )}
           >
             <div className="flex items-center justify-center rounded-full bg-white/20 w-7 h-7">
               <UserIcon className="w-4 h-4 text-white" />
             </div>
-            <span className="text-sm font-semibold truncate">{displayName}</span>
+            <span className="text-sm font-semibold truncate">Profile</span>
           </Link>
           <button
             onClick={handleLogout}
             className={cn(
-              "flex items-center justify-center space-x-2 bg-red-600 text-white rounded-xl hover:bg-red-700 shadow-sm transition-all duration-300 hover:scale-105",
+              "flex items-center justify-center space-x-2 bg-red-600 text-white rounded-xl hover:bg-red-700 shadow-sm transition-all duration-300",
               isMobile ? "w-full h-[56px]" : "w-[140px] h-[44px]"
             )}
           >
@@ -157,7 +159,7 @@ export function Header() {
             href="/register"
             onClick={closeMobileMenu}
             className={cn(
-              "flex items-center justify-center bg-gradient-to-r from-bolt-blue to-bolt-mid-blue text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg",
+              "flex items-center justify-center bg-gradient-to-r from-bolt-blue to-bolt-mid-blue text-white font-bold rounded-xl transition-all duration-300 hover:shadow-lg",
                isMobile ? "w-full h-[56px] text-lg" : "h-[44px] px-6 text-sm"
             )}
           >

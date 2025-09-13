@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from 'react';
 import { BatchDetails } from '@/types/batch-download';
 import { BatchUploadService } from '@/services/batchUploadService';
 import { FileListItem } from './FileListItem';
-import { Download } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 
 const batchUploadService = new BatchUploadService();
 
@@ -12,7 +13,31 @@ interface BatchDownloadCardProps {
 }
 
 export function BatchDownloadCard({ batchDetails }: BatchDownloadCardProps) {
+  const [isDownloading, setIsDownloading] = useState(false);
   const zipDownloadUrl = batchUploadService.getZipDownloadUrl(batchDetails.batch_id);
+
+  const handleDownloadClick = async () => {
+    if (isDownloading) return;
+    
+    setIsDownloading(true);
+    
+    try {
+      const response = await fetch(zipDownloadUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `files-${batchDetails.batch_id}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download failed:', error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-4xl p-6 sm:p-8 bg-white rounded-2xl shadow-2xl shadow-bolt-black/10 border border-bolt-cyan/20">
@@ -29,13 +54,23 @@ export function BatchDownloadCard({ batchDetails }: BatchDownloadCardProps) {
       </div>
 
       <div className="mt-8 space-y-4">
-        <a
-          href={zipDownloadUrl}
-          className="w-full flex items-center justify-center gap-3 text-lg font-bold py-4 rounded-xl text-white bg-gradient-to-r from-bolt-blue to-bolt-purple hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+        <button
+          onClick={handleDownloadClick}
+          disabled={isDownloading}
+          className="w-full flex items-center justify-center gap-3 text-lg font-bold py-4 rounded-xl text-white bg-gradient-to-r from-bolt-blue to-bolt-purple hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
         >
-          <Download className="w-6 h-6" />
-          Download All Files (ZIP)
-        </a>
+          {isDownloading ? (
+            <>
+              <Loader2 className="w-6 h-6 animate-spin" />
+              Downloading All Files...
+            </>
+          ) : (
+            <>
+              <Download className="w-6 h-6" />
+              Download All Files (ZIP)
+            </>
+          )}
+        </button>
       </div>
 
       <div className="mt-8 space-y-3">
