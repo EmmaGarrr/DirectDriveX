@@ -336,3 +336,16 @@ common/autoinstallers/*/node_modules/
 
 # Nx
 .nx/
+
+# playwrite MCP - Rudra
+.playwright-mcp
+$USERPROFILE
+node_modules
+playwright-examples.js
+PLAYWRIGHT-MCP-COMPLETE-SETUP.md
+playwright-mcp-config.json
+PLAYWRIGHT-MCP-SUMMARY.md
+PLAYWRIGHT-MCP-GUIDE.md
+test-playwright-mcp.js
+technical-issues-log.md
+test-playwright-mcp.js
