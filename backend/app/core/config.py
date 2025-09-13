@@ -47,6 +47,11 @@ class Settings(BaseSettings):
     GDRIVE_ACCOUNT_3_CLIENT_SECRET: Optional[str] = None
     GDRIVE_ACCOUNT_3_REFRESH_TOKEN: Optional[str] = None
     GDRIVE_ACCOUNT_3_FOLDER_ID: Optional[str] = None
+
+    GDRIVE_ACCOUNT_4_CLIENT_ID: Optional[str] = None
+    GDRIVE_ACCOUNT_4_CLIENT_SECRET: Optional[str] = None
+    GDRIVE_ACCOUNT_4_REFRESH_TOKEN: Optional[str] = None
+    GDRIVE_ACCOUNT_4_FOLDER_ID: Optional[str] = None
     
     GDRIVE_ACCOUNTS: List[GoogleAccountConfig] = []
 
