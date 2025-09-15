@@ -190,7 +190,7 @@ function RegisterFormContent() {
       : "border-slate-300 focus:border-bolt-blue focus:ring-bolt-blue/20";
 
   return (
-    <div className="w-full p-6 sm:p-8 bg-white/[.95] backdrop-blur border border-white/[.2] shadow-glass rounded-2xl">
+    <div className="w-full p-5 xs:p-6 sm:p-8 bg-white/[.95] backdrop-blur border border-white/[.2] shadow-glass rounded-2xl">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-slate-900">
           Create your account
@@ -212,7 +212,7 @@ function RegisterFormContent() {
             </label>
             <div className="relative">
               <Mail
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 text-slate-400"
                 aria-hidden="true"
               />
               <input
@@ -245,7 +245,7 @@ function RegisterFormContent() {
             </label>
             <div className="relative">
               <Lock
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 text-slate-400"
                 aria-hidden="true"
               />
               <input
@@ -266,15 +266,15 @@ function RegisterFormContent() {
                 aria-label={hidePassword ? "Show password" : "Hide password"}
               >
                 {hidePassword ? (
-                  <Eye className="w-5 h-5" />
+                  <Eye className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5" />
                 ) : (
-                  <EyeOff className="w-5 h-5" />
+                  <EyeOff className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5" />
                 )}
               </button>
             </div>
             {errors.password && touchedFields.password && (
               <div className="flex items-center text-sm text-red-600 gap-1.5" role="alert" aria-live="polite">
-                <AlertCircle className="w-4 h-4" />
+                <AlertCircle className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5" />
                 {getPasswordErrorMessage()}
               </div>
             )}
@@ -290,7 +290,7 @@ function RegisterFormContent() {
             </label>
             <div className="relative">
               <Lock
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 text-slate-400"
                 aria-hidden="true"
               />
               <input
@@ -315,9 +315,9 @@ function RegisterFormContent() {
                 }
               >
                 {hideConfirmPassword ? (
-                  <Eye className="w-5 h-5" />
+                  <Eye className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5" />
                 ) : (
-                  <EyeOff className="w-5 h-5" />
+                  <EyeOff className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5" />
                 )}
               </button>
             </div>

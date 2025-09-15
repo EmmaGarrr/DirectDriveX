@@ -34,6 +34,7 @@ function ResetPasswordContent() {
   });
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isFormValid, setIsFormValid] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -52,6 +53,12 @@ function ResetPasswordContent() {
       }, 3000);
     }
   }, [searchParams, router]);
+
+  // Real-time validation to track form validity (matching login/register behavior)
+  useEffect(() => {
+    const isValid = validateWithoutErrors();
+    setIsFormValid(isValid);
+  }, [formData.new_password, formData.confirm_password]);
 
   // Validation functions matching Angular exactly
   const getNewPasswordErrorMessage = (): string => {
@@ -72,6 +79,25 @@ function ResetPasswordContent() {
       return 'Passwords do not match';
     }
     return '';
+  };
+
+  // Validation function for real-time checking (doesn't set errors)
+  const validateWithoutErrors = () => {
+    // New password validation
+    if (!formData.new_password) {
+      return false;
+    } else if (formData.new_password.length < 8) {
+      return false;
+    }
+
+    // Confirm password validation
+    if (!formData.confirm_password) {
+      return false;
+    } else if (formData.new_password !== formData.confirm_password) {
+      return false;
+    }
+
+    return true;
   };
   
   const validate = () => {
@@ -150,10 +176,10 @@ function ResetPasswordContent() {
   const renderFormState = () => (
     <div>
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-semibold text-bolt-white">
+        <h2 className="text-2xl font-bold text-slate-900">
           Reset Password
         </h2>
-        <p className="text-bolt-light-blue mt-2 text-sm">
+        <p className="text-slate-600 mt-2">
           Enter your new password below.
         </p>
       </div>
@@ -163,11 +189,12 @@ function ResetPasswordContent() {
         <div className="space-y-2">
           <label
             htmlFor="new-password"
-            className="text-sm font-medium text-bolt-light-blue"
+            className="text-sm font-medium text-slate-800"
           >
             New Password
           </label>
           <div className="relative">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 text-slate-400" />
             <input
               id="new-password"
               type={showNewPassword ? "text" : "password"}
@@ -176,27 +203,27 @@ function ResetPasswordContent() {
               onBlur={() => handleInputBlur('new_password')}
               placeholder="Enter new password"
               className={cn(
-                "w-full h-12 px-4 text-sm text-bolt-white bg-bolt-light-blue/20 border rounded-lg backdrop-blur-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-bolt-blue",
+                "w-full h-11 pl-10 pr-4 py-2 text-sm text-slate-900 bg-white border rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-bolt-blue/20",
                 errors.new_password && touched.new_password
-                  ? "border-bolt-cyan"
-                  : "border-bolt-purple/30 focus:border-bolt-blue"
+                  ? "border-red-500 bg-red-50/50 focus:border-red-500"
+                  : "border-slate-300 focus:border-bolt-blue"
               )}
             />
             <button
               type="button"
               onClick={() => setShowNewPassword(!showNewPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-bolt-light-blue/70 hover:text-bolt-light-blue"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
             >
               {showNewPassword ? (
-                <EyeOff className="w-5 h-5" />
+                <EyeOff className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5" />
               ) : (
-                <Eye className="w-5 h-5" />
+                <Eye className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5" />
               )}
             </button>
           </div>
           {errors.new_password && touched.new_password && (
-            <div className="flex items-center text-sm text-bolt-cyan gap-2">
-              <AlertTriangle className="w-4 h-4" />
+            <div className="flex items-center text-sm text-red-600 gap-1.5">
+              <AlertTriangle className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5" />
               <span>{errors.new_password}</span>
             </div>
           )}
@@ -206,11 +233,12 @@ function ResetPasswordContent() {
         <div className="space-y-2">
           <label
             htmlFor="confirm-password"
-            className="text-sm font-medium text-bolt-light-blue"
+            className="text-sm font-medium text-slate-800"
           >
             Confirm New Password
           </label>
           <div className="relative">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 text-slate-400" />
             <input
               id="confirm-password"
               type={showConfirmPassword ? "text" : "password"}
@@ -219,27 +247,27 @@ function ResetPasswordContent() {
               onBlur={() => handleInputBlur('confirm_password')}
               placeholder="Confirm new password"
               className={cn(
-                "w-full h-12 px-4 text-sm text-bolt-white bg-bolt-light-blue/20 border rounded-lg backdrop-blur-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-bolt-blue",
+                "w-full h-11 pl-10 pr-4 py-2 text-sm text-slate-900 bg-white border rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-bolt-blue/20",
                 errors.confirm_password && touched.confirm_password
-                  ? "border-bolt-cyan"
-                  : "border-bolt-purple/30 focus:border-bolt-blue"
+                  ? "border-red-500 bg-red-50/50 focus:border-red-500"
+                  : "border-slate-300 focus:border-bolt-blue"
               )}
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-bolt-light-blue/70 hover:text-bolt-light-blue"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
             >
               {showConfirmPassword ? (
-                <EyeOff className="w-5 h-5" />
+                <EyeOff className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5" />
               ) : (
-                <Eye className="w-5 h-5" />
+                <Eye className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5" />
               )}
             </button>
           </div>
           {errors.confirm_password && touched.confirm_password && (
-            <div className="flex items-center text-sm text-bolt-cyan gap-2">
-              <AlertTriangle className="w-4 h-4" />
+            <div className="flex items-center text-sm text-red-600 gap-1.5">
+              <AlertTriangle className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5" />
               <span>{errors.confirm_password}</span>
             </div>
           )}
@@ -247,27 +275,27 @@ function ResetPasswordContent() {
 
         <button
           type="submit"
-          disabled={isLoading}
-          className="w-full h-12 flex items-center justify-center px-4 text-sm font-medium text-bolt-white bg-bolt-blue hover:bg-bolt-mid-blue rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-bolt-black focus:ring-bolt-blue disabled:bg-bolt-blue/50 disabled:cursor-not-allowed"
+          disabled={!isFormValid || isLoading}
+          className="w-full h-11 flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-bolt-blue hover:bg-bolt-blue/90 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bolt-blue disabled:bg-bolt-blue/50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
-            <Loader2 className="w-5 h-5 animate-spin text-bolt-cyan" />
+            <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
             "Reset Password"
           )}
         </button>
       </form>
 
-      <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="mt-8 flex sm:flex-row items-center justify-between gap-4">
         <button
           onClick={goToLogin}
-          className="text-sm font-medium text-bolt-dark-purple hover:underline"
+          className="font-medium text-sm text-bolt-blue hover:text-bolt-blue/80"
         >
           Back to Login
         </button>
         <button
           onClick={goToForgotPassword}
-          className="text-sm font-medium text-bolt-dark-purple hover:underline"
+          className="font-medium text-sm text-bolt-blue hover:text-bolt-blue/80"
         >
           Request New Link
         </button>
@@ -277,17 +305,17 @@ function ResetPasswordContent() {
 
   const renderSuccessState = () => (
     <div className="text-center">
-      <CheckCircle className="w-16 h-16 text-bolt-purple mx-auto mb-6" />
-      <h2 className="text-2xl font-semibold text-bolt-white">
+      <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />
+      <h2 className="text-2xl font-semibold text-slate-900">
         Password Reset Successfully!
       </h2>
-      <p className="text-bolt-light-blue mt-4 text-sm">
+      <p className="text-slate-600 mt-4 text-sm">
         Your password has been updated. You can now log in with your new
         password.
       </p>
       <button
         onClick={goToLogin}
-        className="mt-8 w-full h-12 flex items-center justify-center px-4 text-sm font-medium text-bolt-white bg-bolt-blue hover:bg-bolt-mid-blue rounded-lg transition-colors duration-300"
+        className="mt-8 w-full h-11 flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-bolt-blue hover:bg-bolt-blue/90 rounded-lg transition-all duration-300"
       >
         Go to Login
       </button>
@@ -296,16 +324,16 @@ function ResetPasswordContent() {
 
   const renderInvalidState = () => (
     <div className="text-center">
-      <XCircle className="w-16 h-16 text-bolt-cyan mx-auto mb-6" />
-      <h2 className="text-2xl font-semibold text-bolt-white">
+      <XCircle className="w-16 h-16 text-red-500 mx-auto mb-6" />
+      <h2 className="text-2xl font-semibold text-slate-900">
         Invalid Reset Link
       </h2>
-      <p className="text-bolt-light-blue mt-4 text-sm">
+      <p className="text-slate-600 mt-4 text-sm">
         The password reset link is invalid or has expired.
       </p>
       <button
         onClick={goToForgotPassword}
-        className="mt-8 w-full h-12 flex items-center justify-center px-4 text-sm font-medium text-bolt-white bg-bolt-blue hover:bg-bolt-mid-blue rounded-lg transition-colors duration-300"
+        className="mt-8 w-full h-11 flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-bolt-blue hover:bg-bolt-blue/90 rounded-lg transition-all duration-300"
       >
         Request New Reset Link
       </button>
@@ -313,9 +341,9 @@ function ResetPasswordContent() {
   );
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center p-5 overflow-hidden">
-      <div className="fixed inset-0 bg-gradient-to-br from-bolt-black via-bolt-dark-purple to-bolt-blue -z-10" />
-      <div className="w-full max-w-md rounded-2xl border border-bolt-purple/20 bg-white/10 p-8 sm:p-10 shadow-2xl shadow-bolt-black/25 backdrop-blur-xl">
+    <div className="relative min-h-screen w-full flex items-center justify-center p-3 xs:p-4 sm:p-5 overflow-hidden">
+      <div className="fixed top-0 left-0 w-full h-full bg-gradient-to-br from-slate-50 to-slate-100 -z-10" />
+      <div className="w-full max-w-md p-5 xs:p-6 sm:p-8 bg-white/95 backdrop-blur border border-white/20 shadow-xl rounded-2xl">
         {tokenValid && !passwordReset && renderFormState()}
         {passwordReset && renderSuccessState()}
         {!tokenValid && renderInvalidState()}
@@ -328,9 +356,9 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="relative min-h-screen w-full flex items-center justify-center p-5 overflow-hidden">
-          <div className="fixed inset-0 bg-gradient-to-br from-bolt-black via-bolt-dark-purple to-bolt-blue -z-10" />
-          <Loader2 className="w-8 h-8 animate-spin text-bolt-white" />
+        <div className="relative min-h-screen w-full flex items-center justify-center p-3 xs:p-4 sm:p-5 overflow-hidden">
+          <div className="fixed top-0 left-0 w-full h-full bg-gradient-to-br from-slate-50 to-slate-100 -z-10" />
+          <Loader2 className="w-8 h-8 animate-spin text-bolt-blue" />
         </div>
       }
     >

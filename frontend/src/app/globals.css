@@ -331,4 +331,55 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ============================================
+   AUTOFILL STYLING - FIXES GREY BACKGROUND ISSUE
+   ============================================ */
+
+/* Remove grey background from autofilled fields */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+input:-moz-autofill,
+input:-moz-autofill:hover,
+input:-moz-autofill:focus,
+input:-moz-autofill:active {
+  -moz-box-shadow: 0 0 0 30px white inset !important;
+  -moz-text-fill-color: #0f172a !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+input:autofill,
+input:autofill:hover,
+input:autofill:focus,
+input:autofill:active {
+  box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Fix focus border for autofilled fields */
+input:-webkit-autofill:focus {
+  border-color: #135EE3 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 30px white inset, 0 0 0 2px rgba(19, 94, 227, 0.2) !important;
+}
+
+input:-moz-autofill:focus {
+  border-color: #135EE3 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 30px white inset, 0 0 0 2px rgba(19, 94, 227, 0.2) !important;
+}
+
+input:autofill:focus {
+  border-color: #135EE3 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 30px white inset, 0 0 0 2px rgba(19, 94, 227, 0.2) !important;
+}
 }

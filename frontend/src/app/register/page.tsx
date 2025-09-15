@@ -36,7 +36,7 @@ export default function RegisterPage() {
   return (
     <div className="font-inter antialiased">
       <div className="fixed top-0 left-0 w-full h-full bg-gradient-to-br from-slate-50 to-slate-100 -z-10" />
-      <div className="relative min-h-screen flex items-center justify-center p-4">
+      <div className="relative min-h-screen flex items-center justify-center p-3 xs:p-4 sm:p-5">
         <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
           {/* Left Side: Feature Highlights */}
           <div className="hidden lg:block space-y-10">

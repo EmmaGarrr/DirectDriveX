@@ -55,52 +55,55 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center p-5 overflow-hidden">
-      <div className="fixed inset-0 bg-gradient-to-br from-bolt-black to-bolt-medium-black -z-10" />
+    <div className="relative min-h-screen w-full flex items-center justify-center p-3 xs:p-4 sm:p-5 overflow-hidden">
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-50 to-slate-100 -z-10" />
 
       <div
         className={cn(
-          "w-full max-w-md rounded-2xl border border-bolt-purple/20 bg-white/10 p-8 sm:p-10 shadow-2xl shadow-bolt-black/25 backdrop-blur-xl transition-all duration-500",
+          "w-full max-w-md rounded-2xl border border-white/20 bg-white/95 p-5 xs:p-6 sm:p-8 shadow-xl backdrop-blur transition-all duration-500",
           emailSent ? "h-auto" : "h-auto"
         )}
       >
         {!emailSent ? (
           <div>
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-bolt-white">
+              <h2 className="text-2xl font-bold text-slate-900">
                 Forgot Password
               </h2>
-              <p className="text-bolt-light-blue mt-2 text-sm">
+              <p className="text-slate-600 mt-2">
                 Enter your email and we&apos;ll send you a reset link.
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-1.5">
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-slate-800"
+              >
+                Email Address
+              </label>
               <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 text-slate-400" />
                 <input
                   id="email"
                   type="email"
                   value={email}
-                  onChange={handleEmailChange}
-                  placeholder=" "
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
                   className={cn(
-                    "peer w-full h-14 px-4 pt-4 text-sm text-bolt-white bg-bolt-medium-black/50 border rounded-lg backdrop-blur-sm transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-bolt-blue",
+                    "w-full h-11 pl-10 pr-4 py-2 text-sm text-slate-900 bg-white border rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-bolt-blue/20",
                     error
-                      ? "border-bolt-cyan"
-                      : "border-bolt-purple/30 focus:border-bolt-blue"
+                      ? "border-red-500 bg-red-50/50 focus:border-red-500"
+                      : "border-slate-300 focus:border-bolt-blue"
                   )}
+                  autoComplete="email"
                 />
-                <label
-                  htmlFor="email"
-                  className="absolute left-4 top-4 text-bolt-light-blue text-sm transition-all duration-300 peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-xs peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-xs"
-                >
-                  Email Address
-                </label>
-                <Mail className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-bolt-light-blue/50" />
               </div>
+            </div>
 
               {error && (
-                <div className="flex items-center text-sm text-bolt-cyan gap-2">
+                <div className="flex items-center text-sm text-red-600 gap-1.5">
                   <AlertCircle className="w-4 h-4" />
                   <span>{error}</span>
                 </div>
@@ -109,7 +112,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={isLoading || !!error || !email}
-                className="w-full h-12 flex items-center justify-center px-4 text-sm font-medium text-bolt-white bg-bolt-blue hover:bg-bolt-mid-blue rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-bolt-black focus:ring-bolt-blue disabled:bg-bolt-blue/50 disabled:cursor-not-allowed"
+                className="w-full h-11 flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-bolt-blue hover:bg-bolt-blue/90 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bolt-blue disabled:bg-bolt-blue/50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin text-bolt-cyan" />
@@ -119,18 +122,18 @@ export default function ForgotPasswordPage() {
               </button>
             </form>
 
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="mt-8 flex sm:flex-row items-center justify-between gap-4">
               <button
                 type="button"
                 onClick={() => router.push('/login')}
-                className="text-sm font-medium text-bolt-cyan hover:underline bg-transparent border-none cursor-pointer"
+                className="text-sm font-medium text-bolt-blue hover:text-bolt-blue/80"
               >
                 Back to Login
               </button>
               <button
                 type="button"
                 onClick={() => router.push('/register')}
-                className="text-sm font-medium text-bolt-purple hover:underline bg-transparent border-none cursor-pointer"
+                className="text-sm font-medium text-bolt-blue hover:text-bolt-blue/80"
               >
                 Create Account
               </button>
@@ -138,9 +141,9 @@ export default function ForgotPasswordPage() {
           </div>
         ) : (
           <div className="text-center animate-fade-in">
-            <CheckCircle className="w-16 h-16 text-bolt-cyan mx-auto mb-6" />
-            <h2 className="text-3xl font-bold text-bolt-white">Email Sent!</h2>
-            <div className="text-bolt-light-blue mt-4 space-y-3 text-sm">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />
+            <h2 className="text-3xl font-bold text-slate-900">Email Sent!</h2>
+            <div className="text-slate-600 mt-4 space-y-3 text-sm">
               <p>
                 If an account with that email exists, we&apos;ve sent a password
                 reset link.
@@ -151,7 +154,7 @@ export default function ForgotPasswordPage() {
             </div>
             <button 
               onClick={() => router.push('/login')}
-              className="mt-8 w-full h-12 flex items-center justify-center px-4 text-sm font-medium text-bolt-white bg-bolt-blue hover:bg-bolt-mid-blue rounded-lg transition-colors duration-300"
+              className="mt-8 w-full h-11 flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-bolt-blue hover:bg-bolt-blue/90 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bolt-blue"
             >
               Back to Login
             </button>

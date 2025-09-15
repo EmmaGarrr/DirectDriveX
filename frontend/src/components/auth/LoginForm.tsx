@@ -29,6 +29,7 @@ function LoginFormContent() {
   const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>(
     {}
   );
+  const [isFormValid, setIsFormValid] = useState(false);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -76,10 +77,39 @@ function LoginFormContent() {
     }
   }, [searchParams, router]);
 
+  // Real-time validation to track form validity (matching register form behavior)
+  useEffect(() => {
+    const isValid = validateWithoutErrors();
+    setIsFormValid(isValid);
+  }, [email, password]);
+
+  // Validation function for real-time checking (doesn't set errors)
+  const validateWithoutErrors = () => {
+    // Email validation matching Angular exactly
+    if (!email.trim()) {
+      return false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return false;
+    } else if (email.length > 255) {
+      return false;
+    }
+
+    // Password validation matching Angular exactly
+    if (!password) {
+      return false;
+    } else if (password.length < 6) {
+      return false;
+    } else if (password.length > 128) {
+      return false;
+    }
+
+    return true;
+  };
+
   // Validation function matching Angular exactly
   const validate = () => {
     const newErrors: { email?: string; password?: string } = {};
-    
+
     // Email validation matching Angular exactly
     if (!email.trim()) {
       newErrors.email = "Email is required";
@@ -88,7 +118,7 @@ function LoginFormContent() {
     } else if (email.length > 255) {
       newErrors.email = "Email address is too long";
     }
-    
+
     // Password validation matching Angular exactly
     if (!password) {
       newErrors.password = "Password is required";
@@ -97,7 +127,7 @@ function LoginFormContent() {
     } else if (password.length > 128) {
       newErrors.password = "Password is too long";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -118,7 +148,7 @@ function LoginFormContent() {
   };
 
   // Handle form submission matching Angular logic exactly
-  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const   handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     // Mark all fields as touched
@@ -195,7 +225,7 @@ function LoginFormContent() {
   };
 
   return (
-    <div className="w-full p-6 sm:p-8 bg-white/95 backdrop-blur border border-white/20 shadow-xl rounded-2xl">
+    <div className="w-full p-5 xs:p-6 sm:p-8 bg-white/95 backdrop-blur border border-white/20 shadow-xl rounded-2xl">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-slate-900">
           Sign in to your account
@@ -215,7 +245,7 @@ function LoginFormContent() {
             </label>
             <div className="relative">
               <Mail
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 text-slate-400"
                 aria-hidden="true"
               />
               <input
@@ -252,7 +282,7 @@ function LoginFormContent() {
             </label>
             <div className="relative">
               <Lock
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 text-slate-400"
                 aria-hidden="true"
               />
               <input
@@ -277,9 +307,9 @@ function LoginFormContent() {
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
+                  <EyeOff className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5" />
                 ) : (
-                  <Eye className="w-5 h-5" />
+                  <Eye className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5" />
                 )}
               </button>
             </div>
@@ -293,17 +323,32 @@ function LoginFormContent() {
 
           {/* Remember Me & Forgot Password */}
           <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <input
                 id="rememberMe"
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 text-bolt-blue bg-slate-100 border-slate-300 rounded focus:ring-bolt-blue focus:ring-offset-0"
+                className="sr-only"
               />
+              <div
+                className={`w-4 h-4 border-2 rounded cursor-pointer flex items-center justify-center transition-all ${
+                  rememberMe
+                    ? 'bg-bolt-blue border-bolt-blue'
+                    : 'bg-white border-slate-300 hover:border-slate-400'
+                }`}
+                onClick={() => setRememberMe(!rememberMe)}
+              >
+                {rememberMe && (
+                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </div>
               <label
                 htmlFor="rememberMe"
                 className="text-slate-600 cursor-pointer"
+                onClick={() => setRememberMe(!rememberMe)}
               >
                 Remember me
               </label>
@@ -319,7 +364,7 @@ function LoginFormContent() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={!isFormValid || loading}
             className="w-full h-11 flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-bolt-blue hover:bg-bolt-blue/90 rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-bolt-blue disabled:bg-bolt-blue/50 disabled:cursor-not-allowed"
           >
             {loading ? (
