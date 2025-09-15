@@ -41,8 +41,8 @@ export const StatCard: React.FC<StatCardProps> = ({
         <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">
           {title}
         </h3>
-        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-          <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
+          <Icon className="w-5 h-5 text-slate-700 dark:text-slate-300" />
         </div>
       </div>
 
@@ -75,7 +75,7 @@ export const StatCard: React.FC<StatCardProps> = ({
               <span 
                 className={cn(
                   "text-sm font-medium",
-                  item.color || "text-slate-900 dark:text-white"
+                  item.color || "text-slate-700 dark:text-slate-300"
                 )}
               >
                 {item.value}
