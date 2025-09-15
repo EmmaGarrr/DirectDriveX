@@ -40,7 +40,7 @@ export function ComparisonSection() {
       <div className="py-4 text-base font-semibold text-center text-slate-700">Dropbox</div>
       <div className="py-4 text-base font-semibold text-center text-slate-700">Google Drive</div>
       <div className="relative">
-        <div className="py-2 text-base font-semibold text-center text-bolt-dark-purple">DirectDriveX</div>
+        <div className="py-2 text-base font-semibold text-center text-bolt-mid-blue">DirectDriveX</div>
       </div>
 
       {/* Rows */}
@@ -85,7 +85,7 @@ export function ComparisonSection() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2 text-sm">
             <div className="py-3 font-semibold tracking-wide uppercase text-slate-700">Features</div>
-            {features.map(f => <div key={f.name} className="py-3">{f.name}</div>)}
+            {features.map(f => <div key={f.name} className="py-3 text-black">{f.name}</div>)}
           </div>
           <div className={cn("space-y-2 text-sm text-center", activeTab === 'mfc' && 'bg-gradient-to-b from-bolt-light-blue/50 to-white border-2 border-bolt-blue rounded-lg')}>
             <div className={cn("font-semibold py-3", activeTab === 'mfc' ? 'text-bolt-dark-purple font-bold' : 'text-slate-700')}>{providerName}</div>
