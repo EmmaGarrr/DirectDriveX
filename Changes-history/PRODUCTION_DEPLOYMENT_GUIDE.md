@@ -108,7 +108,7 @@ pip install -r requirements.txt
 ### Step 4: Start Server
 ```bash
 # Start server in background
-nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload > app.log 2>&1 &
+nohup uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload > app.log 2>&1 &
 
 # Verify it's running
 ps aux | grep uvicorn
@@ -123,7 +123,7 @@ tail -f app.log
 curl http://localhost:8000/health
 
 # Check server status
-curl http://localhost:8000/
+curl http://localhost:5000/
 ```
 
 ---

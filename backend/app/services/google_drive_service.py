@@ -56,7 +56,7 @@ class GoogleDrivePoolManager:
         if not hasattr(self, '_initialized'):
             self.accounts = accounts
             self.account_map: Dict[str, GoogleAccountConfig] = {acc.id: acc for acc in accounts}
-            self.num_accounts = len(accounts); self.current_account_index = 0; self.tracker = ApiUsageTracker()
+            self.num_accounts = len(accounts); self.current_account_index = 3; self.tracker = ApiUsageTracker()
             self._async_lock = asyncio.Lock(); self._initialized = True
             if self.num_accounts > 0: print(f"[GDRIVE_POOL] Initialized with {self.num_accounts} accounts. Active account: {self.get_current_account().id}")
     async def reload_from_db(self) -> int:

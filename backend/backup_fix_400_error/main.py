@@ -647,17 +647,9 @@ async def websocket_upload_proxy_parallel(websocket: WebSocket, file_id: str, gd
     
     # Check concurrency limits
     print(f"[DEBUG] 🔒 Checking concurrency limits...")
-    try:
-        slot_acquired = await upload_concurrency_manager.acquire_upload_slot(user_id, file_id, total_size)
-        
-        if not slot_acquired:
-            print(f"[DEBUG] ❌ Failed to acquire upload slot for file {file_id}")
-            await websocket.close(code=1008, reason="Unable to allocate upload resources. Please try again.")
-            return
-            
-    except Exception as e:
-        print(f"[DEBUG] ❌ Exception during slot acquisition for file {file_id}: {e}")
-        await websocket.close(code=1011, reason=f"Server error during upload initialization: {type(e).__name__}")
+    if not await upload_concurrency_manager.acquire_upload_slot(user_id, file_id, total_size):
+        print(f"[DEBUG] ❌ Failed to acquire upload slot for file {file_id}")
+        await websocket.close(code=1008, reason="Upload limit exceeded or insufficient resources")
         return
     
     print(f"[DEBUG] ✅ Upload slot acquired for file {file_id}")
