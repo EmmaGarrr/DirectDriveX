@@ -40,7 +40,7 @@ export function ComparisonSection() {
       <div className="py-4 text-base font-semibold text-center text-slate-700">Dropbox</div>
       <div className="py-4 text-base font-semibold text-center text-slate-700">Google Drive</div>
       <div className="relative">
-        <div className="py-2 text-base font-semibold text-center text-bolt-mid-blue">DirectDriveX</div>
+        <div className="py-2 text-base font-semibold text-center text-bolt-mid-blue">Mfcnextgen</div>
       </div>
 
       {/* Rows */}
@@ -64,7 +64,7 @@ export function ComparisonSection() {
 
   const MobileView = () => {
     const providerData = features.map(f => f[activeTab]);
-    const providerName = { dropbox: 'Dropbox', google: 'Google Drive', mfc: 'DirectDriveX' }[activeTab];
+    const providerName = { dropbox: 'Dropbox', google: 'Google Drive', mfc: 'Mfcnextgen' }[activeTab];
 
     return (
       <div className="mb-6 md:hidden">
@@ -78,7 +78,7 @@ export function ComparisonSection() {
                 activeTab === p ? 'text-bolt-blue bg-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
               )}
             >
-              {{ mfc: 'DirectDriveX', dropbox: 'Dropbox', google: 'Google Drive' }[p]}
+              {{ mfc: 'Mfcnextgen', dropbox: 'Dropbox', google: 'Google Drive' }[p]}
             </button>
           ))}
         </div>
@@ -88,7 +88,7 @@ export function ComparisonSection() {
             {features.map(f => <div key={f.name} className="py-3 text-black">{f.name}</div>)}
           </div>
           <div className={cn("space-y-2 text-sm text-center", activeTab === 'mfc' && 'bg-gradient-to-b from-bolt-light-blue/50 to-white border-2 border-bolt-blue rounded-lg')}>
-            <div className={cn("font-semibold py-3", activeTab === 'mfc' ? 'text-bolt-dark-purple font-bold' : 'text-slate-700')}>{providerName}</div>
+            <div className={cn("font-semibold py-3", activeTab === 'mfc' ? 'text-bolt-blue font-bold' : 'text-slate-700')}>{providerName}</div>
             {providerData.map((value, i) => <div key={i} className="py-3">{renderValue(value, activeTab === 'mfc')}</div>)}
           </div>
         </div>
@@ -101,7 +101,7 @@ export function ComparisonSection() {
       <div className="p-4 bg-white border shadow-lg rounded-2xl border-slate-200 sm:p-6">
         <div className="mb-12 text-center">
           <h2 className="mb-4 text-xl font-bold lg:text-4xl md:text-3xl text-slate-900">
-            Why professionals choose DirectDriveX
+            Why professionals choose Mfcnextgen
           </h2>
           <p className="max-w-2xl mx-auto text-sm lg:text-lg text-slate-600">
             Compare the leading file transfer solutions and see why thousands of professionals trust us for their secure file sharing needs.
