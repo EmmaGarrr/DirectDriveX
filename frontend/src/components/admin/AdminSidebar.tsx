@@ -63,15 +63,23 @@ const navSections = [
   },
 ];
 
-export function AdminSidebar({ collapsed }: { collapsed: boolean }) {
+export function AdminSidebar({ collapsed, onClose }: { collapsed: boolean; onClose?: () => void }) {
   const pathname = usePathname();
   const { isSuperAdmin } = useAdminAuth();
 
   return (
-    <aside className={cn(
-      "fixed top-20 left-0 h-[calc(100vh-80px)] z-30 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-r border-slate-400/20 dark:border-slate-400/10 transition-all duration-300 ease-in-out",
-      collapsed ? "w-[60px] overflow-hidden" : "w-[280px]"
-    )}>
+    <>
+      {/* Mobile overlay */}
+      {!collapsed && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+          onClick={onClose}
+        />
+      )}
+      <aside className={cn(
+        "fixed top-[80px] left-0 h-[calc(100vh-80px)] z-50 lg:mt-20 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-r border-slate-400/20 dark:border-slate-400/10 transition-all duration-300 ease-in-out lg:top-0 lg:h-full lg:z-30",
+        collapsed ? "-translate-x-full lg:translate-x-0 w-[60px] overflow-hidden" : "translate-x-0 w-[280px]"
+      )}>
       <div className="flex flex-col h-full">
         <nav className="flex-grow p-2 space-y-2 overflow-y-auto">
           {navSections.map(section => (
@@ -116,5 +124,6 @@ export function AdminSidebar({ collapsed }: { collapsed: boolean }) {
         </div>
       </div>
     </aside>
+    </>
   );
 }

@@ -38,14 +38,14 @@ export default function AdminPanelLayout({
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 dark:from-slate-900 dark:to-slate-800 text-slate-900 dark:text-slate-50">
       <AdminHeader onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)} />
-      <AdminSidebar collapsed={sidebarCollapsed} />
+      <AdminSidebar collapsed={sidebarCollapsed} onClose={() => setSidebarCollapsed(true)} />
       <main
         className={cn(
-          "pt-20 transition-[margin-left] duration-300 ease-in-out",
-          sidebarCollapsed ? "lg:ml-[60px]" : "lg:ml-[280px]"
+          "pt-20 transition-all duration-300 ease-in-out",
+          sidebarCollapsed ? "lg:ml-0" : "lg:ml-[280px]"
         )}
       >
-        <div className="p-4 sm:p-6 lg:p-8">
+        <div className="p-4">
           {children}
         </div>
       </main>
