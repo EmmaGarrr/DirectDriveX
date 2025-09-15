@@ -62,7 +62,7 @@ export function StatCard({ title, value, icon: Icon, status, isGdrive = false, a
           )}
         </div>
         <div className={cn(
-          "flex items-center justify-center w-12 h-12 rounded-xl text-white shadow-lg",
+          "flex items-center justify-center w-12 h-12 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700",
           isGdrive ? gdriveColors : statusColors[status]
         )}>
           <Icon className="w-6 h-6" />

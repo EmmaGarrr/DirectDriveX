@@ -77,7 +77,7 @@ export function AdminSidebar({ collapsed, onClose }: { collapsed: boolean; onClo
         />
       )}
       <aside className={cn(
-        "fixed top-[80px] left-0 h-[calc(100vh-80px)] z-50 lg:mt-20 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-r border-slate-400/20 dark:border-slate-400/10 transition-all duration-300 ease-in-out lg:top-0 lg:h-full lg:z-30",
+        "fixed top-[80px] left-0 h-[calc(100vh-80px)] z-50  bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-r border-slate-400/20 dark:border-slate-400/10 transition-all duration-300 ease-in-out lg:z-30",
         collapsed ? "-translate-x-full lg:translate-x-0 w-[60px] overflow-hidden" : "translate-x-0 w-[280px]"
       )}>
       <div className="flex flex-col h-full">
