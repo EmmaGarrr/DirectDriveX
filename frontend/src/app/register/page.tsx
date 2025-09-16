@@ -48,7 +48,7 @@ export default function RegisterPage() {
                 </span>
               </h2>
               <p className="text-lg text-slate-600 max-w-md">
-                Get started with DirectDrive and experience the most secure and
+                Get started with Mfcnextgen and experience the most secure and
                 efficient file storage platform.
               </p>
             </div>
