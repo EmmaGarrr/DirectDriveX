@@ -28,7 +28,7 @@ export const StorageDistribution: React.FC<StorageDistributionProps> = ({
   if (error) {
     return (
       <div className="p-6 border shadow-lg bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-slate-200/50 dark:border-slate-700/50 rounded-2xl">
-        <div className="flex items-center justify-center h-64">
+        <div className="flex items-center justify-center">
           <div className="text-center">
             <div className="w-8 h-8 mx-auto mb-2 text-red-500">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,7 +61,7 @@ export const StorageDistribution: React.FC<StorageDistributionProps> = ({
 
       {/* Content */}
       {loading ? (
-        <div className="flex items-center justify-center h-64">
+        <div className="flex items-center justify-center">
           <LoadingSpinner size="lg" />
         </div>
       ) : data ? (
@@ -132,7 +132,7 @@ export const StorageDistribution: React.FC<StorageDistributionProps> = ({
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-center h-64">
+        <div className="flex items-center justify-center">
           <div className="text-center">
             <HardDrive className="w-12 h-12 mx-auto mb-4 text-slate-400 dark:text-slate-500" />
             <p className="text-slate-500 dark:text-slate-400">No data available</p>

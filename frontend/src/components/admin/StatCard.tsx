@@ -32,13 +32,13 @@ export function StatCard({ title, value, icon: Icon, status, isGdrive = false, a
   };
 
   const statusColors = {
-    good: "from-emerald-500 to-green-600",
-    warning: "from-amber-500 to-orange-600",
-    critical: "from-red-500 to-rose-600",
-    unknown: "from-slate-400 to-slate-500",
+    good: "from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-green-700",
+    warning: "from-amber-500 to-orange-600 dark:from-amber-600 dark:to-orange-700",
+    critical: "from-red-500 to-rose-600 dark:from-red-600 dark:to-rose-700",
+    unknown: "from-slate-400 to-slate-500 dark:from-slate-500 dark:to-slate-600",
   };
 
-  const gdriveColors = "from-blue-500 to-sky-600";
+  const gdriveColors = "from-blue-500 to-sky-600 dark:from-blue-600 dark:to-sky-700";
 
   return (
     <div className="relative p-6 transition-all duration-300 border shadow-lg bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-slate-400/20 dark:border-slate-400/10 rounded-2xl shadow-slate-900/5 dark:shadow-black/10 hover:-translate-y-1 hover:shadow-xl">
@@ -62,7 +62,7 @@ export function StatCard({ title, value, icon: Icon, status, isGdrive = false, a
           )}
         </div>
         <div className={cn(
-          "flex items-center justify-center w-12 h-12 rounded-xl text-white shadow-lg",
+          "flex items-center justify-center w-12 h-12 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700",
           isGdrive ? gdriveColors : statusColors[status]
         )}>
           <Icon className="w-6 h-6" />

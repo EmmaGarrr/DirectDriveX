@@ -22,23 +22,25 @@ export function AdminHeader({ onToggleSidebar }: { onToggleSidebar: () => void }
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 h-20 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-b border-slate-400/20 dark:border-slate-400/10">
-      <div className="container mx-auto flex h-full items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="fixed top-0 left-0 right-0 z-50 h-20 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-b border-slate-400/20 dark:border-slate-400/10">
+      <div className="contaner mx-auto px-4 flex h-full items-center justify-between gap-2">
         <div className="flex items-center gap-4">
-          <button onClick={onToggleSidebar} className="p-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 lg:hidden">
-            <Menu className="h-6 w-6" />
+
+          <button onClick={onToggleSidebar} className="sm:size-10 size-8 rounded-md flex items-center justify-center bg-slate-200 dark:bg-slate-700 lg:hidden">
+            <Menu className="size-4 sm:size-5" />
           </button>
           <div>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-slate-50">mfcnextgen Admin Panel</h1>
+            <h1 className="sm:text-lg text-sm font-bold text-slate-900 dark:text-slate-50">mfcnextgen Admin Panel</h1>
             <p className="text-xs text-slate-600 dark:text-slate-300">Welcome, {adminUser?.email || 'Admin'}</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+
+        <div className="flex items-center sm:gap-4 gap-2">
           <div className="relative">
-            <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700">
-              <Bell className="h-5 w-5" />
+            <button onClick={() => setShowNotifications(!showNotifications)} className="relative sm:size-10 size-8 flex justify-center items-center rounded-full bg-slate-200 dark:bg-slate-700">
+              <Bell className="size-4 sm:size-5" />
               {notifications.length > 0 && (
-                <span className="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                <span className="absolute sm:-top-1 sm:-right-1 -top-0.5 -right-0.5 flex size-3.5 sm:size-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
                   {notifications.length}
                 </span>
               )}
@@ -69,13 +71,13 @@ export function AdminHeader({ onToggleSidebar }: { onToggleSidebar: () => void }
           </div>
           <ThemeToggle />
           <span className={cn(
-            "hidden sm:inline-block px-3 py-1 text-xs font-bold text-white rounded-full",
+            "hidden sm:inline-block p-3 text-xs font-bold text-white rounded-full",
             adminUser?.role === UserRole.SUPERADMIN ? "bg-gradient-to-r from-red-500 to-red-600" : "bg-gradient-to-r from-blue-500 to-blue-600"
           )}>
             {getRoleDisplayName(adminUser?.role)}
           </span>
-          <button onClick={logout} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700">
-            <LogOut className="h-5 w-5" />
+          <button onClick={logout} className="sm:size-10 size-8 rounded-full flex items-center justify-center bg-slate-200 dark:bg-slate-700">
+            <LogOut className="size-4 sm:size-5" />
           </button>
         </div>
       </div>

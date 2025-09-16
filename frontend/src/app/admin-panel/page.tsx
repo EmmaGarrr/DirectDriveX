@@ -82,10 +82,10 @@ export default function AdminDashboardPage() {
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-2 transition-colors rounded-full hover:bg-slate-200 dark:hover:bg-slate-700"
+                className="relative size-10 rounded-full flex items-center justify-center bg-slate-200 dark:bg-slate-700 transition-colors"
               >
-                <AlertCircle className="w-5 h-5 text-amber-500" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                <AlertCircle className="size-5" />
+                <span className="absolute -top-1 border -right-1.5 size-5 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
                   {notifications.length}
                 </span>
               </button>
@@ -141,10 +141,10 @@ export default function AdminDashboardPage() {
           <button 
             onClick={handleRefresh}
             disabled={isLoading}
-            className={`p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors
+            className={`size-10 rounded-full flex items-center justify-center bg-slate-200 dark:bg-slate-700 transition-colors
               ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
           >
-            <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`size-5  ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>

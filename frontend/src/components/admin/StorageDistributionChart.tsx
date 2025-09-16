@@ -67,14 +67,14 @@ export function StorageDistributionChart({
   }
   
   return (
-    <div className="h-full p-6 border shadow-lg bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-slate-400/20 dark:border-slate-400/10 rounded-2xl shadow-slate-900/5 dark:shadow-black/10">
-      <h3 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-50">Storage Distribution</h3>
+    <div className="h-[298px] p-6 border shadow-lg bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-slate-400/20 dark:border-slate-400/10 rounded-2xl shadow-slate-900/5 dark:shadow-black/10">
+      <h3 className="mb-8 text-lg font-semibold text-slate-900 dark:text-slate-50">Storage Distribution</h3>
       <div className="flex items-center justify-between mb-4">
         <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
           Total Storage: {formatBytes(totalStorage)}
         </span>
       </div>
-      <div className="space-y-4">
+      <div className="space-y-8">
         <ProgressBar 
           label="Google Drive" 
           value={googleDrivePercent} 
