@@ -340,14 +340,14 @@ common/autoinstallers/*/node_modules/
 
 # playwrite MCP - Rudra
 .playwright-mcp
+.claude
 $USERPROFILE
 node_modules
+ERROR_DOCUMENTATION.md
 playwright-examples.js
 PLAYWRIGHT-MCP-COMPLETE-SETUP.md
 playwright-mcp-config.json
 PLAYWRIGHT-MCP-SUMMARY.md
 PLAYWRIGHT-MCP-GUIDE.md
 test-playwright-mcp.js
-technical-issues-log.md
-test-playwright-mcp.js
-tests
+TESTING_WORKFLOW_PATTERN.md
