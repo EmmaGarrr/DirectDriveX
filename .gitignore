@@ -342,6 +342,8 @@ common/autoinstallers/*/node_modules/
 .playwright-mcp
 $USERPROFILE
 node_modules
+tests
+ERROR_DOCUMENTATION.md
 playwright-examples.js
 PLAYWRIGHT-MCP-COMPLETE-SETUP.md
 playwright-mcp-config.json

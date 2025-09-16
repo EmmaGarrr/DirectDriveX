@@ -248,7 +248,7 @@ export function AdminLoginForm() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="relative">
-          <Mail className="absolute w-5 h-5 transition-colors -translate-y-1/2 left-4 top-1/2 text-slate-400 dark:text-slate-300 peer-focus:text-blue-500 dark:peer-focus:text-blue-400" />
+          <Mail className="absolute w-5 h-5 transition-colors left-4 top-5 text-slate-400 dark:text-slate-300 peer-focus:text-blue-500 dark:peer-focus:text-blue-400" />
           <input
             id="email"
             type="email"
@@ -275,7 +275,7 @@ export function AdminLoginForm() {
         </div>
 
         <div className="relative">
-          <Lock className="absolute w-5 h-5 transition-colors -translate-y-1/2 left-4 top-1/2 text-slate-400 dark:text-slate-300 peer-focus:text-blue-500 dark:peer-focus:text-blue-400" />
+          <Lock className="absolute w-5 h-5 transition-colors left-4 top-5 text-slate-400 dark:text-slate-300 peer-focus:text-blue-500 dark:peer-focus:text-blue-400" />
           <input
             id="password"
             type={showPassword ? "text" : "password"}
@@ -299,7 +299,7 @@ export function AdminLoginForm() {
           <button
             type="button"
             onClick={togglePasswordVisibility}
-            className="absolute -translate-y-1/2 right-4 top-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-300 dark:hover:text-slate-50"
+            className="absolute right-4 top-5 text-slate-400 hover:text-slate-600 dark:text-slate-300 dark:hover:text-slate-50"
             aria-label={showPassword ? "Hide password" : "Show password"}
             disabled={loading}
           >
