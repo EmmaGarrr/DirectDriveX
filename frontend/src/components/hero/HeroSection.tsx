@@ -2,8 +2,15 @@
 
 import { Check } from 'lucide-react';
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
 export function HeroSection() {
+  const router = useRouter();
+
+  const handleClaimClick = () => {
+    router.push('/register');
+  };
+
   return (
     <div className="space-y-6 sm:space-y-8 lg:space-y-10">
       {/* Live Transfer Counter - Moved to Top */}
@@ -24,7 +31,7 @@ export function HeroSection() {
 
       {/* Primary CTA with Urgency */}
       <div className="space-y-4 sm:space-y-5">
-        <button className="w-full px-6 py-3 mb-3 text-base font-bold text-white transition-all shadow-lg bg-gradient-to-r from-bolt-blue to-bolt-mid-blue sm:py-4 sm:px-8 rounded-xl hover:shadow-xl hover:-translate-y-1 sm:text-lg sm:w-auto">
+        <button onClick={handleClaimClick} className="w-full px-6 py-3 mb-3 text-base font-bold text-white transition-all shadow-lg bg-gradient-to-r from-bolt-blue to-bolt-mid-blue sm:py-4 sm:px-8 rounded-xl hover:shadow-xl hover:-translate-y-1 sm:text-lg sm:w-auto">
           Claim Your 50GB Now - Free Forever
         </button>
         {/* Enhanced Urgency Element */}

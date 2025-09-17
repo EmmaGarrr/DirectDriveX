@@ -4,6 +4,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { Check, Star, X } from 'lucide-react';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const features = [
   { name: 'Free Storage', dropbox: '2GB', google: '15GB', mfc: '50GB' },
@@ -20,6 +21,11 @@ type Provider = 'dropbox' | 'google' | 'mfc';
 export function ComparisonSection() {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<Provider>('mfc');
+  const router = useRouter();
+
+  const handleGetStartedClick = () => {
+    router.push('/register');
+  };
 
   const renderValue = (value: string | boolean, isMfc: boolean) => {
     if (typeof value === 'boolean') {
@@ -110,8 +116,9 @@ export function ComparisonSection() {
         
         {isMobile ? <MobileView /> : <DesktopView />}
 
+        {/* Get Started Button */}
         <div className="text-center">
-          <button className="bg-gradient-to-r from-bolt-blue to-bolt-mid-blue text-white font-medium px-8 py-3 rounded-xl transition-all hover:shadow-xl hover:-translate-y-0.5">
+          <button onClick={handleGetStartedClick} className="bg-gradient-to-r from-bolt-blue to-bolt-mid-blue text-white font-medium px-8 py-3 rounded-xl transition-all hover:shadow-xl hover:-translate-y-0.5">
             Get Started - 50GB Free Forever
           </button>
           <p className="mt-5 text-sm text-slate-500">
