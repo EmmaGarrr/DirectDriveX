@@ -339,14 +339,28 @@ common/autoinstallers/*/node_modules/
 .nx/
 
 # playwrite MCP - Rudra
-.playwright-mcp
-$USERPROFILE
-node_modules
+
+# ===== DEVELOPMENT & TESTING TOOLS =====
+# Playwright MCP files and directories
+.playwright-mcp/
 playwright-examples.js
-PLAYWRIGHT-MCP-COMPLETE-SETUP.md
-playwright-mcp-config.json
-PLAYWRIGHT-MCP-SUMMARY.md
 PLAYWRIGHT-MCP-GUIDE.md
+PLAYWRIGHT-MCP-SUMMARY.md
+playwright-mcp-config.json
 test-playwright-mcp.js
-technical-issues-log.md
-test-playwright-mcp.js
+TESTING_WORKFLOW_PATTERN.md
+.tests/
+BUTTON_REDIRECT_IMPLEMENTATION.md
+BUTTON_REDIRECT_IMPLEMENTATION_REPORT.md
+BUTTON_REDIRECT_VERIFICATION_REPORT.md
+
+
+
+# Claude AI assistant files
+.claude/
+$USERPROFILE/
+
+# Error documentation and debugging files
+ERROR_DOCUMENTATION.md
+
+
