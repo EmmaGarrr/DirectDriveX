@@ -1,0 +1,281 @@
+{
+  "testConfiguration": {
+    "expectedDomain": "Mfcnextgen",
+    "incorrectDomains": ["DirectDriveX", "DirectDrive"],
+    "baseUrl": "http://localhost:4200",
+    "timeout": 30000,
+    "waitForLoadState": "networkidle"
+  },
+  "pages": [
+    {
+      "path": "/",
+      "name": "Homepage",
+      "priority": "high",
+      "description": "Main landing page"
+    },
+    {
+      "path": "/login",
+      "name": "Login Page",
+      "priority": "medium",
+      "description": "User authentication page"
+    },
+    {
+      "path": "/register",
+      "name": "Register Page",
+      "priority": "high",
+      "description": "User registration page"
+    },
+    {
+      "path": "/how-it-works",
+      "name": "How It Works",
+      "priority": "medium",
+      "description": "Feature explanation page"
+    },
+    {
+      "path": "/security",
+      "name": "Security Page",
+      "priority": "medium",
+      "description": "Security features page"
+    },
+    {
+      "path": "/enterprise",
+      "name": "Enterprise Page",
+      "priority": "medium",
+      "description": "Business solutions page"
+    },
+    {
+      "path": "/support",
+      "name": "Support Page",
+      "priority": "low",
+      "description": "Customer support page"
+    },
+    {
+      "path": "/privacy",
+      "name": "Privacy Policy",
+      "priority": "low",
+      "description": "Privacy policy page"
+    },
+    {
+      "path": "/terms",
+      "name": "Terms of Service",
+      "priority": "low",
+      "description": "Terms of service page"
+    },
+    {
+      "path": "/cookies",
+      "name": "Cookie Policy",
+      "priority": "low",
+      "description": "Cookie policy page"
+    },
+    {
+      "path": "/status",
+      "name": "System Status",
+      "priority": "low",
+      "description": "System status page"
+    },
+    {
+      "path": "/api-docs",
+      "name": "API Documentation",
+      "priority": "low",
+      "description": "API documentation page"
+    }
+  ],
+  "criticalSelectors": [
+    {
+      "selector": "title",
+      "name": "Page Title",
+      "priority": "critical"
+    },
+    {
+      "selector": "meta[name=\"description\"]",
+      "name": "Meta Description",
+      "attribute": "content",
+      "priority": "high"
+    },
+    {
+      "selector": "header h1",
+      "name": "Header H1",
+      "priority": "critical"
+    },
+    {
+      "selector": "header h2",
+      "name": "Header H2",
+      "priority": "critical"
+    },
+    {
+      "selector": "header h3",
+      "name": "Header H3",
+      "priority": "high"
+    },
+    {
+      "selector": "header a",
+      "name": "Header Links",
+      "priority": "critical"
+    },
+    {
+      "selector": "header span",
+      "name": "Header Spans",
+      "priority": "high"
+    },
+    {
+      "selector": ".hero h1",
+      "name": "Hero H1",
+      "priority": "critical"
+    },
+    {
+      "selector": ".hero h2",
+      "name": "Hero H2",
+      "priority": "critical"
+    },
+    {
+      "selector": ".hero p",
+      "name": "Hero Paragraphs",
+      "priority": "critical"
+    },
+    {
+      "selector": ".hero span",
+      "name": "Hero Spans",
+      "priority": "high"
+    },
+    {
+      "selector": "main h1",
+      "name": "Main H1",
+      "priority": "critical"
+    },
+    {
+      "selector": "main h2",
+      "name": "Main H2",
+      "priority": "critical"
+    },
+    {
+      "selector": "main h3",
+      "name": "Main H3",
+      "priority": "high"
+    },
+    {
+      "selector": "main p",
+      "name": "Main Paragraphs",
+      "priority": "high"
+    },
+    {
+      "selector": "main a",
+      "name": "Main Links",
+      "priority": "high"
+    },
+    {
+      "selector": "main button",
+      "name": "Main Buttons",
+      "priority": "high"
+    },
+    {
+      "selector": ".comparison h1",
+      "name": "Comparison H1",
+      "priority": "critical"
+    },
+    {
+      "selector": ".comparison h2",
+      "name": "Comparison H2",
+      "priority": "critical"
+    },
+    {
+      "selector": ".comparison h3",
+      "name": "Comparison H3",
+      "priority": "critical"
+    },
+    {
+      "selector": ".comparison th",
+      "name": "Comparison Table Headers",
+      "priority": "critical"
+    },
+    {
+      "selector": ".comparison td",
+      "name": "Comparison Table Cells",
+      "priority": "high"
+    },
+    {
+      "selector": "footer h1",
+      "name": "Footer H1",
+      "priority": "high"
+    },
+    {
+      "selector": "footer h2",
+      "name": "Footer H2",
+      "priority": "high"
+    },
+    {
+      "selector": "footer h3",
+      "name": "Footer H3",
+      "priority": "high"
+    },
+    {
+      "selector": "footer p",
+      "name": "Footer Paragraphs",
+      "priority": "high"
+    },
+    {
+      "selector": "footer a",
+      "name": "Footer Links",
+      "priority": "high"
+    },
+    {
+      "selector": "h1",
+      "name": "All H1",
+      "priority": "critical"
+    },
+    {
+      "selector": "h2",
+      "name": "All H2",
+      "priority": "critical"
+    },
+    {
+      "selector": "h3",
+      "name": "All H3",
+      "priority": "high"
+    },
+    {
+      "selector": "p",
+      "name": "All Paragraphs",
+      "priority": "high"
+    },
+    {
+      "selector": "a",
+      "name": "All Links",
+      "priority": "high"
+    },
+    {
+      "selector": "button",
+      "name": "All Buttons",
+      "priority": "high"
+    }
+  ],
+  "knownIssues": [
+    {
+      "page": "Homepage",
+      "element": "h2 with class 'mb-4 text-xl font-bold lg:text-4xl md:text-3xl text-slate-900'",
+      "issue": "Contains 'DirectDriveX' instead of 'Mfcnextgen'",
+      "priority": "critical",
+      "location": "Comparison section heading"
+    },
+    {
+      "page": "Homepage",
+      "element": "Comparison table headers",
+      "issue": "Contains 'DirectDriveX' instead of 'Mfcnextgen'",
+      "priority": "critical",
+      "location": "Comparison table"
+    },
+    {
+      "page": "Register Page",
+      "element": "p with class 'text-lg text-slate-600 max-w-md'",
+      "issue": "Contains 'DirectDrive' instead of 'Mfcnextgen'",
+      "priority": "critical",
+      "location": "Hero section paragraph"
+    }
+  ],
+  "reporting": {
+    "outputFormat": "console",
+    "logLevel": "detailed",
+    "includeScreenshots": false,
+    "saveReport": false,
+    "failOnCritical": true
+  }
+}

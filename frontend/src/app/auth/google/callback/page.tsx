@@ -44,8 +44,8 @@ function GoogleCallbackContent() {
           // Show success message
           await showToastAndWait('success', 'Google authentication successful! Welcome to DirectDrive.');
           
-          // Navigate to dashboard or home page
-          router.replace('/dashboard');
+          // Navigate to profile or home page
+          router.replace('/profile');
           
         } catch (error: any) {
           console.error('Google callback error:', error);

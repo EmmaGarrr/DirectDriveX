@@ -125,7 +125,7 @@ This document outlines the complete implementation of the registration functiona
 1. The registration form is ready to use in `/register`
 2. Google OAuth callback is handled at `/auth/google/callback`
 3. Successful registration redirects to `/login`
-4. Successful Google auth redirects to `/dashboard`
+4. Successful Google auth redirects to `/profile`
 
 ### API Requirements
 The backend should provide:
